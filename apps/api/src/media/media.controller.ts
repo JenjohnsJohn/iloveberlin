@@ -35,7 +35,7 @@ export class MediaController {
     return this.mediaService.presign(dto);
   }
 
-  @Put('upload/:storageKey(*)')
+  @Put('upload/:storageKey')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.EDITOR, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @UseInterceptors(FileInterceptor('file'))
