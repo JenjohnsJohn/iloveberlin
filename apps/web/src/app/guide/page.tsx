@@ -9,58 +9,6 @@ export const metadata: Metadata = {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-// Fallback topics in case API is unavailable or empty
-const FALLBACK_TOPICS = [
-  {
-    name: 'Living in Berlin',
-    slug: 'living-in-berlin',
-    icon: 'HOME',
-    description: 'Everything you need to know about settling in and making Berlin your home.',
-  },
-  {
-    name: 'Transportation',
-    slug: 'transportation',
-    icon: 'TRAIN',
-    description: 'Navigate the city like a local with guides on BVG, cycling, and more.',
-  },
-  {
-    name: 'Laws & Regulations',
-    slug: 'laws',
-    icon: 'SCALE',
-    description: 'Understand the rules that shape daily life in Berlin and Germany.',
-  },
-  {
-    name: 'Culture & Lifestyle',
-    slug: 'culture',
-    icon: 'PALETTE',
-    description: 'Immerse yourself in Berlin\'s vibrant arts, music, and cultural scene.',
-  },
-  {
-    name: 'Visiting Berlin',
-    slug: 'visiting-berlin',
-    icon: 'CAMERA',
-    description: 'Plan your trip with insider tips on what to see, do, and experience.',
-  },
-  {
-    name: 'Work & Business',
-    slug: 'work-and-business',
-    icon: 'BRIEFCASE',
-    description: 'Find opportunities, coworking spaces, and business advice for Berlin.',
-  },
-  {
-    name: 'Places to See',
-    slug: 'places-to-see',
-    icon: 'MAP',
-    description: 'Discover iconic landmarks, hidden gems, and must-visit neighbourhoods.',
-  },
-  {
-    name: 'Who\'s Who',
-    slug: 'whos-who',
-    icon: 'PEOPLE',
-    description: 'Meet the people, communities, and organisations shaping Berlin today.',
-  },
-];
-
 interface TopicData {
   name: string;
   slug: string;
@@ -86,9 +34,9 @@ async function getTopics(): Promise<TopicData[]> {
       }
     }
   } catch {
-    // Fall back to hardcoded topics
+    // API unavailable
   }
-  return FALLBACK_TOPICS;
+  return [];
 }
 
 // Map icon names from DB to SVG components
@@ -184,29 +132,35 @@ export default async function GuideLandingPage() {
 
       {/* Topics Grid */}
       <section>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {topics.map((topic) => (
-            <Link
-              key={topic.slug}
-              href={`/guide/${topic.slug}`}
-              className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-primary-300 transition-all duration-200"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center mb-4 group-hover:bg-primary-100 transition-colors">
-                  <TopicIcon icon={topic.icon} />
+        {topics.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {topics.map((topic) => (
+              <Link
+                key={topic.slug}
+                href={`/guide/${topic.slug}`}
+                className="group bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-primary-300 transition-all duration-200"
+              >
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center mb-4 group-hover:bg-primary-100 transition-colors">
+                    <TopicIcon icon={topic.icon} />
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">
+                    {topic.name}
+                  </h2>
+                  {topic.description && (
+                    <p className="text-sm text-gray-500 leading-relaxed">
+                      {topic.description}
+                    </p>
+                  )}
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">
-                  {topic.name}
-                </h2>
-                {topic.description && (
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    {topic.description}
-                  </p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-gray-500">No guide topics available yet. Check back soon!</p>
+          </div>
+        )}
       </section>
     </div>
   );

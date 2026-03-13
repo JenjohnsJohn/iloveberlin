@@ -10,238 +10,39 @@ import { VideoCard } from '@/components/videos/video-card';
 import type { VideoCardData } from '@/components/videos/video-card';
 import apiClient from '@/lib/api-client';
 
-// ─── Fallback Data ──────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────
 
-const FALLBACK_HERO_STORY = {
-  slug: 'berlin-spring-festival-2026',
-  title: 'Berlin Spring Festival 2026: Everything You Need to Know',
-  excerpt:
-    'The annual Berlin Spring Festival returns with over 200 events across the city. Here is your complete guide to the best exhibitions, performances, and experiences this season.',
-  featuredImage: null as string | null,
-  category: 'Things to Do',
-  categorySlug: 'things-to-do',
-};
+interface HeroStory {
+  slug: string;
+  title: string;
+  excerpt: string;
+  featuredImage: string | null;
+  category: string;
+  categorySlug: string;
+}
 
-const FALLBACK_TRENDING_ARTICLES: ArticleCardData[] = [
-  {
-    slug: 'berlin-new-art-exhibition-opens',
-    title: 'Stunning New Art Exhibition Opens at Hamburger Bahnhof',
-    excerpt:
-      'The renowned contemporary art museum unveils a groundbreaking exhibition featuring works from international artists exploring urban identity.',
-    featuredImage: null,
-    category: 'Arts & Culture',
-    categorySlug: 'arts-culture',
-    author: { name: 'Anna Schmidt', avatarUrl: null },
-    publishedAt: 'Mar 10, 2026',
-    readTime: 5,
-  },
-  {
-    slug: 'berlin-tech-startup-raises-funding',
-    title: 'Berlin Tech Startup Raises \u20AC50M in Series B Funding',
-    excerpt:
-      'A promising Berlin-based AI startup has secured significant funding to expand its operations across Europe and beyond.',
-    featuredImage: null,
-    category: 'Technology',
-    categorySlug: 'technology',
-    author: { name: 'Marcus Weber', avatarUrl: null },
-    publishedAt: 'Mar 9, 2026',
-    readTime: 4,
-  },
-  {
-    slug: 'kreuzberg-street-food-festival',
-    title: 'Kreuzberg Street Food Festival Returns This Weekend',
-    excerpt:
-      'The beloved annual street food festival brings together over 100 vendors from around the world to the heart of Kreuzberg.',
-    featuredImage: null,
-    category: 'Things to Do',
-    categorySlug: 'things-to-do',
-    author: { name: 'Lisa Hoffmann', avatarUrl: null },
-    publishedAt: 'Mar 8, 2026',
-    readTime: 3,
-  },
-];
+interface DiningHighlight {
+  slug: string;
+  name: string;
+  cuisineType: string;
+  district: string;
+  priceRange: string;
+  rating: number;
+}
 
-const FALLBACK_FEATURED_EVENTS: EventCardData[] = [
-  {
-    slug: 'berlin-art-week-2026',
-    title: 'Berlin Art Week 2026',
-    excerpt:
-      'A week-long celebration of contemporary art featuring galleries, museums, and pop-up exhibitions across Berlin.',
-    featuredImage: null,
-    category: 'Arts & Culture',
-    categorySlug: 'arts-culture',
-    venueName: 'Various Locations',
-    startDate: '2026-03-14',
-    startTime: '10:00',
-    endTime: '20:00',
-    isFree: false,
-    price: 15,
-    priceMax: 45,
-  },
-  {
-    slug: 'kreuzberg-street-food-market',
-    title: 'Kreuzberg Street Food Market',
-    excerpt:
-      'Over 50 food vendors from around the world gather at Markthalle Neun for a weekend of culinary exploration.',
-    featuredImage: null,
-    category: 'Food & Dining',
-    categorySlug: 'food-dining',
-    venueName: 'Markthalle Neun',
-    startDate: '2026-03-14',
-    startTime: '11:00',
-    endTime: '22:00',
-    isFree: true,
-    price: null,
-    priceMax: null,
-  },
-  {
-    slug: 'berlin-philharmonic-spring-concert',
-    title: 'Berlin Philharmonic: Spring Gala Concert',
-    excerpt:
-      'An evening of classical masterpieces performed by one of the finest orchestras in the world.',
-    featuredImage: null,
-    category: 'Entertainment',
-    categorySlug: 'entertainment',
-    venueName: 'Berliner Philharmonie',
-    startDate: '2026-03-15',
-    startTime: '19:30',
-    endTime: '22:00',
-    isFree: false,
-    price: 35,
-    priceMax: 120,
-  },
-];
+interface CompetitionItem {
+  slug: string;
+  title: string;
+  prize: string;
+  endsAt: string;
+}
 
-const FALLBACK_WEEKEND_PICKS: EventCardData[] = [
-  {
-    slug: 'techno-night-berghain-march',
-    title: 'Panorama Bar: Spring Edition',
-    excerpt:
-      'An unforgettable night of techno and house music at one of the most iconic clubs in the world.',
-    featuredImage: null,
-    category: 'Nightlife',
-    categorySlug: 'nightlife',
-    venueName: 'Berghain',
-    startDate: '2026-03-14',
-    startTime: '23:59',
-    endTime: null,
-    isFree: false,
-    price: 18,
-    priceMax: null,
-  },
-  {
-    slug: 'berlin-marathon-training-run',
-    title: 'Berlin Marathon Community Training Run',
-    excerpt:
-      'Join fellow runners for a group training session through Tiergarten.',
-    featuredImage: null,
-    category: 'Sports',
-    categorySlug: 'sports',
-    venueName: 'Tiergarten',
-    startDate: '2026-03-15',
-    startTime: '08:00',
-    endTime: '10:00',
-    isFree: true,
-    price: null,
-    priceMax: null,
-  },
-];
-
-const FALLBACK_DINING_HIGHLIGHTS = [
-  {
-    slug: 'coda-dessert-bar',
-    name: 'CODA Dessert Dining',
-    cuisineType: 'Dessert Bar',
-    district: 'Neukoelln',
-    priceRange: '\u20AC\u20AC\u20AC',
-    rating: 4.8,
-  },
-  {
-    slug: 'markthalle-neun',
-    name: 'Markthalle Neun',
-    cuisineType: 'Food Hall',
-    district: 'Kreuzberg',
-    priceRange: '\u20AC\u20AC',
-    rating: 4.5,
-  },
-  {
-    slug: 'mustafas-gemuese-kebab',
-    name: 'Mustafas Gemuese Kebab',
-    cuisineType: 'Street Food',
-    district: 'Kreuzberg',
-    priceRange: '\u20AC',
-    rating: 4.6,
-  },
-];
-
-const FALLBACK_LATEST_VIDEOS: VideoCardData[] = [
-  {
-    slug: 'best-currywurst-in-berlin',
-    title: 'The Best Currywurst in Berlin - A Local\'s Guide',
-    thumbnailUrl: null,
-    seriesName: 'BTips',
-    seriesSlug: 'btips',
-    durationSeconds: 480,
-    publishedAt: '2026-03-10T12:00:00Z',
-    videoProvider: 'youtube',
-  },
-  {
-    slug: 'dine-out-kreuzberg-special',
-    title: 'Dine Out: Kreuzberg\'s Hidden Gems',
-    thumbnailUrl: null,
-    seriesName: 'Dine Out Berlin',
-    seriesSlug: 'dine-out-berlin',
-    durationSeconds: 720,
-    publishedAt: '2026-03-08T12:00:00Z',
-    videoProvider: 'youtube',
-  },
-  {
-    slug: 'made-in-berlin-craft-beer',
-    title: 'Made in Berlin: The Craft Beer Revolution',
-    thumbnailUrl: null,
-    seriesName: 'Made in Berlin',
-    seriesSlug: 'made-in-berlin',
-    durationSeconds: 600,
-    publishedAt: '2026-03-06T12:00:00Z',
-    videoProvider: 'youtube',
-  },
-];
-
-const FALLBACK_COMPETITIONS = [
-  {
-    slug: 'win-berlin-art-week-vip-passes',
-    title: 'Win VIP Passes to Berlin Art Week 2026',
-    prize: '2x VIP Passes (worth \u20AC200)',
-    endsAt: 'Mar 13, 2026',
-  },
-  {
-    slug: 'win-dinner-for-two-coda',
-    title: 'Win a Dinner for Two at CODA Dessert Bar',
-    prize: 'Dinner for 2 (worth \u20AC150)',
-    endsAt: 'Mar 20, 2026',
-  },
-];
-
-const FALLBACK_CLASSIFIEDS = [
-  {
-    slug: 'furnished-apartment-mitte',
-    title: 'Furnished 2-Room Apartment in Mitte',
-    category: 'Housing',
-    price: '\u20AC1,200/mo',
-  },
-  {
-    slug: 'vintage-bicycle-kreuzberg',
-    title: 'Vintage Bicycle - Great Condition',
-    category: 'For Sale',
-    price: '\u20AC180',
-  },
-  {
-    slug: 'german-language-exchange',
-    title: 'German-English Language Exchange Partner Wanted',
-    category: 'Community',
-    price: 'Free',
-  },
-];
+interface ClassifiedItem {
+  slug: string;
+  title: string;
+  category: string;
+  price: string;
+}
 
 // ─── Section Header Component ──────────────────────────────
 
@@ -344,14 +145,15 @@ const SECTIONS = [
 // ─── Homepage ──────────────────────────────────────────────
 
 export default function HomePage() {
-  const [heroStory, setHeroStory] = useState(FALLBACK_HERO_STORY);
-  const [trendingArticles, setTrendingArticles] = useState<ArticleCardData[]>(FALLBACK_TRENDING_ARTICLES);
-  const [featuredEvents, setFeaturedEvents] = useState<EventCardData[]>(FALLBACK_FEATURED_EVENTS);
-  const [weekendPicks, setWeekendPicks] = useState<EventCardData[]>(FALLBACK_WEEKEND_PICKS);
-  const [diningHighlights, setDiningHighlights] = useState(FALLBACK_DINING_HIGHLIGHTS);
-  const [latestVideos, setLatestVideos] = useState<VideoCardData[]>(FALLBACK_LATEST_VIDEOS);
-  const [competitions, setCompetitions] = useState(FALLBACK_COMPETITIONS);
-  const [classifieds, setClassifieds] = useState(FALLBACK_CLASSIFIEDS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [heroStory, setHeroStory] = useState<HeroStory | null>(null);
+  const [trendingArticles, setTrendingArticles] = useState<ArticleCardData[]>([]);
+  const [featuredEvents, setFeaturedEvents] = useState<EventCardData[]>([]);
+  const [weekendPicks, setWeekendPicks] = useState<EventCardData[]>([]);
+  const [diningHighlights, setDiningHighlights] = useState<DiningHighlight[]>([]);
+  const [latestVideos, setLatestVideos] = useState<VideoCardData[]>([]);
+  const [competitions, setCompetitions] = useState<CompetitionItem[]>([]);
+  const [classifieds, setClassifieds] = useState<ClassifiedItem[]>([]);
 
   useEffect(() => {
     async function fetchHomepageData() {
@@ -493,7 +295,7 @@ export default function HomePage() {
       }
     }
 
-    fetchHomepageData();
+    fetchHomepageData().finally(() => setIsLoading(false));
   }, []);
 
   return (
@@ -501,51 +303,79 @@ export default function HomePage() {
       {/* Hero Section with Featured Story */}
       <section className="bg-gradient-to-br from-primary-500 to-primary-700 text-white py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-4">
-                Featured Story
-              </span>
-              <h1 className="text-3xl md:text-5xl font-bold mb-4">
-                {heroStory.title}
-              </h1>
-              <p className="text-lg text-white/80 mb-6 max-w-xl">
-                {heroStory.excerpt}
-              </p>
-              <div className="flex items-center gap-4 flex-wrap">
-                <Link
-                  href={`/news/${heroStory.slug}`}
-                  className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
-                >
-                  Read More
-                </Link>
-                <Link
-                  href="/events"
-                  className="px-6 py-3 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/30"
-                >
-                  Explore Events
-                </Link>
+          {isLoading ? (
+            <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="h-6 bg-white/20 rounded-full w-32 mb-4" />
+                <div className="h-12 bg-white/20 rounded w-3/4 mb-4" />
+                <div className="h-6 bg-white/10 rounded w-full mb-6" />
+                <div className="flex gap-4">
+                  <div className="h-12 bg-white/20 rounded-lg w-32" />
+                  <div className="h-12 bg-white/10 rounded-lg w-36" />
+                </div>
+              </div>
+              <div className="aspect-[4/3] bg-white/10 rounded-xl" />
+            </div>
+          ) : heroStory ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-4">
+                  Featured Story
+                </span>
+                <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                  {heroStory.title}
+                </h1>
+                <p className="text-lg text-white/80 mb-6 max-w-xl">
+                  {heroStory.excerpt}
+                </p>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <Link
+                    href={`/news/${heroStory.slug}`}
+                    className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+                  >
+                    Read More
+                  </Link>
+                  <Link
+                    href="/events"
+                    className="px-6 py-3 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/30"
+                  >
+                    Explore Events
+                  </Link>
+                </div>
+              </div>
+              <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-white/10">
+                {heroStory.featuredImage ? (
+                  <img
+                    src={heroStory.featuredImage}
+                    alt={heroStory.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <svg className="w-24 h-24 text-primary-300/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+                <span className="absolute top-4 left-4 px-3 py-1 bg-primary-600 text-white text-sm font-semibold rounded-full">
+                  {heroStory.category}
+                </span>
               </div>
             </div>
-            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-white/10">
-              {heroStory.featuredImage ? (
-                <img
-                  src={heroStory.featuredImage}
-                  alt={heroStory.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <svg className="w-24 h-24 text-primary-300/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              )}
-              <span className="absolute top-4 left-4 px-3 py-1 bg-primary-600 text-white text-sm font-semibold rounded-full">
-                {heroStory.category}
-              </span>
+          ) : (
+            <div className="text-center py-8">
+              <h1 className="text-3xl md:text-5xl font-bold mb-4">Welcome to ILoveBerlin</h1>
+              <p className="text-lg text-white/80 mb-6 max-w-xl mx-auto">
+                Your digital guide to Berlin life — news, events, dining, guides, and more.
+              </p>
+              <Link
+                href="/news"
+                className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+              >
+                Explore Content
+              </Link>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -571,40 +401,47 @@ export default function HomePage() {
       </section>
 
       {/* Trending in Berlin */}
-      <section className="bg-primary-50/40 py-12">
-        <div className="container mx-auto px-4">
-          <SectionHeader title="Trending in Berlin" href="/news" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {trendingArticles.map((article) => (
-              <ArticleCard key={article.slug} article={article} />
-            ))}
+      {trendingArticles.length > 0 && (
+        <section className="bg-primary-50/40 py-12">
+          <div className="container mx-auto px-4">
+            <SectionHeader title="Trending in Berlin" href="/news" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {trendingArticles.map((article) => (
+                <ArticleCard key={article.slug} article={article} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured Events */}
-      <section className="container mx-auto px-4 py-12">
-        <SectionHeader title="Featured Events" href="/events" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredEvents.map((event) => (
-            <EventCard key={event.slug} event={event} />
-          ))}
-        </div>
-      </section>
-
-      {/* Weekend Picks */}
-      <section className="bg-primary-50/40 py-12">
-        <div className="container mx-auto px-4">
-          <SectionHeader title="Weekend Picks" href="/events" linkText="See all weekend events" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {weekendPicks.map((event) => (
+      {featuredEvents.length > 0 && (
+        <section className="container mx-auto px-4 py-12">
+          <SectionHeader title="Featured Events" href="/events" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredEvents.map((event) => (
               <EventCard key={event.slug} event={event} />
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Weekend Picks */}
+      {weekendPicks.length > 0 && (
+        <section className="bg-primary-50/40 py-12">
+          <div className="container mx-auto px-4">
+            <SectionHeader title="Weekend Picks" href="/events" linkText="See all weekend events" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {weekendPicks.map((event) => (
+                <EventCard key={event.slug} event={event} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Dining Highlights */}
+      {diningHighlights.length > 0 && (
       <section className="container mx-auto px-4 py-12">
         <SectionHeader title="Dining Highlights" href="/dining" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -640,20 +477,24 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Latest Videos */}
-      <section className="bg-primary-50/40 py-12">
-        <div className="container mx-auto px-4">
-          <SectionHeader title="Latest Videos" href="/videos" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {latestVideos.map((video) => (
-              <VideoCard key={video.slug} video={video} />
-            ))}
+      {latestVideos.length > 0 && (
+        <section className="bg-primary-50/40 py-12">
+          <div className="container mx-auto px-4">
+            <SectionHeader title="Latest Videos" href="/videos" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {latestVideos.map((video) => (
+                <VideoCard key={video.slug} video={video} />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Active Competitions */}
+      {competitions.length > 0 && (
       <section className="container mx-auto px-4 py-12">
         <SectionHeader title="Active Competitions" href="/competitions" linkText="See all competitions" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -686,8 +527,10 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Featured Classifieds */}
+      {classifieds.length > 0 && (
       <section className="bg-primary-50/40 py-12">
         <div className="container mx-auto px-4">
           <SectionHeader title="Featured Classifieds" href="/classifieds" linkText="Browse all classifieds" />
@@ -712,6 +555,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import apiClient from '@/lib/api-client';
 
 const footerLinks = {
   platform: [
@@ -36,8 +37,7 @@ function NewsletterSignup() {
     setMessage('');
 
     try {
-      // Mock subscribe - in production this would call the API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await apiClient.post('/notifications/newsletter/subscribe', { email });
       setStatus('success');
       setMessage('Thanks for subscribing! Please check your email to confirm.');
       setEmail('');

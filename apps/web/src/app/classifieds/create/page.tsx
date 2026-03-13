@@ -16,15 +16,6 @@ interface CategoryOption {
   field_schema: CategoryFieldDefinition[];
 }
 
-const FALLBACK_CATEGORIES: CategoryOption[] = [
-  { id: '', name: 'Vehicles', slug: 'vehicles', description: 'Cars, motorcycles, bicycles', field_schema: [] },
-  { id: '', name: 'Services', slug: 'services', description: 'Professional & personal services', field_schema: [] },
-  { id: '', name: 'Property', slug: 'property', description: 'Apartments, rooms, spaces', field_schema: [] },
-  { id: '', name: 'Electronics', slug: 'electronics', description: 'Computers, phones, gadgets', field_schema: [] },
-  { id: '', name: 'Furniture', slug: 'furniture', description: 'Home furniture & decor', field_schema: [] },
-  { id: '', name: 'Jobs', slug: 'jobs', description: 'Employment opportunities', field_schema: [] },
-  { id: '', name: 'Other', slug: 'other', description: 'Everything else', field_schema: [] },
-];
 
 const DISTRICTS = [
   'Mitte',
@@ -109,7 +100,7 @@ function formatPrice(price: string, priceType: string): string {
 
 export default function CreateListingPage() {
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState<CategoryOption[]>(FALLBACK_CATEGORIES);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [formData, setFormData] = useState<FormData>({
     categoryId: '',
     categorySlug: '',
