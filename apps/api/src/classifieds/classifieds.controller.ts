@@ -95,18 +95,18 @@ export class ClassifiedsController {
     return this.classifiedsService.findAllAdmin(query);
   }
 
-  @Get('admin/:slug')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  adminFindBySlug(@Param('slug') slug: string) {
-    return this.classifiedsService.findBySlug(slug, false);
-  }
-
   @Get('admin/reports')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   getReports() {
     return this.classifiedsService.findAllReports();
+  }
+
+  @Get('admin/:slug')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  adminFindBySlug(@Param('slug') slug: string) {
+    return this.classifiedsService.findBySlug(slug, false);
   }
 
   @Put('admin/categories/:id/schema')

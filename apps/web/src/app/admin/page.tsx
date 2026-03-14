@@ -108,15 +108,37 @@ const STAT_ICON_CONFIG: Record<
       </svg>
     ),
   },
-  pageViewsToday: {
-    label: 'Page Views Today',
-    href: '#',
+  totalGuides: {
+    label: 'Total Guides',
+    href: '/admin/guides',
     iconBg: 'bg-primary-100',
     iconColor: 'text-primary-600',
     icon: (cls: string) => (
       <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+      </svg>
+    ),
+  },
+  totalClassifieds: {
+    label: 'Total Classifieds',
+    href: '/admin/classifieds',
+    iconBg: 'bg-primary-50',
+    iconColor: 'text-primary-500',
+    icon: (cls: string) => (
+      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
+      </svg>
+    ),
+  },
+  totalProducts: {
+    label: 'Total Products',
+    href: '/admin/store',
+    iconBg: 'bg-primary-100',
+    iconColor: 'text-primary-600',
+    icon: (cls: string) => (
+      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
       </svg>
     ),
   },
@@ -131,6 +153,18 @@ const STAT_ICON_CONFIG: Record<
       </svg>
     ),
   },
+  pageViewsToday: {
+    label: 'Page Views Today',
+    href: '#',
+    iconBg: 'bg-primary-100',
+    iconColor: 'text-primary-600',
+    icon: (cls: string) => (
+      <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+    ),
+  },
 };
 
 // Known stat keys in display order
@@ -140,8 +174,11 @@ const STAT_KEYS_ORDER = [
   'totalEvents',
   'totalRestaurants',
   'totalVideos',
-  'pageViewsToday',
+  'totalGuides',
+  'totalClassifieds',
+  'totalProducts',
   'activeCompetitions',
+  'pageViewsToday',
 ];
 
 // ─── Map API Response to Stat Cards ──────────────────────────
@@ -295,6 +332,7 @@ const TYPE_BADGE_STYLES: Record<string, string> = {
   article: 'bg-blue-100 text-blue-800',
   event: 'bg-purple-100 text-purple-800',
   video: 'bg-orange-100 text-orange-800',
+  guide: 'bg-green-100 text-green-800',
 };
 
 const ACTION_STYLES: Record<string, string> = {
@@ -571,7 +609,7 @@ export default function AdminDashboardPage() {
       {statsError && <ErrorBanner message={statsError} onRetry={fetchStats} />}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statsLoading
-          ? Array.from({ length: 7 }).map((_, i) => <StatCardSkeleton key={i} />)
+          ? Array.from({ length: 10 }).map((_, i) => <StatCardSkeleton key={i} />)
           : stats.map((stat) => (
               <Link
                 key={stat.label}

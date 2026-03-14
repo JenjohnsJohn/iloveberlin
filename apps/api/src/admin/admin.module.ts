@@ -10,6 +10,9 @@ import { Event } from '../events/entities/event.entity';
 import { Restaurant } from '../dining/entities/restaurant.entity';
 import { Video } from '../videos/entities/video.entity';
 import { Competition } from '../competitions/entities/competition.entity';
+import { Guide } from '../guides/entities/guide.entity';
+import { Classified } from '../classifieds/entities/classified.entity';
+import { Product } from '../store/entities/product.entity';
 import { PageView } from '../analytics/entities/page-view.entity';
 import { AdminService } from './admin.service';
 import { SettingsService } from './settings.service';
@@ -22,7 +25,8 @@ import { UsersModule } from '../users/users.module';
   imports: [
     TypeOrmModule.forFeature([
       ActivityLog, AdCampaign, AdPlacement, SiteSetting,
-      User, Article, Event, Restaurant, Video, Competition, PageView,
+      User, Article, Event, Restaurant, Video, Competition,
+      Guide, Classified, Product, PageView,
     ]),
     UsersModule,
   ],

@@ -8,6 +8,9 @@ import { Event } from '../events/entities/event.entity';
 import { Restaurant } from '../dining/entities/restaurant.entity';
 import { Video } from '../videos/entities/video.entity';
 import { Competition, CompetitionStatus } from '../competitions/entities/competition.entity';
+import { Guide } from '../guides/entities/guide.entity';
+import { Classified } from '../classifieds/entities/classified.entity';
+import { Product } from '../store/entities/product.entity';
 import { PageView } from '../analytics/entities/page-view.entity';
 
 @Injectable()
@@ -27,25 +30,26 @@ export class AdminService {
     private readonly videoRepository: Repository<Video>,
     @InjectRepository(Competition)
     private readonly competitionRepository: Repository<Competition>,
+    @InjectRepository(Guide)
+    private readonly guideRepository: Repository<Guide>,
+    @InjectRepository(Classified)
+    private readonly classifiedRepository: Repository<Classified>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
     @InjectRepository(PageView)
     private readonly pageViewRepository: Repository<PageView>,
   ) {}
 
-  async getDashboardStats(): Promise<{
-    totalUsers: number;
-    totalArticles: number;
-    totalEvents: number;
-    totalRestaurants: number;
-    totalVideos: number;
-    pageViewsToday: number;
-    activeCompetitions: number;
-  }> {
+  async getDashboardStats() {
     const [
       totalUsers,
       totalArticles,
       totalEvents,
       totalRestaurants,
       totalVideos,
+      totalGuides,
+      totalClassifieds,
+      totalProducts,
       activeCompetitions,
       pageViewsToday,
     ] = await Promise.all([
@@ -54,6 +58,9 @@ export class AdminService {
       this.eventRepository.count(),
       this.restaurantRepository.count(),
       this.videoRepository.count(),
+      this.guideRepository.count(),
+      this.classifiedRepository.count(),
+      this.productRepository.count(),
       this.competitionRepository.count({ where: { status: CompetitionStatus.ACTIVE } }),
       this.pageViewRepository
         .createQueryBuilder('pv')
@@ -67,22 +74,42 @@ export class AdminService {
       totalEvents,
       totalRestaurants,
       totalVideos,
+      totalGuides,
+      totalClassifieds,
+      totalProducts,
       pageViewsToday,
       activeCompetitions,
     };
   }
 
   async getContentGrowth(days: number): Promise<{ date: string; count: number }[]> {
-    const results = await this.articleRepository
-      .createQueryBuilder('a')
-      .select("TO_CHAR(DATE(a.created_at), 'YYYY-MM-DD')", 'date')
-      .addSelect('COUNT(*)::int', 'count')
-      .where("a.created_at >= CURRENT_DATE - :days * INTERVAL '1 day'", { days })
-      .groupBy('DATE(a.created_at)')
-      .orderBy('DATE(a.created_at)', 'ASC')
-      .getRawMany();
+    const query = `
+      SELECT TO_CHAR(d.date, 'YYYY-MM-DD') as date, COALESCE(SUM(c.cnt), 0)::int as count
+      FROM generate_series(
+        CURRENT_DATE - ($1 || ' days')::interval,
+        CURRENT_DATE,
+        '1 day'::interval
+      ) d(date)
+      LEFT JOIN (
+        SELECT DATE(created_at) as dt, COUNT(*) as cnt FROM articles WHERE created_at >= CURRENT_DATE - ($1 || ' days')::interval GROUP BY DATE(created_at)
+        UNION ALL
+        SELECT DATE(created_at), COUNT(*) FROM events WHERE created_at >= CURRENT_DATE - ($1 || ' days')::interval GROUP BY DATE(created_at)
+        UNION ALL
+        SELECT DATE(created_at), COUNT(*) FROM videos WHERE created_at >= CURRENT_DATE - ($1 || ' days')::interval GROUP BY DATE(created_at)
+        UNION ALL
+        SELECT DATE(created_at), COUNT(*) FROM guides WHERE created_at >= CURRENT_DATE - ($1 || ' days')::interval GROUP BY DATE(created_at)
+        UNION ALL
+        SELECT DATE(created_at), COUNT(*) FROM restaurants WHERE created_at >= CURRENT_DATE - ($1 || ' days')::interval GROUP BY DATE(created_at)
+      ) c ON c.dt = d.date::date
+      GROUP BY d.date
+      ORDER BY d.date
+    `;
 
-    return results.map((r) => ({ date: r.date, count: Number(r.count) }));
+    const results = await this.articleRepository.query(query, [days]);
+    return results.map((r: { date: string; count: number }) => ({
+      date: r.date,
+      count: Number(r.count),
+    }));
   }
 
   async getUserGrowth(days: number): Promise<{ date: string; count: number }[]> {
@@ -101,11 +128,11 @@ export class AdminService {
   async getPopularContent(): Promise<
     { id: string; title: string; type: string; views: number; date: string }[]
   > {
-    const [articles, events, videos] = await Promise.all([
+    const [articles, events, videos, guides] = await Promise.all([
       this.articleRepository.find({
         select: ['id', 'title', 'view_count', 'created_at'],
         order: { view_count: 'DESC' },
-        take: 5,
+        take: 4,
       }),
       this.eventRepository.find({
         select: ['id', 'title', 'view_count', 'created_at'],
@@ -117,29 +144,28 @@ export class AdminService {
         order: { view_count: 'DESC' },
         take: 2,
       }),
+      this.guideRepository.find({
+        select: ['id', 'title', 'view_count', 'created_at'],
+        order: { view_count: 'DESC' },
+        take: 1,
+      }),
     ]);
+
+    const formatDate = (d: Date | string) =>
+      d instanceof Date ? d.toISOString().split('T')[0] : String(d).split('T')[0];
 
     const combined = [
       ...articles.map((a) => ({
-        id: a.id,
-        title: a.title,
-        type: 'article',
-        views: a.view_count,
-        date: a.created_at instanceof Date ? a.created_at.toISOString().split('T')[0] : String(a.created_at).split('T')[0],
+        id: a.id, title: a.title, type: 'article', views: a.view_count, date: formatDate(a.created_at),
       })),
       ...events.map((e) => ({
-        id: e.id,
-        title: e.title,
-        type: 'event',
-        views: e.view_count,
-        date: e.created_at instanceof Date ? e.created_at.toISOString().split('T')[0] : String(e.created_at).split('T')[0],
+        id: e.id, title: e.title, type: 'event', views: e.view_count, date: formatDate(e.created_at),
       })),
       ...videos.map((v) => ({
-        id: v.id,
-        title: v.title,
-        type: 'video',
-        views: v.view_count,
-        date: v.created_at instanceof Date ? v.created_at.toISOString().split('T')[0] : String(v.created_at).split('T')[0],
+        id: v.id, title: v.title, type: 'video', views: v.view_count, date: formatDate(v.created_at),
+      })),
+      ...guides.map((g) => ({
+        id: g.id, title: g.title, type: 'guide', views: g.view_count, date: formatDate(g.created_at),
       })),
     ];
 
