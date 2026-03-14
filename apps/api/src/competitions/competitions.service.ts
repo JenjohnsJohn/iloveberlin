@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Competition, CompetitionStatus } from './entities/competition.entity';
 import { CompetitionEntry } from './entities/competition-entry.entity';
+import { Category } from '../categories/entities/category.entity';
 import { Media } from '../media/entities/media.entity';
 import { CreateCompetitionDto } from './dto/create-competition.dto';
 import { UpdateCompetitionDto } from './dto/update-competition.dto';
@@ -26,6 +27,8 @@ export class CompetitionsService {
     private readonly competitionRepository: Repository<Competition>,
     @InjectRepository(CompetitionEntry)
     private readonly entryRepository: Repository<CompetitionEntry>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectRepository(Media)
     private readonly mediaRepository: Repository<Media>,
   ) {}
@@ -62,6 +65,13 @@ export class CompetitionsService {
 
     const slug = await this.generateUniqueSlug(dto.title);
 
+    if (dto.category_id) {
+      const cat = await this.categoryRepository.findOne({ where: { id: dto.category_id } });
+      if (!cat) {
+        throw new BadRequestException(`Category with id "${dto.category_id}" not found`);
+      }
+    }
+
     const competition = this.competitionRepository.create({
       title: this.sanitizeHtml(dto.title),
       slug,
@@ -70,6 +80,7 @@ export class CompetitionsService {
         ? this.sanitizeHtml(dto.prize_description)
         : null,
       featured_image_id: dto.featured_image_id || null,
+      category_id: dto.category_id || null,
       start_date: new Date(dto.start_date),
       end_date: new Date(dto.end_date),
       status: dto.status || CompetitionStatus.DRAFT,
@@ -93,10 +104,15 @@ export class CompetitionsService {
       .createQueryBuilder('competition')
       .leftJoinAndSelect('competition.featured_image', 'featured_image')
       .leftJoinAndSelect('competition.winner', 'winner')
+      .leftJoinAndSelect('competition.category', 'category')
       .loadRelationCountAndMap('competition.entry_count', 'competition.entries');
 
     if (query.status) {
       qb.andWhere('competition.status = :status', { status: query.status });
+    }
+
+    if (query.category) {
+      qb.andWhere('category.slug = :categorySlug', { categorySlug: query.category });
     }
 
     if (query.search) {
@@ -122,6 +138,7 @@ export class CompetitionsService {
     const qb = this.competitionRepository
       .createQueryBuilder('competition')
       .leftJoinAndSelect('competition.featured_image', 'featured_image')
+      .leftJoinAndSelect('competition.category', 'category')
       .loadRelationCountAndMap('competition.entry_count', 'competition.entries')
       .where('competition.status = :status', {
         status: CompetitionStatus.ACTIVE,
@@ -143,6 +160,7 @@ export class CompetitionsService {
     const qb = this.competitionRepository
       .createQueryBuilder('competition')
       .leftJoinAndSelect('competition.featured_image', 'featured_image')
+      .leftJoinAndSelect('competition.category', 'category')
       .leftJoin('competition.winner', 'winner')
       .addSelect(['winner.id', 'winner.display_name'])
       .loadRelationCountAndMap('competition.entry_count', 'competition.entries')

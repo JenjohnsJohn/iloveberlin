@@ -9,6 +9,9 @@ import type { EventCardData } from '@/components/events/event-card';
 import { VideoCard } from '@/components/videos/video-card';
 import type { VideoCardData } from '@/components/videos/video-card';
 import apiClient from '@/lib/api-client';
+import { buildArticleUrl } from '@/lib/news-seo-utils';
+import { buildRestaurantUrl } from '@/lib/dining-seo-utils';
+import { buildCompetitionUrl } from '@/lib/competitions-seo-utils';
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -25,6 +28,7 @@ interface DiningHighlight {
   slug: string;
   name: string;
   cuisineType: string;
+  primaryCuisineSlug: string | null;
   district: string;
   priceRange: string;
   rating: number;
@@ -35,6 +39,7 @@ interface CompetitionItem {
   title: string;
   prize: string;
   endsAt: string;
+  categorySlug: string | null;
 }
 
 interface ClassifiedItem {
@@ -166,9 +171,9 @@ export default function HomePage() {
         competitionsResult,
         classifiedsResult,
       ] = await Promise.allSettled([
-        apiClient.get('/articles', { params: { limit: 4, sort: 'created_at', order: 'DESC' } }),
+        apiClient.get('/articles', { params: { limit: 4, sort: 'date', order: 'desc' } }),
         apiClient.get('/events', { params: { limit: 4, status: 'published' } }),
-        apiClient.get('/dining/restaurants', { params: { limit: 3, status: 'published' } }),
+        apiClient.get('/dining/restaurants', { params: { limit: 3, sort: 'created', order: 'desc' } }),
         apiClient.get('/videos', { params: { limit: 3, status: 'published' } }),
         apiClient.get('/competitions', { params: { limit: 2, status: 'active' } }),
         apiClient.get('/classifieds', { params: { limit: 3, status: 'active' } }),
@@ -236,14 +241,18 @@ export default function HomePage() {
       if (diningResult.status === 'fulfilled') {
         const restaurants = diningResult.value.data?.data ?? diningResult.value.data;
         if (Array.isArray(restaurants) && restaurants.length > 0) {
-          const mapped = restaurants.map((r: Record<string, unknown>) => ({
-            slug: r.slug as string,
-            name: (r.name || r.title || '') as string,
-            cuisineType: (r.cuisine_type || r.cuisineType || '') as string,
-            district: (r.district || '') as string,
-            priceRange: (r.price_range || r.priceRange || '') as string,
-            rating: (r.rating || 0) as number,
-          }));
+          const mapped = restaurants.map((r: Record<string, unknown>) => {
+            const cuisines = r.cuisines as Record<string, unknown>[] | undefined;
+            return {
+              slug: r.slug as string,
+              name: (r.name || r.title || '') as string,
+              cuisineType: (r.cuisine_type || r.cuisineType || '') as string,
+              primaryCuisineSlug: Array.isArray(cuisines) && cuisines.length > 0 ? String(cuisines[0].slug || '') : null,
+              district: (r.district || '') as string,
+              priceRange: (r.price_range || r.priceRange || '') as string,
+              rating: (r.rating || 0) as number,
+            };
+          });
           setDiningHighlights(mapped);
         }
       }
@@ -270,12 +279,16 @@ export default function HomePage() {
       if (competitionsResult.status === 'fulfilled') {
         const comps = competitionsResult.value.data?.data ?? competitionsResult.value.data;
         if (Array.isArray(comps) && comps.length > 0) {
-          const mapped = comps.map((c: Record<string, unknown>) => ({
-            slug: c.slug as string,
-            title: c.title as string,
-            prize: (c.prize || c.prize_description || '') as string,
-            endsAt: (c.ends_at || c.endsAt || c.end_date || c.endDate || '') as string,
-          }));
+          const mapped = comps.map((c: Record<string, unknown>) => {
+            const cat = c.category as Record<string, unknown> | null;
+            return {
+              slug: c.slug as string,
+              title: c.title as string,
+              prize: (c.prize || c.prize_description || '') as string,
+              endsAt: (c.ends_at || c.endsAt || c.end_date || c.endDate || '') as string,
+              categorySlug: cat?.slug ? String(cat.slug) : null,
+            };
+          });
           setCompetitions(mapped);
         }
       }
@@ -330,7 +343,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex items-center gap-4 flex-wrap">
                   <Link
-                    href={`/news/${heroStory.slug}`}
+                    href={buildArticleUrl(heroStory.slug, heroStory.categorySlug)}
                     className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
                   >
                     Read More
@@ -448,7 +461,7 @@ export default function HomePage() {
           {diningHighlights.map((restaurant) => (
             <Link
               key={restaurant.slug}
-              href={`/dining/${restaurant.slug}`}
+              href={buildRestaurantUrl(restaurant.slug, restaurant.primaryCuisineSlug)}
               className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:-translate-y-1 transition-all duration-300"
             >
               <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
@@ -501,7 +514,7 @@ export default function HomePage() {
           {competitions.map((comp) => (
             <Link
               key={comp.slug}
-              href={`/competitions/${comp.slug}`}
+              href={buildCompetitionUrl(comp.slug, comp.categorySlug)}
               className="group flex items-center gap-6 bg-white rounded-xl border border-gray-200 p-6 hover:shadow-primary-glow hover:border-primary-200 hover:-translate-y-1 transition-all duration-300"
             >
               <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl flex items-center justify-center">

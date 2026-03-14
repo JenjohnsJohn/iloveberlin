@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildRestaurantUrl } from '@/lib/dining-seo-utils';
 
 type Tab = 'restaurants' | 'cuisines' | 'offers';
 
@@ -15,6 +16,7 @@ interface Restaurant {
   rating: number | null;
   status: string;
   cuisines: string[];
+  primaryCuisineSlug: string | null;
   createdAt: string;
 }
 
@@ -108,6 +110,9 @@ function mapRestaurant(raw: Record<string, unknown>): Restaurant {
     rating: raw.rating != null ? Number(raw.rating) : null,
     status: String(raw.status || 'draft'),
     cuisines: cuisineNames,
+    primaryCuisineSlug: Array.isArray(cuisineRel) && cuisineRel.length > 0
+      ? String((cuisineRel[0] as Record<string, unknown>)?.slug || '')
+      : null,
     createdAt: String(raw.createdAt || raw.created_at || ''),
   };
 }
@@ -806,7 +811,7 @@ export default function DiningAdminPage() {
                             onClick={() => handleEditRestaurant(r)}
                           >Edit</button>
                           <Link
-                            href={`/dining/${r.slug}`}
+                            href={buildRestaurantUrl(r.slug, r.primaryCuisineSlug)}
                             className="text-gray-600 hover:text-gray-700 font-medium mr-3"
                             target="_blank"
                           >View</Link>

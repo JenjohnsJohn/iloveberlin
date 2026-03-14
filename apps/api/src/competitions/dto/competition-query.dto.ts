@@ -49,4 +49,8 @@ export class CompetitionQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 }

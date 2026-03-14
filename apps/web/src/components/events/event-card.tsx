@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { buildEventUrl } from '@/lib/events-seo-utils';
 
 export interface EventCardData {
   slug: string;
@@ -51,7 +52,7 @@ export function EventCard({ event }: EventCardProps) {
 
   return (
     <Link
-      href={`/events/${event.slug}`}
+      href={buildEventUrl(event.slug, event.categorySlug)}
       className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300"
     >
       {/* Image with date overlay */}

@@ -16,6 +16,32 @@ const CATEGORY_INFO: Record<string, { name: string; description: string }> = {
   other: { name: 'Other', description: 'Miscellaneous items and listings.' },
 };
 
+interface ApiCategoryDetail {
+  name: string;
+  slug: string;
+  description: string | null;
+  parent: { name: string; slug: string } | null;
+  children: { name: string; slug: string }[];
+}
+
+async function getCategoryInfo(slug: string): Promise<{ name: string; description: string } | null> {
+  // Check hardcoded root categories first
+  if (CATEGORY_INFO[slug]) return CATEGORY_INFO[slug];
+  // Otherwise fetch from API (handles subcategory slugs)
+  try {
+    const res = await fetch(`${API_URL}/classifieds/categories/${slug}`, {
+      next: { revalidate: 300 },
+    });
+    if (res.ok) {
+      const data: ApiCategoryDetail = await res.json();
+      return { name: data.name, description: data.description || `Browse ${data.name} listings in Berlin.` };
+    }
+  } catch {
+    // Network error
+  }
+  return null;
+}
+
 interface ApiClassified {
   slug: string;
   title: string;
@@ -77,13 +103,28 @@ async function getCategorySchema(slug: string): Promise<CategoryFieldDefinition[
   return [];
 }
 
+async function getSubcategories(slug: string): Promise<{ name: string; slug: string }[]> {
+  try {
+    const res = await fetch(`${API_URL}/classifieds/categories/${slug}`, {
+      next: { revalidate: 300 },
+    });
+    if (res.ok) {
+      const data: ApiCategoryDetail = await res.json();
+      return (data.children || []).map((c) => ({ name: c.name, slug: c.slug }));
+    }
+  } catch {
+    // Network error
+  }
+  return [];
+}
+
 interface PageProps {
   params: Promise<{ category: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { category } = await params;
-  const info = CATEGORY_INFO[category];
+  const info = await getCategoryInfo(category);
   if (!info) return { title: 'Category Not Found' };
 
   return {
@@ -106,12 +147,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params }: PageProps) {
   const { category } = await params;
-  const info = CATEGORY_INFO[category];
+  const info = await getCategoryInfo(category);
   if (!info) notFound();
 
-  const [listings, fieldSchema] = await Promise.all([
+  const [listings, fieldSchema, subcategories] = await Promise.all([
     getCategoryListings(category),
     getCategorySchema(category),
+    getSubcategories(category),
   ]);
 
   return (
@@ -121,6 +163,7 @@ export default async function CategoryPage({ params }: PageProps) {
       categoryDescription={info.description}
       listings={listings}
       fieldSchema={fieldSchema}
+      subcategories={subcategories}
     />
   );
 }

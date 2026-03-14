@@ -14,6 +14,7 @@
     "db:migrate": "pnpm --filter api db:migrate",
     "db:migrate:generate": "pnpm --filter api db:migrate:generate",
     "db:seed": "pnpm --filter api db:seed",
+    "db:seed:content": "pnpm --filter api db:seed:content",
     "prepare": "husky"
   },
   "devDependencies": {

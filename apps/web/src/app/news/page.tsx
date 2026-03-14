@@ -1,129 +1,97 @@
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
-import { ArticleCard } from '@/components/articles/article-card';
-import { CategoryFilter } from '@/components/articles/category-filter';
-import type { CategoryItem } from '@/components/articles/category-filter';
+import type { Metadata } from 'next';
+import { CategoryGrid } from '@/components/ui/category-grid';
+import type { CategoryCardData } from '@/components/ui/category-grid';
+import { toCategorySeoSlug } from '@/lib/news-seo-utils';
+import { LatestArticleList } from './latest-article-list';
 import type { ArticleCardData } from '@/components/articles/article-card';
-import apiClient from '@/lib/api-client';
 
-const ALL_CATEGORY: CategoryItem = { name: 'All', slug: '' };
+export const metadata: Metadata = {
+  title: 'Berlin News',
+  description:
+    'Stay informed with the latest stories, events, and happenings from Germany\'s vibrant capital.',
+};
 
-export default function NewsPage() {
-  const [categories, setCategories] = useState<CategoryItem[]>([ALL_CATEGORY]);
-  const [activeCategorySlug, setActiveCategorySlug] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [articles, setArticles] = useState<ArticleCardData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const limit = 20;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-  // Fetch categories from API on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const { data } = await apiClient.get('/categories');
-        const items = Array.isArray(data) ? data : data.data ?? data.items ?? [];
-        const articleCategories: CategoryItem[] = items
-          .filter((c: Record<string, unknown>) => {
-            const type = c.type as string | undefined;
-            return !type || type === 'article';
-          })
-          .map((c: Record<string, unknown>) => ({
-            name: String(c.name || ''),
-            slug: String(c.slug || ''),
-          }));
-        setCategories([ALL_CATEGORY, ...articleCategories]);
-      } catch {
-        // Keep default "All" if API fails
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  const fetchArticles = useCallback(async (pageNum: number, categorySlug: string, search: string, append: boolean) => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params: Record<string, unknown> = {
-        page: pageNum,
-        limit,
-      };
-
-      if (categorySlug) {
-        params.category = categorySlug;
-      }
-
-      if (search.trim()) {
-        params.search = search.trim();
-      }
-
-      const { data: responseData } = await apiClient.get('/articles', { params });
-
-      const fetchedArticles: ArticleCardData[] = (responseData.data ?? responseData).map(
-        (a: Record<string, unknown>) => ({
-          slug: a.slug as string,
-          title: a.title as string,
-          excerpt: (a.excerpt || a.summary || '') as string,
-          featuredImage: (a.featured_image || a.featuredImage || null) as string | null,
-          category: ((a.category as Record<string, unknown>)?.name || a.category || '') as string,
-          categorySlug: ((a.category as Record<string, unknown>)?.slug || a.categorySlug || '') as string,
-          author: {
-            name: ((a.author as Record<string, unknown>)?.display_name ||
-              (a.author as Record<string, unknown>)?.name ||
-              (a.author as Record<string, unknown>)?.username ||
-              'Staff Writer') as string,
-            avatarUrl: ((a.author as Record<string, unknown>)?.avatar_url ||
-              (a.author as Record<string, unknown>)?.avatarUrl ||
-              null) as string | null,
-          },
-          publishedAt: (a.published_at || a.publishedAt || a.created_at || a.createdAt || '') as string,
-          readTime: (a.read_time_minutes || a.read_time || a.readTime || 4) as number,
-        }),
-      );
-
-      const totalCount = responseData.total ?? 0;
-      setTotal(totalCount);
-      setHasMore(pageNum * limit < totalCount);
-
-      if (append) {
-        setArticles((prev) => [...prev, ...fetchedArticles]);
-      } else {
-        setArticles(fetchedArticles);
-      }
-    } catch {
-      setError('Failed to load articles. Please try again later.');
-    } finally {
-      setLoading(false);
+async function getCategories(): Promise<CategoryCardData[]> {
+  try {
+    const res = await fetch(`${API_URL}/categories/tree?type=article`, {
+      next: { revalidate: 300 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : data.data ?? [];
+      return items.map((c: Record<string, unknown>) => ({
+        name: String(c.name || ''),
+        slug: String(c.slug || ''),
+        icon: (c.icon || null) as string | null,
+        description: (c.description || null) as string | null,
+        listing_count: typeof c.listing_count === 'number' ? c.listing_count : undefined,
+        children: Array.isArray(c.children)
+          ? (c.children as Record<string, unknown>[]).map((child) => ({
+              name: String(child.name || ''),
+              slug: String(child.slug || ''),
+              listing_count: typeof child.listing_count === 'number' ? child.listing_count : undefined,
+            }))
+          : [],
+      }));
     }
-  }, []);
+  } catch (err) {
+    console.error('Failed to load news categories:', err);
+  }
+  return [];
+}
 
-  // Fetch on mount and when category/search changes
-  useEffect(() => {
-    setPage(1);
-    fetchArticles(1, activeCategorySlug, searchQuery, false);
-  }, [activeCategorySlug, searchQuery, fetchArticles]);
+async function getLatestArticles(): Promise<{ articles: ArticleCardData[]; total: number }> {
+  try {
+    const res = await fetch(`${API_URL}/articles?limit=6&sort=date&order=desc`, {
+      next: { revalidate: 300 },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const items = Array.isArray(json) ? json : json.data ?? [];
+      const total = json.total ?? 0;
+      const articles = (items as Record<string, unknown>[]).map((a) => {
+        const cat = a.category as Record<string, unknown> | null;
+        const author = a.author as Record<string, unknown> | null;
+        const featuredImage =
+          typeof a.featured_image === 'object' && a.featured_image
+            ? ((a.featured_image as Record<string, unknown>).url as string)
+            : (a.featured_image as string | null) ?? null;
 
-  const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchArticles(nextPage, activeCategorySlug, searchQuery, true);
-  };
+        return {
+          slug: String(a.slug || ''),
+          title: String(a.title || ''),
+          excerpt: String(a.excerpt || ''),
+          featuredImage,
+          category: String(cat?.name || ''),
+          categorySlug: String(cat?.slug || ''),
+          author: {
+            name: String(author?.display_name || author?.name || author?.username || 'Staff Writer'),
+            avatarUrl: (author?.avatar_url ?? null) as string | null,
+          },
+          publishedAt: String(a.published_at || a.created_at || ''),
+          readTime: Number(a.read_time_minutes || 4),
+        };
+      });
+      return { articles, total };
+    }
+  } catch (err) {
+    console.error('Failed to load latest articles:', err);
+  }
+  return { articles: [], total: 0 };
+}
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearchQuery(searchInput);
-  };
+export default async function NewsPage() {
+  const [categories, { articles: latestArticles, total: latestTotal }] = await Promise.all([
+    getCategories(),
+    getLatestArticles(),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
-      <section className="text-center mb-10">
+      <section className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
           Berlin News
         </h1>
@@ -133,90 +101,18 @@ export default function NewsPage() {
         </p>
       </section>
 
-      {/* Search */}
-      <section className="mb-6">
-        <form onSubmit={handleSearch} className="max-w-xl mx-auto flex gap-2">
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search articles..."
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-          />
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Search
-          </button>
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => { setSearchInput(''); setSearchQuery(''); }}
-              className="px-3 py-2.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Clear
-            </button>
-          )}
-        </form>
-      </section>
-
-      {/* Category Filter */}
-      <section className="mb-8">
-        <CategoryFilter
+      {/* Category Grid */}
+      <section>
+        <CategoryGrid
           categories={categories}
-          activeSlug={activeCategorySlug}
-          onCategoryChange={(slug) => { setActiveCategorySlug(slug); }}
+          basePath="/news"
+          slugTransform={toCategorySeoSlug}
+          emptyMessage="No news categories available yet. Check back soon!"
         />
       </section>
 
-      {/* Article Grid */}
-      <section>
-        {error && !loading && articles.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">{error}</p>
-          </div>
-        ) : loading && articles.length === 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="animate-pulse bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="aspect-[16/10] bg-gray-200" />
-                <div className="p-5 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-1/4" />
-                  <div className="h-5 bg-gray-200 rounded w-3/4" />
-                  <div className="h-4 bg-gray-200 rounded w-full" />
-                  <div className="h-4 bg-gray-200 rounded w-1/2" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : articles.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {articles.map((article) => (
-              <ArticleCard key={article.slug} article={article} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">
-              No articles found{activeCategorySlug ? ' in this category' : ''}.
-            </p>
-          </div>
-        )}
-      </section>
-
-      {/* Load More */}
-      {hasMore && (
-        <div className="text-center mt-10">
-          <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : `Load More Articles (${total - articles.length} remaining)`}
-          </button>
-        </div>
-      )}
+      {/* Latest News */}
+      <LatestArticleList initialArticles={latestArticles} initialTotal={latestTotal} />
     </div>
   );
 }

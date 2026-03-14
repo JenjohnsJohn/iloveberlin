@@ -47,6 +47,10 @@ export class CreateCompetitionDto {
   @IsUUID()
   featured_image_id?: string;
 
+  @IsOptional()
+  @IsUUID()
+  category_id?: string;
+
   @IsDateString()
   start_date!: string;
 

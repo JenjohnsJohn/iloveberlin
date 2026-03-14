@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { Media } from '../../media/entities/media.entity';
 import { User } from '../../users/entities/user.entity';
+import { Category } from '../../categories/entities/category.entity';
 import { CompetitionEntry } from './competition-entry.entity';
 
 export enum CompetitionStatus {
@@ -72,6 +73,13 @@ export class Competition {
 
   @Column({ type: 'timestamptz', nullable: true })
   winner_selected_at!: Date | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  category_id!: string | null;
+
+  @ManyToOne(() => Category, { nullable: true, onDelete: 'SET NULL', eager: false })
+  @JoinColumn({ name: 'category_id' })
+  category!: Category | null;
 
   @OneToMany(() => CompetitionEntry, (entry) => entry.competition)
   entries!: CompetitionEntry[];

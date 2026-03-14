@@ -24,21 +24,29 @@ function formatCondition(condition: string | null): string | null {
   return map[condition] || condition;
 }
 
+interface SubcategoryData {
+  name: string;
+  slug: string;
+}
+
 interface CategoryContentProps {
   categorySlug: string;
   categoryName: string;
   categoryDescription: string;
   listings: ClassifiedListingData[];
   fieldSchema?: CategoryFieldDefinition[];
+  subcategories?: SubcategoryData[];
 }
 
-export function CategoryContent({ categorySlug, categoryName, categoryDescription, listings, fieldSchema = [] }: CategoryContentProps) {
+export function CategoryContent({ categorySlug, categoryName, categoryDescription, listings, fieldSchema = [], subcategories = [] }: CategoryContentProps) {
   const [activeDistrict, setActiveDistrict] = useState('All Districts');
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [displayCount, setDisplayCount] = useState(20);
   const [categoryFieldFilters, setCategoryFieldFilters] = useState<Record<string, string>>({});
 
   const filteredListings = listings.filter((listing) => {
+    if (activeSubcategory && listing.categorySlug !== activeSubcategory) return false;
     if (activeDistrict !== 'All Districts' && listing.district !== activeDistrict) return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -65,6 +73,41 @@ export function CategoryContent({ categorySlug, categoryName, categoryDescriptio
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{categoryName}</h1>
         <p className="text-gray-600">{categoryDescription}</p>
       </section>
+
+      {/* Subcategory Tabs */}
+      {subcategories.length > 0 && (
+        <section className="mb-6">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Filter by subcategory">
+            <button
+              onClick={() => { setActiveSubcategory(null); setDisplayCount(20); }}
+              role="tab"
+              aria-selected={activeSubcategory === null}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                activeSubcategory === null
+                  ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              All {categoryName}
+            </button>
+            {subcategories.map((sub) => (
+              <button
+                key={sub.slug}
+                onClick={() => { setActiveSubcategory(sub.slug); setDisplayCount(20); }}
+                role="tab"
+                aria-selected={activeSubcategory === sub.slug}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  activeSubcategory === sub.slug
+                    ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {sub.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Filters */}
       <section className="mb-8 flex flex-col md:flex-row gap-4">

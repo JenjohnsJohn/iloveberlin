@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildArticleUrl } from '@/lib/news-seo-utils';
 
 type ArticleStatus = 'draft' | 'in_review' | 'published' | 'archived';
 
@@ -10,6 +11,7 @@ interface Article {
   id: string;
   title: string;
   category: string;
+  categorySlug: string;
   status: ArticleStatus;
   author: string;
   date: string;
@@ -37,6 +39,7 @@ function mapArticle(raw: Record<string, unknown>): Article {
     id: String(raw.id || ''),
     title: String(raw.title || ''),
     category: String(category?.name || raw.category_name || (typeof raw.category === 'string' ? raw.category : '') || ''),
+    categorySlug: String(category?.slug || raw.category_slug || ''),
     status: (raw.status as ArticleStatus) || 'draft',
     author: String(author?.display_name || author?.name || author?.username || raw.author_name || (typeof raw.author === 'string' ? raw.author : '') || ''),
     date: String(raw.published_at || raw.publishedAt || raw.created_at || raw.createdAt || raw.date || ''),
@@ -285,7 +288,7 @@ export default function ArticlesPage() {
                             Edit
                           </Link>
                           <Link
-                            href={`/news/${article.slug}`}
+                            href={buildArticleUrl(article.slug, article.categorySlug)}
                             className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >

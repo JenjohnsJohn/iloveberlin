@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildCompetitionUrl } from '@/lib/competitions-seo-utils';
 
 type CompetitionStatus = 'draft' | 'active' | 'closed' | 'archived';
 
@@ -279,7 +280,7 @@ export default function CompetitionsAdminPage() {
                             Edit
                           </Link>
                           <Link
-                            href={`/competitions/${comp.slug}`}
+                            href={buildCompetitionUrl(comp.slug)}
                             className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >

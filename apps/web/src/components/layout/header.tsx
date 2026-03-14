@@ -1,27 +1,39 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { SearchBar } from '@/components/search/search-bar';
-
-const navLinks = [
-  { label: 'News', href: '/news' },
-  { label: 'Events', href: '/events' },
-  { label: 'Dining', href: '/dining' },
-  { label: 'Guide', href: '/guide' },
-  { label: 'Videos', href: '/videos' },
-  { label: 'Competitions', href: '/competitions' },
-  { label: 'Classifieds', href: '/classifieds' },
-  { label: 'Store', href: '/store' },
-];
+import { NAV_SECTIONS } from '@/lib/nav-config';
+import { useNavCategories } from '@/hooks/use-nav-categories';
+import { MegaDropdownPanel } from './mega-dropdown-panel';
+import { MobileNavAccordion } from './mobile-nav-accordion';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [activeDropdownSection, setActiveDropdownSection] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const enterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, accessToken, logout } = useAuthStore();
+  const pathname = usePathname();
 
+  const { categories, isLoading } = useNavCategories(activeDropdownSection);
+
+  const activeSection = activeDropdownSection
+    ? NAV_SECTIONS.find((s) => s.key === activeDropdownSection)
+    : null;
+
+  // Close dropdown on route change
+  useEffect(() => {
+    setActiveDropdownSection(null);
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Click outside to close user menu
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
@@ -32,6 +44,84 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Click outside to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        activeDropdownSection &&
+        navRef.current &&
+        !navRef.current.contains(event.target as Node)
+      ) {
+        setActiveDropdownSection(null);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [activeDropdownSection]);
+
+  // Escape key to close dropdown
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setActiveDropdownSection(null);
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (enterTimeoutRef.current) clearTimeout(enterTimeoutRef.current);
+      if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+    };
+  }, []);
+
+  const handleNavItemEnter = useCallback((sectionKey: string) => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    if (enterTimeoutRef.current) {
+      clearTimeout(enterTimeoutRef.current);
+    }
+
+    enterTimeoutRef.current = setTimeout(() => {
+      setActiveDropdownSection(sectionKey);
+    }, activeDropdownSection ? 100 : 150);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDropdownSection]);
+
+  const handleNavItemLeave = useCallback(() => {
+    if (enterTimeoutRef.current) {
+      clearTimeout(enterTimeoutRef.current);
+      enterTimeoutRef.current = null;
+    }
+    leaveTimeoutRef.current = setTimeout(() => {
+      setActiveDropdownSection(null);
+    }, 300);
+  }, []);
+
+  const handlePanelEnter = useCallback(() => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  }, []);
+
+  const handlePanelLeave = useCallback(() => {
+    leaveTimeoutRef.current = setTimeout(() => {
+      setActiveDropdownSection(null);
+    }, 300);
+  }, []);
+
+  const closeDropdown = useCallback(() => {
+    setActiveDropdownSection(null);
+    if (enterTimeoutRef.current) clearTimeout(enterTimeoutRef.current);
+    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+  }, []);
+
   const handleLogout = async () => {
     setUserMenuOpen(false);
     await logout();
@@ -39,7 +129,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-sm">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4" ref={navRef}>
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="text-2xl font-heading font-bold text-primary-600">
             ILoveBerlin
@@ -47,14 +137,39 @@ export function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center space-x-6" aria-label="Main navigation">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+            {NAV_SECTIONS.map((section) => (
+              <div
+                key={section.key}
+                className="relative"
+                onMouseEnter={() => handleNavItemEnter(section.key)}
+                onMouseLeave={handleNavItemLeave}
               >
-                {link.label}
-              </Link>
+                <Link
+                  href={section.href}
+                  className={`inline-flex items-center gap-1 text-sm font-medium transition-colors ${
+                    activeDropdownSection === section.key
+                      ? 'text-primary-600'
+                      : 'text-gray-700 hover:text-primary-600'
+                  }`}
+                >
+                  {section.label}
+                  <svg
+                    className={`w-3 h-3 transition-transform duration-200 ${
+                      activeDropdownSection === section.key ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </Link>
+              </div>
             ))}
           </nav>
 
@@ -148,19 +263,22 @@ export function Header() {
           </button>
         </div>
 
+        {/* Mega Dropdown Panel (Desktop) */}
+        {activeSection && (
+          <MegaDropdownPanel
+            section={activeSection}
+            categories={categories}
+            isLoading={isLoading}
+            onMouseEnter={handlePanelEnter}
+            onMouseLeave={handlePanelLeave}
+            onNavigate={closeDropdown}
+          />
+        )}
+
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <nav className="lg:hidden py-4 border-t border-gray-100" aria-label="Mobile navigation">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="block py-2 text-sm font-medium text-gray-700 hover:text-primary-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
+            <MobileNavAccordion onNavigate={() => setMobileMenuOpen(false)} />
             <hr className="my-2 border-gray-100" />
             {accessToken && user ? (
               <>
@@ -202,6 +320,23 @@ export function Header() {
           </nav>
         )}
       </div>
+
+      {/* Dropdown animation styles */}
+      <style jsx global>{`
+        @keyframes dropdown-in {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-dropdown-in {
+          animation: dropdown-in 150ms ease-out;
+        }
+      `}</style>
     </header>
   );
 }

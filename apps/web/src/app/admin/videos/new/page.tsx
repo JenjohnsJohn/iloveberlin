@@ -46,7 +46,7 @@ export default function NewVideoPage() {
       try {
         const [seriesRes, catRes, tagsRes] = await Promise.all([
           apiClient.get('/videos/series'),
-          apiClient.get('/categories'),
+          apiClient.get('/categories', { params: { type: 'video' } }),
           apiClient.get('/tags'),
         ]);
         const sData = seriesRes.data;

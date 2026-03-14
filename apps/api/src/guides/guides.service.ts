@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull, DataSource } from 'typeorm';
 import { Guide, GuideStatus } from './entities/guide.entity';
 import { GuideTopic } from './entities/guide-topic.entity';
 import { Media } from '../media/entities/media.entity';
@@ -30,7 +30,18 @@ export class GuidesService {
     private readonly topicRepository: Repository<GuideTopic>,
     @InjectRepository(Media)
     private readonly mediaRepository: Repository<Media>,
+    private readonly dataSource: DataSource,
   ) {}
+
+  private async getCountsByTopic(): Promise<Map<string, number>> {
+    const rows: { topic_id: string; count: number }[] = await this.dataSource.query(
+      `SELECT topic_id, COUNT(*)::int AS count
+       FROM guides
+       WHERE status = 'published' AND deleted_at IS NULL AND topic_id IS NOT NULL
+       GROUP BY topic_id`,
+    );
+    return new Map(rows.map((r) => [r.topic_id, r.count]));
+  }
 
   // ── HTML Sanitization ─────────────────────────────────
 
@@ -83,6 +94,46 @@ export class GuidesService {
     return this.topicRepository.find({
       order: { sort_order: 'ASC', name: 'ASC' },
     });
+  }
+
+  async findTopicTree(): Promise<GuideTopic[]> {
+    const roots = await this.topicRepository.find({
+      where: { parent_id: IsNull() },
+      relations: ['children'],
+      order: { sort_order: 'ASC', name: 'ASC' },
+    });
+
+    const countsMap = await this.getCountsByTopic();
+    for (const root of roots) {
+      let childrenTotal = 0;
+      if (root.children) {
+        for (const child of root.children) {
+          const count = countsMap.get(child.id) || 0;
+          (child as any).listing_count = count;
+          childrenTotal += count;
+        }
+      }
+      const ownCount = countsMap.get(root.id) || 0;
+      (root as any).listing_count = ownCount + childrenTotal;
+    }
+
+    return roots;
+  }
+
+  private async getTopicAndDescendantIds(slug: string): Promise<string[]> {
+    const topic = await this.topicRepository.findOne({
+      where: { slug },
+    });
+    if (!topic) return [];
+
+    const children = await this.topicRepository.find({
+      where: { parent_id: topic.id },
+    });
+
+    return [
+      topic.id,
+      ...children.map((c) => c.id),
+    ];
   }
 
   async findTopicBySlug(slug: string): Promise<GuideTopic> {
@@ -162,6 +213,8 @@ export class GuidesService {
     isPublicOnly = true,
     page = 1,
     limit = 20,
+    topicSlug?: string,
+    status?: string,
   ): Promise<{ data: Guide[]; total: number; page: number; limit: number }> {
     const qb = this.guideRepository
       .createQueryBuilder('guide')
@@ -171,9 +224,21 @@ export class GuidesService {
     if (isPublicOnly) {
       qb.leftJoin('guide.author', 'author')
         .addSelect(['author.id', 'author.display_name', 'author.avatar_url'])
-        .andWhere('guide.status = :status', { status: GuideStatus.PUBLISHED });
+        .andWhere('guide.status = :publishedStatus', { publishedStatus: GuideStatus.PUBLISHED });
     } else {
       qb.leftJoinAndSelect('guide.author', 'author');
+      if (status) {
+        qb.andWhere('guide.status = :status', { status });
+      }
+    }
+
+    if (topicSlug) {
+      const topicIds = await this.getTopicAndDescendantIds(topicSlug);
+      if (topicIds.length > 0) {
+        qb.andWhere('guide.topic_id IN (:...topicIds)', { topicIds });
+      } else {
+        qb.andWhere('1 = 0');
+      }
     }
 
     qb.orderBy('guide.created_at', 'DESC')
@@ -223,13 +288,16 @@ export class GuidesService {
   }
 
   async findByTopic(topicSlug: string): Promise<Guide[]> {
+    const topicIds = await this.getTopicAndDescendantIds(topicSlug);
+    if (topicIds.length === 0) return [];
+
     return this.guideRepository
       .createQueryBuilder('guide')
       .leftJoinAndSelect('guide.topic', 'topic')
       .leftJoin('guide.author', 'author')
       .addSelect(['author.id', 'author.display_name', 'author.avatar_url'])
       .leftJoinAndSelect('guide.featured_image', 'featured_image')
-      .where('topic.slug = :topicSlug', { topicSlug })
+      .where('guide.topic_id IN (:...topicIds)', { topicIds })
       .andWhere('guide.status = :status', { status: GuideStatus.PUBLISHED })
       .orderBy('guide.created_at', 'DESC')
       .getMany();

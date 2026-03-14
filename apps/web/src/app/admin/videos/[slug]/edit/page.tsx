@@ -52,7 +52,7 @@ export default function EditVideoPage() {
         const [videoRes, seriesRes, catRes, tagsRes] = await Promise.all([
           apiClient.get(`/videos/admin/${videoSlug}`),
           apiClient.get('/videos/series'),
-          apiClient.get('/categories'),
+          apiClient.get('/categories', { params: { type: 'video' } }),
           apiClient.get('/tags'),
         ]);
 

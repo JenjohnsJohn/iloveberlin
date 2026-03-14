@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { buildRestaurantUrl } from '@/lib/dining-seo-utils';
 
 export interface RestaurantCardData {
   slug: string;
@@ -6,6 +7,7 @@ export interface RestaurantCardData {
   description: string;
   featuredImage: string | null;
   cuisines: string[];
+  primaryCuisineSlug: string | null;
   priceRange: 'budget' | 'moderate' | 'upscale' | 'fine_dining';
   rating: number | null;
   district: string | null;
@@ -83,7 +85,7 @@ function renderStars(rating: number | null): React.ReactNode {
 export function RestaurantCard({ restaurant }: RestaurantCardProps) {
   return (
     <Link
-      href={`/dining/${restaurant.slug}`}
+      href={buildRestaurantUrl(restaurant.slug, restaurant.primaryCuisineSlug)}
       className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300"
     >
       {/* Image */}

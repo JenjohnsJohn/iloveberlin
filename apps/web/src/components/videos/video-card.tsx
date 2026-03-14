@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { buildVideoUrl } from '@/lib/videos-seo-utils';
 
 export interface VideoCardData {
   slug: string;
@@ -6,6 +7,8 @@ export interface VideoCardData {
   thumbnailUrl: string | null;
   seriesName: string | null;
   seriesSlug: string | null;
+  categoryName?: string | null;
+  categorySlug?: string | null;
   durationSeconds: number | null;
   publishedAt: string | null;
   videoProvider: string;
@@ -35,7 +38,7 @@ function formatDate(dateStr: string | null): string {
 export function VideoCard({ video }: VideoCardProps) {
   return (
     <Link
-      href={`/videos/${video.slug}`}
+      href={buildVideoUrl(video.slug, video.categorySlug)}
       className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300"
     >
       {/* Thumbnail with play icon and duration */}

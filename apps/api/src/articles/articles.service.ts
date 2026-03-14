@@ -106,7 +106,12 @@ export class ArticlesService {
     }
 
     if (query.category) {
-      qb.andWhere('category.slug = :categorySlug', { categorySlug: query.category });
+      const categoryIds = await this.getCategoryAndDescendantIds(query.category);
+      if (categoryIds.length > 0) {
+        qb.andWhere('article.category_id IN (:...categoryIds)', { categoryIds });
+      } else {
+        qb.andWhere('1 = 0');
+      }
     }
 
     if (query.tag) {
@@ -367,6 +372,33 @@ export class ArticlesService {
         `Cannot transition from "${currentStatus}" to "${newStatus}"`,
       );
     }
+  }
+
+  private async getCategoryAndDescendantIds(slug: string): Promise<string[]> {
+    const cat = await this.categoryRepository.findOne({
+      where: { slug, is_active: true },
+    });
+    if (!cat) return [];
+
+    const children = await this.categoryRepository.find({
+      where: { parent_id: cat.id, is_active: true },
+    });
+
+    const grandchildren =
+      children.length > 0
+        ? await this.categoryRepository.find({
+            where: children.map((c) => ({
+              parent_id: c.id,
+              is_active: true,
+            })),
+          })
+        : [];
+
+    return [
+      cat.id,
+      ...children.map((c) => c.id),
+      ...grandchildren.map((c) => c.id),
+    ];
   }
 
   private applySorting(

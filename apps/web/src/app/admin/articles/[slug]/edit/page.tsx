@@ -44,7 +44,7 @@ export default function EditArticlePage() {
       try {
         const [articleRes, catRes, tagRes] = await Promise.all([
           apiClient.get(`/articles/admin/${articleSlug}`),
-          apiClient.get('/categories'),
+          apiClient.get('/categories/tree', { params: { type: 'article' } }),
           apiClient.get('/tags'),
         ]);
 
@@ -72,12 +72,19 @@ export default function EditArticlePage() {
 
         const catData = catRes.data;
         const catItems = Array.isArray(catData) ? catData : catData.data ?? [];
-        setCategories(
-          catItems.map((c: Record<string, unknown>) => ({
-            id: String(c.id ?? ''),
-            name: String(c.name ?? ''),
-          }))
-        );
+        const flatCats: { id: string; name: string }[] = [];
+        for (const c of catItems) {
+          const parentName = String((c as Record<string, unknown>).name ?? '');
+          flatCats.push({ id: String((c as Record<string, unknown>).id ?? ''), name: parentName });
+          const children = Array.isArray((c as Record<string, unknown>).children) ? (c as Record<string, unknown>).children as Record<string, unknown>[] : [];
+          for (const child of children) {
+            flatCats.push({
+              id: String(child.id ?? ''),
+              name: `${parentName} > ${String(child.name ?? '')}`,
+            });
+          }
+        }
+        setCategories(flatCats);
 
         const tagData = tagRes.data;
         const tagItems = Array.isArray(tagData) ? tagData : tagData.data ?? tagData.items ?? [];

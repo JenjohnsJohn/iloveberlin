@@ -1,5 +1,6 @@
 import {
   Entity,
+  Unique,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
@@ -10,6 +11,7 @@ import {
 } from 'typeorm';
 
 @Entity('categories')
+@Unique('UQ_categories_slug_type', ['slug', 'type'])
 export class Category {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -17,7 +19,7 @@ export class Category {
   @Column({ type: 'varchar', length: 100 })
   name!: string;
 
-  @Column({ type: 'varchar', length: 120, unique: true })
+  @Column({ type: 'varchar', length: 120 })
   slug!: string;
 
   @Column({ type: 'text', nullable: true })

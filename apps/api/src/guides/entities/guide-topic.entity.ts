@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Guide } from './guide.entity';
 
@@ -27,6 +29,19 @@ export class GuideTopic {
 
   @Column({ type: 'int', default: 0 })
   sort_order!: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  parent_id!: string | null;
+
+  @ManyToOne(() => GuideTopic, (topic) => topic.children, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent!: GuideTopic | null;
+
+  @OneToMany(() => GuideTopic, (topic) => topic.parent)
+  children!: GuideTopic[];
 
   @OneToMany(() => Guide, (guide) => guide.topic)
   guides!: Guide[];

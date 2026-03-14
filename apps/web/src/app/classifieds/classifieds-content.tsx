@@ -2,8 +2,22 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import type { ClassifiedListingData } from './page';
 import type { CategoryFieldDefinition } from '@/types/category-fields';
+
+interface ClassifiedListingData {
+  slug: string;
+  title: string;
+  price: number | null;
+  priceType: string;
+  condition: string | null;
+  location: string | null;
+  district: string | null;
+  category: string;
+  categorySlug: string;
+  imageUrl: string | null;
+  createdAt: string;
+  featured: boolean;
+}
 import { CategoryFilters } from '@/components/classifieds/category-filters';
 
 const DISTRICTS = [
@@ -33,13 +47,21 @@ function formatCondition(condition: string | null): string | null {
   return map[condition] || condition;
 }
 
+interface CategoryData {
+  name: string;
+  slug: string;
+  field_schema?: CategoryFieldDefinition[];
+  children?: CategoryData[];
+}
+
 interface ClassifiedsContentProps {
   listings: ClassifiedListingData[];
-  categories: { name: string; slug: string; field_schema?: CategoryFieldDefinition[] }[];
+  categories: CategoryData[];
 }
 
 export function ClassifiedsContent({ listings, categories }: ClassifiedsContentProps) {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
   const [activeDistrict, setActiveDistrict] = useState('All Districts');
   const [activeCondition, setActiveCondition] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,9 +70,37 @@ export function ClassifiedsContent({ listings, categories }: ClassifiedsContentP
   const [displayCount, setDisplayCount] = useState(20);
   const [categoryFieldFilters, setCategoryFieldFilters] = useState<Record<string, string>>({});
 
-  const activeCategorySchema = activeCategory !== 'all'
-    ? categories.find((c) => c.slug === activeCategory)?.field_schema || []
-    : [];
+  // Find the active root category and its subcategories
+  const activeRoot = categories.find((c) => c.slug === activeCategory);
+  const subcategories = activeRoot?.children || [];
+
+  // Build the set of category slugs that match the current filter
+  const matchingSlugs = new Set<string>();
+  if (activeCategory !== 'all') {
+    if (activeSubcategory) {
+      // Specific subcategory selected — match it and its children
+      matchingSlugs.add(activeSubcategory);
+      const subcat = subcategories.find((s) => s.slug === activeSubcategory);
+      subcat?.children?.forEach((c) => matchingSlugs.add(c.slug));
+    } else {
+      // Root category selected — match root + all descendants
+      matchingSlugs.add(activeCategory);
+      subcategories.forEach((sub) => {
+        matchingSlugs.add(sub.slug);
+        sub.children?.forEach((c) => matchingSlugs.add(c.slug));
+      });
+    }
+  }
+
+  // Determine active field schema (subcategory inherits from root if empty)
+  const activeCategorySchema = (() => {
+    if (activeCategory === 'all') return [];
+    if (activeSubcategory) {
+      const subcat = subcategories.find((s) => s.slug === activeSubcategory);
+      if (subcat?.field_schema?.length) return subcat.field_schema;
+    }
+    return activeRoot?.field_schema || [];
+  })();
 
   const categoryTabs = [
     { name: 'All', slug: 'all' },
@@ -58,7 +108,7 @@ export function ClassifiedsContent({ listings, categories }: ClassifiedsContentP
   ];
 
   const filteredListings = listings.filter((listing) => {
-    if (activeCategory !== 'all' && listing.categorySlug !== activeCategory) return false;
+    if (activeCategory !== 'all' && !matchingSlugs.has(listing.categorySlug)) return false;
     if (activeDistrict !== 'All Districts' && listing.district !== activeDistrict) return false;
     if (activeCondition && listing.condition !== activeCondition) return false;
     if (searchQuery) {
@@ -114,7 +164,7 @@ export function ClassifiedsContent({ listings, categories }: ClassifiedsContentP
           {categoryTabs.map((cat) => (
             <button
               key={cat.slug}
-              onClick={() => { setActiveCategory(cat.slug); setCategoryFieldFilters({}); setDisplayCount(20); }}
+              onClick={() => { setActiveCategory(cat.slug); setActiveSubcategory(null); setCategoryFieldFilters({}); setDisplayCount(20); }}
               role="tab"
               aria-selected={activeCategory === cat.slug}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
@@ -127,6 +177,39 @@ export function ClassifiedsContent({ listings, categories }: ClassifiedsContentP
             </button>
           ))}
         </div>
+
+        {/* Subcategory Tabs */}
+        {subcategories.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 mt-3" role="tablist" aria-label="Filter by subcategory">
+            <button
+              onClick={() => { setActiveSubcategory(null); setCategoryFieldFilters({}); setDisplayCount(20); }}
+              role="tab"
+              aria-selected={activeSubcategory === null}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                activeSubcategory === null
+                  ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              All {activeRoot?.name}
+            </button>
+            {subcategories.map((sub) => (
+              <button
+                key={sub.slug}
+                onClick={() => { setActiveSubcategory(sub.slug); setCategoryFieldFilters({}); setDisplayCount(20); }}
+                role="tab"
+                aria-selected={activeSubcategory === sub.slug}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  activeSubcategory === sub.slug
+                    ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {sub.name}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Filters Row */}
@@ -237,7 +320,7 @@ export function ClassifiedsContent({ listings, categories }: ClassifiedsContentP
             </div>
             <p className="text-gray-500 text-lg">No listings found matching your filters.</p>
             <button
-              onClick={() => { setActiveCategory('all'); setActiveDistrict('All Districts'); setActiveCondition(''); setSearchQuery(''); setPriceMin(''); setPriceMax(''); setCategoryFieldFilters({}); setDisplayCount(20); }}
+              onClick={() => { setActiveCategory('all'); setActiveSubcategory(null); setActiveDistrict('All Districts'); setActiveCondition(''); setSearchQuery(''); setPriceMin(''); setPriceMax(''); setCategoryFieldFilters({}); setDisplayCount(20); }}
               className="mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
               Clear all filters

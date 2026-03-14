@@ -37,6 +37,11 @@ export class ClassifiedsController {
     return this.classifiedsService.findAllCategories();
   }
 
+  @Get('categories/tree')
+  getCategoryTree() {
+    return this.classifiedsService.findCategoryTree();
+  }
+
   @Get('categories/:slug')
   getCategoryBySlug(@Param('slug') slug: string) {
     return this.classifiedsService.findCategoryBySlug(slug);

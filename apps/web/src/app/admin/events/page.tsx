@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildEventUrl } from '@/lib/events-seo-utils';
 
 type EventStatus = 'draft' | 'pending' | 'approved' | 'published' | 'cancelled' | 'archived';
 
@@ -12,6 +13,7 @@ interface EventItem {
   date: string;
   venue: string;
   category: string;
+  categorySlug: string;
   status: EventStatus;
   isFree: boolean;
   price: number | null;
@@ -45,6 +47,7 @@ function mapEvent(raw: Record<string, unknown>): EventItem {
     date: String(raw.start_date || raw.startDate || raw.date || ''),
     venue: String(venue?.name || raw.venue_name || raw.venueName || (typeof raw.venue === 'string' ? raw.venue : '') || ''),
     category: String(category?.name || raw.category_name || raw.categoryName || (typeof raw.category === 'string' ? raw.category : '') || ''),
+    categorySlug: String(category?.slug || raw.category_slug || raw.categorySlug || ''),
     status: (raw.status as EventStatus) || 'draft',
     isFree: Boolean(raw.is_free ?? raw.isFree ?? false),
     price: raw.price != null ? Number(raw.price) : null,
@@ -293,7 +296,7 @@ export default function EventsAdminPage() {
                             Edit
                           </Link>
                           <Link
-                            href={`/events/${event.slug}`}
+                            href={buildEventUrl(event.slug, event.categorySlug)}
                             className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >

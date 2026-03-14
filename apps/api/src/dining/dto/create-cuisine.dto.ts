@@ -12,6 +12,11 @@ export class CreateCuisineDto {
   name!: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  description?: string;
+
+  @IsOptional()
   @IsInt()
   @Min(0)
   sort_order?: number;

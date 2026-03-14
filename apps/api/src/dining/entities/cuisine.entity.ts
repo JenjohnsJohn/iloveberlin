@@ -4,6 +4,9 @@ import {
   Column,
   CreateDateColumn,
   ManyToMany,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Restaurant } from './restaurant.entity';
 
@@ -20,6 +23,19 @@ export class Cuisine {
 
   @Column({ type: 'int', default: 0 })
   sort_order!: number;
+
+  @Column({ type: 'uuid', nullable: true })
+  parent_id!: string | null;
+
+  @ManyToOne(() => Cuisine, (cuisine) => cuisine.children, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent!: Cuisine | null;
+
+  @OneToMany(() => Cuisine, (cuisine) => cuisine.parent)
+  children!: Cuisine[];
 
   @ManyToMany(() => Restaurant, (restaurant) => restaurant.cuisines)
   restaurants!: Restaurant[];

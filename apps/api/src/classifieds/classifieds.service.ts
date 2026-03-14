@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder, LessThan } from 'typeorm';
+import { Repository, SelectQueryBuilder, LessThan, IsNull, DataSource } from 'typeorm';
 import { Classified, ClassifiedStatus } from './entities/classified.entity';
 import { ClassifiedCategory } from './entities/classified-category.entity';
 import { ClassifiedImage } from './entities/classified-image.entity';
@@ -38,7 +38,18 @@ export class ClassifiedsService {
     private readonly messageRepository: Repository<ClassifiedMessage>,
     @InjectRepository(ClassifiedReport)
     private readonly reportRepository: Repository<ClassifiedReport>,
+    private readonly dataSource: DataSource,
   ) {}
+
+  private async getCountsByClassifiedCategory(): Promise<Map<string, number>> {
+    const rows: { category_id: string; count: number }[] = await this.dataSource.query(
+      `SELECT category_id, COUNT(*)::int AS count
+       FROM classifieds
+       WHERE status = 'active' AND deleted_at IS NULL AND category_id IS NOT NULL
+       GROUP BY category_id`,
+    );
+    return new Map(rows.map((r) => [r.category_id, r.count]));
+  }
 
   // ─── Sanitization ───────────────────────────────────────
 
@@ -80,8 +91,9 @@ export class ClassifiedsService {
 
     // Validate and sanitize category-specific fields
     let categoryFields: Record<string, unknown> = {};
-    if (dto.category_fields && category.field_schema?.length > 0) {
-      const result = validateCategoryFields(category.field_schema, dto.category_fields);
+    const effectiveSchema = await this.getEffectiveFieldSchema(category);
+    if (dto.category_fields && effectiveSchema.length > 0) {
+      const result = validateCategoryFields(effectiveSchema, dto.category_fields);
       if (!result.valid) {
         const messages = Object.values(result.errors).join('; ');
         throw new BadRequestException(`Category field validation failed: ${messages}`);
@@ -135,11 +147,14 @@ export class ClassifiedsService {
       qb.andWhere('classified.status = :status', { status: query.status });
     }
 
-    // Category filter (by slug)
+    // Category filter (by slug — includes descendant categories)
     if (query.category) {
-      qb.andWhere('category.slug = :categorySlug', {
-        categorySlug: query.category,
-      });
+      const categoryIds = await this.getCategoryAndDescendantIds(query.category);
+      if (categoryIds.length > 0) {
+        qb.andWhere('classified.category_id IN (:...categoryIds)', { categoryIds });
+      } else {
+        qb.andWhere('1 = 0');
+      }
     }
 
     // District filter
@@ -293,9 +308,10 @@ export class ClassifiedsService {
           where: { id: classified.category_id },
         }) || undefined;
       }
-      if (category?.field_schema?.length) {
+      const effectiveSchema = category ? await this.getEffectiveFieldSchema(category) : [];
+      if (effectiveSchema.length > 0) {
         const merged = { ...(classified.category_fields || {}), ...dto.category_fields };
-        const result = validateCategoryFields(category.field_schema, merged);
+        const result = validateCategoryFields(effectiveSchema, merged);
         if (!result.valid) {
           const messages = Object.values(result.errors).join('; ');
           throw new BadRequestException(`Category field validation failed: ${messages}`);
@@ -335,9 +351,55 @@ export class ClassifiedsService {
 
   async findAllCategories(): Promise<ClassifiedCategory[]> {
     return this.categoryRepository.find({
-      where: { is_active: true },
+      where: { is_active: true, parent_id: IsNull() },
+      relations: ['children'],
       order: { sort_order: 'ASC', name: 'ASC' },
     });
+  }
+
+  async findCategoryTree(): Promise<ClassifiedCategory[]> {
+    const roots = await this.categoryRepository.find({
+      where: { is_active: true, parent_id: IsNull() },
+      relations: ['children', 'children.children'],
+      order: { sort_order: 'ASC', name: 'ASC' },
+    });
+    for (const root of roots) {
+      if (root.children) {
+        root.children = root.children
+          .filter((c) => c.is_active)
+          .sort((a, b) => a.sort_order - b.sort_order);
+        for (const child of root.children) {
+          if (child.children) {
+            child.children = child.children
+              .filter((c) => c.is_active)
+              .sort((a, b) => a.sort_order - b.sort_order);
+          }
+        }
+      }
+    }
+
+    // Attach listing counts after filtering
+    const countsMap = await this.getCountsByClassifiedCategory();
+    for (const root of roots) {
+      let rootTotal = countsMap.get(root.id) || 0;
+      if (root.children) {
+        for (const child of root.children) {
+          let childTotal = countsMap.get(child.id) || 0;
+          if (child.children) {
+            for (const grandchild of child.children) {
+              const gcCount = countsMap.get(grandchild.id) || 0;
+              (grandchild as any).listing_count = gcCount;
+              childTotal += gcCount;
+            }
+          }
+          (child as any).listing_count = childTotal;
+          rootTotal += childTotal;
+        }
+      }
+      (root as any).listing_count = rootTotal;
+    }
+
+    return roots;
   }
 
   // ─── Image management ─────────────────────────────────
@@ -686,6 +748,7 @@ export class ClassifiedsService {
   async findCategoryBySlug(slug: string): Promise<ClassifiedCategory> {
     const category = await this.categoryRepository.findOne({
       where: { slug },
+      relations: ['parent', 'children'],
     });
     if (!category) {
       throw new NotFoundException(`Category with slug "${slug}" not found`);
@@ -731,6 +794,49 @@ export class ClassifiedsService {
         qb.orderBy('classified.created_at', direction);
         break;
     }
+  }
+
+  private async getCategoryAndDescendantIds(slug: string): Promise<string[]> {
+    const cat = await this.categoryRepository.findOne({
+      where: { slug, is_active: true },
+    });
+    if (!cat) return [];
+    const children = await this.categoryRepository.find({
+      where: { parent_id: cat.id, is_active: true },
+    });
+    const grandchildren =
+      children.length > 0
+        ? await this.categoryRepository.find({
+            where: children.map((c) => ({
+              parent_id: c.id,
+              is_active: true,
+            })),
+          })
+        : [];
+    return [
+      cat.id,
+      ...children.map((c) => c.id),
+      ...grandchildren.map((c) => c.id),
+    ];
+  }
+
+  private async getEffectiveFieldSchema(
+    category: ClassifiedCategory,
+  ): Promise<CategoryFieldDefinition[]> {
+    if (category.field_schema?.length > 0) return category.field_schema;
+    if (category.parent_id) {
+      const parent = await this.categoryRepository.findOne({
+        where: { id: category.parent_id },
+      });
+      if (parent?.field_schema?.length) return parent.field_schema;
+      if (parent?.parent_id) {
+        const grandparent = await this.categoryRepository.findOne({
+          where: { id: parent.parent_id },
+        });
+        if (grandparent?.field_schema?.length) return grandparent.field_schema;
+      }
+    }
+    return [];
   }
 
   private async generateUniqueSlug(title: string): Promise<string> {

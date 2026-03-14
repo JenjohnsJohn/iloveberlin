@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Classified } from './classified.entity';
 import { CategoryFieldDefinition } from '../interfaces/category-field.interface';
@@ -34,6 +36,19 @@ export class ClassifiedCategory {
 
   @Column({ type: 'jsonb', default: '[]' })
   field_schema!: CategoryFieldDefinition[];
+
+  @Column({ type: 'uuid', nullable: true })
+  parent_id!: string | null;
+
+  @ManyToOne(() => ClassifiedCategory, (cat) => cat.children, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent!: ClassifiedCategory | null;
+
+  @OneToMany(() => ClassifiedCategory, (cat) => cat.parent)
+  children!: ClassifiedCategory[];
 
   @OneToMany(() => Classified, (classified) => classified.category)
   classifieds!: Classified[];

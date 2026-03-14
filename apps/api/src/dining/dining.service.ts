@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, SelectQueryBuilder } from 'typeorm';
+import { Repository, In, IsNull, SelectQueryBuilder, DataSource } from 'typeorm';
 import { Restaurant, RestaurantStatus } from './entities/restaurant.entity';
 import { Cuisine } from './entities/cuisine.entity';
 import { RestaurantImage } from './entities/restaurant-image.entity';
@@ -37,7 +37,19 @@ export class DiningService {
     private readonly diningOfferRepository: Repository<DiningOffer>,
     @InjectRepository(Media)
     private readonly mediaRepository: Repository<Media>,
+    private readonly dataSource: DataSource,
   ) {}
+
+  private async getCountsByCuisine(): Promise<Map<string, number>> {
+    const rows: { cuisine_id: string; count: number }[] = await this.dataSource.query(
+      `SELECT rc.cuisine_id, COUNT(DISTINCT r.id)::int AS count
+       FROM restaurant_cuisines rc
+       JOIN restaurants r ON r.id = rc.restaurant_id
+       WHERE r.status = 'published' AND r.deleted_at IS NULL
+       GROUP BY rc.cuisine_id`,
+    );
+    return new Map(rows.map((r) => [r.cuisine_id, r.count]));
+  }
 
   // ─── HTML Sanitization ─────────────────────────────────
 
@@ -145,11 +157,14 @@ export class DiningService {
       });
     }
 
-    // Cuisine filter
+    // Cuisine filter (includes descendants)
     if (query.cuisine) {
-      qb.andWhere('cuisine.slug = :cuisineSlug', {
-        cuisineSlug: query.cuisine,
-      });
+      const cuisineIds = await this.getCuisineAndDescendantIds(query.cuisine);
+      if (cuisineIds.length > 0) {
+        qb.andWhere('cuisine.id IN (:...cuisineIds)', { cuisineIds });
+      } else {
+        qb.andWhere('1 = 0');
+      }
     }
 
     // District filter
@@ -295,6 +310,46 @@ export class DiningService {
     return this.cuisineRepository.find({
       order: { sort_order: 'ASC', name: 'ASC' },
     });
+  }
+
+  async findCuisineTree(): Promise<Cuisine[]> {
+    const roots = await this.cuisineRepository.find({
+      where: { parent_id: IsNull() },
+      relations: ['children'],
+      order: { sort_order: 'ASC', name: 'ASC' },
+    });
+
+    const countsMap = await this.getCountsByCuisine();
+    for (const root of roots) {
+      let childrenTotal = 0;
+      if (root.children) {
+        for (const child of root.children) {
+          const count = countsMap.get(child.id) || 0;
+          (child as any).listing_count = count;
+          childrenTotal += count;
+        }
+      }
+      const ownCount = countsMap.get(root.id) || 0;
+      (root as any).listing_count = ownCount + childrenTotal;
+    }
+
+    return roots;
+  }
+
+  private async getCuisineAndDescendantIds(slug: string): Promise<string[]> {
+    const cuisine = await this.cuisineRepository.findOne({
+      where: { slug },
+    });
+    if (!cuisine) return [];
+
+    const children = await this.cuisineRepository.find({
+      where: { parent_id: cuisine.id },
+    });
+
+    return [
+      cuisine.id,
+      ...children.map((c) => c.id),
+    ];
   }
 
   async findCuisineById(id: string): Promise<Cuisine> {

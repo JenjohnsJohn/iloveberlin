@@ -14,6 +14,7 @@ interface CategoryOption {
   slug: string;
   description: string;
   field_schema: CategoryFieldDefinition[];
+  children?: CategoryOption[];
 }
 
 
@@ -122,14 +123,18 @@ export default function CreateListingPage() {
   useEffect(() => {
     apiClient.get('/classifieds/categories').then(({ data }) => {
       const cats = Array.isArray(data) ? data : data.data ?? [];
+      const mapCat = (c: Record<string, unknown>): CategoryOption => ({
+        id: String(c.id || ''),
+        name: String(c.name || ''),
+        slug: String(c.slug || ''),
+        description: String(c.description || ''),
+        field_schema: (c.field_schema as CategoryFieldDefinition[]) || [],
+        children: Array.isArray(c.children)
+          ? (c.children as Record<string, unknown>[]).map(mapCat)
+          : undefined,
+      });
       if (cats.length > 0) {
-        setCategories(cats.map((c: Record<string, unknown>) => ({
-          id: String(c.id || ''),
-          name: String(c.name || ''),
-          slug: String(c.slug || ''),
-          description: String(c.description || ''),
-          field_schema: (c.field_schema as CategoryFieldDefinition[]) || [],
-        })));
+        setCategories(cats.map(mapCat));
       }
     }).catch(() => {});
   }, []);
@@ -138,9 +143,24 @@ export default function CreateListingPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const [selectedRootSlug, setSelectedRootSlug] = useState<string | null>(null);
+
   const selectCategory = (cat: CategoryOption) => {
     setFormData((prev) => ({ ...prev, categoryId: cat.id, categorySlug: cat.slug, categoryFields: {} }));
   };
+
+  const selectRoot = (cat: CategoryOption) => {
+    setSelectedRootSlug(cat.slug);
+    // If root has no children, select it directly
+    if (!cat.children?.length) {
+      selectCategory(cat);
+    } else {
+      // Clear previous selection when switching roots
+      setFormData((prev) => ({ ...prev, categoryId: '', categorySlug: '', categoryFields: {} }));
+    }
+  };
+
+  const selectedRoot = categories.find((c) => c.slug === selectedRootSlug);
 
   const handleImageSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -290,7 +310,34 @@ export default function CreateListingPage() {
     }
   };
 
-  const selectedCategory = categories.find((c) => c.slug === formData.categorySlug);
+  const selectedCategory = (() => {
+    // Search roots, their children, and grandchildren for the selected slug
+    for (const cat of categories) {
+      if (cat.slug === formData.categorySlug) return cat;
+      for (const child of cat.children ?? []) {
+        if (child.slug === formData.categorySlug) {
+          // Inherit field_schema from parent if subcategory has none
+          if (!child.field_schema?.length && cat.field_schema?.length) {
+            return { ...child, field_schema: cat.field_schema };
+          }
+          return child;
+        }
+        // Check grandchildren (L3)
+        for (const grandchild of child.children ?? []) {
+          if (grandchild.slug === formData.categorySlug) {
+            // Inherit field_schema: grandchild > child > root
+            const schema = grandchild.field_schema?.length
+              ? grandchild.field_schema
+              : child.field_schema?.length
+                ? child.field_schema
+                : cat.field_schema;
+            return { ...grandchild, field_schema: schema || [] };
+          }
+        }
+      }
+    }
+    return undefined;
+  })();
 
   return (
     <ProtectedRoute>
@@ -321,9 +368,9 @@ export default function CreateListingPage() {
               {categories.map((cat) => (
                 <button
                   key={cat.slug}
-                  onClick={() => selectCategory(cat)}
+                  onClick={() => selectRoot(cat)}
                   className={`text-left p-5 rounded-xl border-2 transition-all ${
-                    formData.categorySlug === cat.slug
+                    selectedRootSlug === cat.slug
                       ? 'border-primary-600 bg-primary-50 shadow-sm'
                       : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                   }`}
@@ -333,6 +380,86 @@ export default function CreateListingPage() {
                 </button>
               ))}
             </div>
+
+            {/* Subcategory selection (L2) */}
+            {selectedRoot?.children && selectedRoot.children.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Select a subcategory</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <button
+                    onClick={() => selectCategory(selectedRoot)}
+                    className={`text-left px-4 py-3 rounded-lg border-2 transition-all text-sm ${
+                      formData.categoryId === selectedRoot.id
+                        ? 'border-primary-600 bg-primary-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="font-medium text-gray-900">General {selectedRoot.name}</span>
+                  </button>
+                  {selectedRoot.children.map((sub) => (
+                    <button
+                      key={sub.slug}
+                      onClick={() => {
+                        if (sub.children?.length) {
+                          // Has L3 children - select this L2 as intermediate
+                          setFormData((prev) => ({ ...prev, categoryId: sub.id, categorySlug: sub.slug, categoryFields: {} }));
+                        } else {
+                          selectCategory(sub);
+                        }
+                      }}
+                      className={`text-left px-4 py-3 rounded-lg border-2 transition-all text-sm ${
+                        formData.categorySlug === sub.slug || sub.children?.some((gc) => gc.slug === formData.categorySlug)
+                          ? 'border-primary-600 bg-primary-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="font-medium text-gray-900">{sub.name}</span>
+                      {sub.children && sub.children.length > 0 && (
+                        <span className="text-xs text-gray-400 ml-1">({sub.children.length})</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* L3 sub-subcategory selection */}
+                {(() => {
+                  const selectedL2 = selectedRoot.children.find(
+                    (sub) => sub.slug === formData.categorySlug || sub.children?.some((gc) => gc.slug === formData.categorySlug)
+                  );
+                  if (!selectedL2?.children?.length) return null;
+                  return (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Narrow it down</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <button
+                          onClick={() => selectCategory(selectedL2)}
+                          className={`text-left px-3 py-2 rounded-lg border transition-all text-xs ${
+                            formData.categoryId === selectedL2.id
+                              ? 'border-primary-500 bg-primary-50 text-primary-700'
+                              : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                          }`}
+                        >
+                          General {selectedL2.name}
+                        </button>
+                        {selectedL2.children.map((gc) => (
+                          <button
+                            key={gc.slug}
+                            onClick={() => selectCategory(gc)}
+                            className={`text-left px-3 py-2 rounded-lg border transition-all text-xs ${
+                              formData.categorySlug === gc.slug
+                                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                                : 'border-gray-200 bg-white hover:border-gray-300 text-gray-700'
+                            }`}
+                          >
+                            {gc.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         )}
 

@@ -39,18 +39,26 @@ export default function NewArticlePage() {
     const fetchData = async () => {
       try {
         const [catRes, tagRes] = await Promise.all([
-          apiClient.get('/categories'),
+          apiClient.get('/categories/tree', { params: { type: 'article' } }),
           apiClient.get('/tags'),
         ]);
 
         const catData = catRes.data;
         const catItems = Array.isArray(catData) ? catData : catData.data ?? catData.items ?? [];
-        setCategories(
-          catItems.map((c: Record<string, unknown>) => ({
-            id: String(c.id ?? c._id),
-            name: String(c.name ?? c.title ?? ''),
-          }))
-        );
+        // Build flat list with parent grouping prefix
+        const flatCats: { id: string; name: string }[] = [];
+        for (const c of catItems) {
+          const parentName = String(c.name ?? c.title ?? '');
+          flatCats.push({ id: String(c.id ?? c._id), name: parentName });
+          const children = Array.isArray(c.children) ? c.children : [];
+          for (const child of children) {
+            flatCats.push({
+              id: String((child as Record<string, unknown>).id ?? ''),
+              name: `${parentName} > ${String((child as Record<string, unknown>).name ?? '')}`,
+            });
+          }
+        }
+        setCategories(flatCats);
 
         const tagData = tagRes.data;
         const tagItems = Array.isArray(tagData) ? tagData : tagData.data ?? tagData.items ?? [];

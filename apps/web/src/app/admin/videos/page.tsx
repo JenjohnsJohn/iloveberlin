@@ -3,12 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildVideoUrl } from '@/lib/videos-seo-utils';
 
 interface VideoItem {
   id: string;
   title: string;
   slug: string;
   seriesName: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
   videoProvider: string;
   status: 'draft' | 'published' | 'archived';
   viewCount: number;
@@ -45,11 +48,14 @@ function formatDate(dateStr: string | null): string {
 
 function mapVideo(raw: Record<string, unknown>): VideoItem {
   const series = raw.series as Record<string, unknown> | null;
+  const category = raw.category as Record<string, unknown> | null;
   return {
     id: String(raw.id || ''),
     title: String(raw.title || ''),
     slug: String(raw.slug || ''),
     seriesName: (raw.seriesName || raw.series_name || series?.name || null) as string | null,
+    categoryName: (raw.categoryName || raw.category_name || category?.name || null) as string | null,
+    categorySlug: (raw.categorySlug || raw.category_slug || category?.slug || null) as string | null,
     videoProvider: String(raw.videoProvider || raw.video_provider || ''),
     status: (raw.status as 'draft' | 'published' | 'archived') || 'draft',
     viewCount: Number(raw.viewCount ?? raw.view_count ?? 0),
@@ -223,6 +229,9 @@ export default function VideosAdminPage() {
                       Series
                     </th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Provider
                     </th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -252,6 +261,9 @@ export default function VideosAdminPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {video.seriesName || '--'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {video.categoryName || '--'}
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-xs text-gray-500 capitalize">
@@ -286,7 +298,7 @@ export default function VideosAdminPage() {
                             Edit
                           </Link>
                           <Link
-                            href={`/videos/${video.slug}`}
+                            href={buildVideoUrl(video.slug, video.categorySlug)}
                             className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >

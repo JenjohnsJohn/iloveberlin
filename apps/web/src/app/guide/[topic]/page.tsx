@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { fromGuideTopicSeoSlug, buildGuideUrl, buildGuideTopicUrl } from '@/lib/guide-seo-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-// Fallback topic names for when the API doesn't return them
 const TOPIC_NAMES: Record<string, string> = {
   'living-in-berlin': 'Living in Berlin',
   transportation: 'Transportation',
@@ -51,7 +51,6 @@ async function getTopicWithGuides(topicSlug: string): Promise<TopicResponse | nu
 
     const data = await res.json();
 
-    // Backend returns { ...topic, guides: Guide[] }
     const rawGuides = Array.isArray(data.guides) ? data.guides : [];
     const guides: GuideCard[] = rawGuides.map((g: Record<string, unknown>) => {
       const author = g.author as Record<string, unknown> | null;
@@ -83,8 +82,11 @@ export async function generateMetadata({
   params: Promise<{ topic: string }>;
 }): Promise<Metadata> {
   const { topic } = await params;
-  const result = await getTopicWithGuides(topic);
-  const topicName = result?.name || TOPIC_NAMES[topic] || 'Berlin Guide';
+  const rawSlug = fromGuideTopicSeoSlug(topic);
+  const topicSlug = rawSlug || topic;
+
+  const result = await getTopicWithGuides(topicSlug);
+  const topicName = result?.name || TOPIC_NAMES[topicSlug] || 'Berlin Guide';
   const description = result?.description || `Explore guides about ${topicName} in Berlin.`;
 
   return {
@@ -101,7 +103,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz/guide/${topic}`,
+      canonical: `https://iloveberlin.biz${buildGuideTopicUrl(topicSlug)}`,
     },
   };
 }
@@ -112,7 +114,22 @@ export default async function GuideTopicPage({
   params: Promise<{ topic: string }>;
 }) {
   const { topic } = await params;
-  const result = await getTopicWithGuides(topic);
+  const rawSlug = fromGuideTopicSeoSlug(topic);
+
+  if (!rawSlug) {
+    // Not a valid SEO slug — this is a legacy URL like /guide/transportation
+    // Try to fetch the topic and redirect to SEO URL
+    const result = await getTopicWithGuides(topic);
+    if (result) {
+      // Topic exists with this raw slug — redirect to SEO URL
+      const { permanentRedirect } = await import('next/navigation');
+      permanentRedirect(buildGuideTopicUrl(topic));
+    }
+    notFound();
+  }
+
+  // Valid SEO slug — rawSlug is the actual topic slug
+  const result = await getTopicWithGuides(rawSlug);
 
   if (!result) {
     notFound();
@@ -166,7 +183,7 @@ export default async function GuideTopicPage({
             {result.guides.map((guide) => (
               <Link
                 key={guide.slug}
-                href={`/guide/${topic}/${guide.slug}`}
+                href={buildGuideUrl(guide.slug, rawSlug)}
                 className="group bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md hover:border-primary-300 transition-all"
               >
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary-700 transition-colors">

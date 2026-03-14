@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { sanitizeHtml } from '@/lib/sanitize';
 import apiClient from '@/lib/api-client';
+import { buildGuideUrl, buildGuideTopicUrl } from '@/lib/guide-seo-utils';
 
 interface TocEntry {
   id: string;
@@ -105,7 +106,7 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
           items={[
             { label: 'Home', href: '/' },
             { label: 'Guide', href: '/guide' },
-            { label: topicName, href: `/guide/${topicSlug}` },
+            { label: topicName, href: buildGuideTopicUrl(topicSlug) },
             { label: guide.title },
           ]}
         />
@@ -243,7 +244,7 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
                 {relatedGuides.map((related) => (
                   <Link
                     key={related.slug}
-                    href={`/guide/${topicSlug}/${related.slug}`}
+                    href={buildGuideUrl(related.slug, topicSlug)}
                     className="group bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-primary-300 transition-all"
                   >
                     <h3 className="font-semibold text-gray-900 mb-2 text-sm group-hover:text-primary-700 transition-colors">

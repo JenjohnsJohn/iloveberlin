@@ -39,6 +39,11 @@ export class DiningController {
 
   // ─── Public cuisine endpoints ────────────────────────────
 
+  @Get('cuisines/tree')
+  findCuisineTree() {
+    return this.diningService.findCuisineTree();
+  }
+
   @Get('cuisines')
   findAllCuisines() {
     return this.diningService.findAllCuisines();

@@ -39,6 +39,11 @@ export class GuidesController {
     return this.guidesService.findAll(true, page, limit);
   }
 
+  @Get('topics/tree')
+  findTopicTree() {
+    return this.guidesService.findTopicTree();
+  }
+
   @Get('topics')
   findAllTopics() {
     return this.guidesService.findAllTopics();
@@ -59,8 +64,10 @@ export class GuidesController {
   findAllAdmin(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('topic') topic?: string,
+    @Query('status') status?: string,
   ) {
-    return this.guidesService.findAll(false, page, limit);
+    return this.guidesService.findAll(false, page, limit, topic, status);
   }
 
   @Get('admin/:slug')

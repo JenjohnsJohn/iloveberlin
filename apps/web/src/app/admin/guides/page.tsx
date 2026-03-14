@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildGuideUrl } from '@/lib/guide-seo-utils';
 
 type GuideStatus = 'draft' | 'in_review' | 'published' | 'archived';
 
@@ -324,7 +325,7 @@ export default function GuidesAdminPage() {
                             Edit
                           </Link>
                           <Link
-                            href={`/guide/${guide.topicSlug}/${guide.slug}`}
+                            href={buildGuideUrl(guide.slug, guide.topicSlug)}
                             className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >

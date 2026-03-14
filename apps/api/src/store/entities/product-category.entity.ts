@@ -5,6 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 
@@ -30,6 +32,19 @@ export class ProductCategory {
 
   @Column({ type: 'boolean', default: true })
   is_active!: boolean;
+
+  @Column({ type: 'uuid', nullable: true })
+  parent_id!: string | null;
+
+  @ManyToOne(() => ProductCategory, (cat) => cat.children, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'parent_id' })
+  parent!: ProductCategory | null;
+
+  @OneToMany(() => ProductCategory, (cat) => cat.parent)
+  children!: ProductCategory[];
 
   @OneToMany(() => Product, (product) => product.category, { eager: false })
   products!: Product[];

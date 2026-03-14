@@ -34,9 +34,41 @@ export class StoreController {
 
   // ─── Public category endpoints ────────────────────────────
 
+  @Get('categories/tree')
+  findCategoryTree() {
+    return this.storeService.findCategoryTree();
+  }
+
   @Get('categories')
   findAllCategories() {
     return this.storeService.findAllCategories();
+  }
+
+  // ─── Admin category endpoints ────────────────────────────
+
+  @Post('admin/categories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  createCategory(@Body() body: { name: string; description?: string; image_url?: string; sort_order?: number }) {
+    return this.storeService.createCategory(body);
+  }
+
+  @Put('admin/categories/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  updateCategory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { name?: string; description?: string; image_url?: string; sort_order?: number; is_active?: boolean },
+  ) {
+    return this.storeService.updateCategory(id, body);
+  }
+
+  @Delete('admin/categories/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteCategory(@Param('id', ParseUUIDPipe) id: string) {
+    return this.storeService.deleteCategory(id);
   }
 
   // ─── Public product endpoints ─────────────────────────────

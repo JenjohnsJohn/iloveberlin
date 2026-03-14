@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { buildRestaurantUrl } from '@/lib/dining-seo-utils';
 
 interface DiningOfferData {
   id: string;
@@ -15,6 +16,7 @@ interface DiningOfferData {
     name: string;
     featuredImage: string | null;
     cuisines: string[];
+    primaryCuisineSlug: string | null;
     district: string | null;
     priceRange: string;
   };
@@ -36,6 +38,7 @@ function mapOffer(raw: Record<string, unknown>): DiningOfferData {
       name: String(restaurant?.name || ''),
       featuredImage: (featuredImage?.url as string) || (restaurant?.featuredImage as string) || null,
       cuisines: Array.isArray(cuisines) ? cuisines.map((c) => String(c.name || c)) : [],
+      primaryCuisineSlug: Array.isArray(cuisines) && cuisines.length > 0 ? String(cuisines[0].slug || '') : null,
       district: (restaurant?.district as string) || null,
       priceRange: String(restaurant?.price_range || restaurant?.priceRange || 'moderate'),
     },
@@ -146,7 +149,7 @@ export default function DiningOffersPage() {
                   <div className="flex flex-col md:flex-row">
                     {/* Restaurant Image */}
                     <div className="md:w-48 flex-shrink-0">
-                      <Link href={`/dining/${offer.restaurant.slug}`}>
+                      <Link href={buildRestaurantUrl(offer.restaurant.slug, offer.restaurant.primaryCuisineSlug)}>
                         <div className="h-48 md:h-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center">
                           {offer.restaurant.featuredImage ? (
                             <img
@@ -191,7 +194,7 @@ export default function DiningOffersPage() {
                       </h3>
 
                       <Link
-                        href={`/dining/${offer.restaurant.slug}`}
+                        href={buildRestaurantUrl(offer.restaurant.slug, offer.restaurant.primaryCuisineSlug)}
                         className="text-sm text-primary-600 hover:text-primary-700 font-medium mb-3 inline-block"
                       >
                         {offer.restaurant.name}

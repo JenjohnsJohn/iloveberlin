@@ -17,6 +17,7 @@
     "db:migrate:generate": "typeorm migration:generate -d dist/database/data-source.js",
     "db:migrate:revert": "typeorm migration:revert -d dist/database/data-source.js",
     "db:seed": "ts-node src/database/seed.ts",
+    "db:seed:content": "ts-node src/database/seed-content.ts",
     "clean": "rm -rf dist"
   },
   "dependencies": {

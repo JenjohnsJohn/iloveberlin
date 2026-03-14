@@ -23,26 +23,43 @@ const SORT_OPTIONS = [
   { label: 'Newest', value: 'newest' },
 ];
 
+interface CategoryNode {
+  name: string;
+  slug: string;
+  children?: { name: string; slug: string }[];
+}
+
 interface StoreContentProps {
   products: ProductListingData[];
-  categories: { name: string; slug: string }[];
+  categories: CategoryNode[];
 }
 
 export function StoreContent({ products, categories }: StoreContentProps) {
-  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [activeRootSlug, setActiveRootSlug] = useState<string>('');
+  const [activeSubcategorySlug, setActiveSubcategorySlug] = useState<string>('');
   const [sortBy, setSortBy] = useState('default');
   const [displayCount, setDisplayCount] = useState(20);
 
-  const categoryTabs = [
-    { name: 'All', slug: 'all' },
-    ...categories,
-  ];
+  const activeCategory = activeSubcategorySlug || activeRootSlug || 'all';
 
   const featuredProducts = products.filter((p) => p.isFeatured);
 
+  const matchingSlugs = useMemo(() => {
+    if (!activeRootSlug) return null;
+    const slugs = new Set<string>();
+    if (activeSubcategorySlug) {
+      slugs.add(activeSubcategorySlug);
+    } else {
+      slugs.add(activeRootSlug);
+      const root = categories.find((c) => c.slug === activeRootSlug);
+      root?.children?.forEach((sub) => slugs.add(sub.slug));
+    }
+    return slugs;
+  }, [activeRootSlug, activeSubcategorySlug, categories]);
+
   const filteredProducts = useMemo(() => {
     let result = products.filter((product) => {
-      if (activeCategory !== 'all' && product.categorySlug !== activeCategory) {
+      if (matchingSlugs && !matchingSlugs.has(product.categorySlug)) {
         return false;
       }
       return true;
@@ -64,14 +81,14 @@ export function StoreContent({ products, categories }: StoreContentProps) {
     }
 
     return result;
-  }, [products, activeCategory, sortBy]);
+  }, [products, matchingSlugs, sortBy]);
 
   const visibleProducts = filteredProducts.slice(0, displayCount);
 
   // Reset displayCount when filters or sort change
   useEffect(() => {
     setDisplayCount(20);
-  }, [activeCategory, sortBy]);
+  }, [activeRootSlug, activeSubcategorySlug, sortBy]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -118,22 +135,68 @@ export function StoreContent({ products, categories }: StoreContentProps) {
       {/* Category Tabs */}
       <section className="mb-6">
         <div className="flex items-center gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Filter by category">
-          {categoryTabs.map((tab) => (
+          <button
+            onClick={() => { setActiveRootSlug(''); setActiveSubcategorySlug(''); }}
+            role="tab"
+            aria-selected={!activeRootSlug}
+            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              !activeRootSlug
+                ? 'bg-primary-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
             <button
-              key={tab.slug}
-              onClick={() => setActiveCategory(tab.slug)}
+              key={cat.slug}
+              onClick={() => { setActiveRootSlug(cat.slug); setActiveSubcategorySlug(''); }}
               role="tab"
-              aria-selected={activeCategory === tab.slug}
+              aria-selected={activeRootSlug === cat.slug}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === tab.slug
+                activeRootSlug === cat.slug
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {tab.name}
+              {cat.name}
             </button>
           ))}
         </div>
+
+        {/* Subcategory pills */}
+        {activeRootSlug && (() => {
+          const root = categories.find((c) => c.slug === activeRootSlug);
+          const subs = root?.children || [];
+          if (subs.length === 0) return null;
+          return (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 mt-3">
+              <button
+                onClick={() => setActiveSubcategorySlug('')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  !activeSubcategorySlug
+                    ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                All {root?.name}
+              </button>
+              {subs.map((sub) => (
+                <button
+                  key={sub.slug}
+                  onClick={() => setActiveSubcategorySlug(sub.slug)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                    activeSubcategorySlug === sub.slug
+                      ? 'bg-primary-100 text-primary-700 ring-1 ring-primary-300'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
       </section>
 
       {/* Sort + Count */}
@@ -161,9 +224,9 @@ export function StoreContent({ products, categories }: StoreContentProps) {
       {/* All Products Grid */}
       <section>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          {activeCategory === 'all'
+          {!activeRootSlug
             ? 'All Products'
-            : categoryTabs.find((t) => t.slug === activeCategory)?.name || 'Products'}
+            : categories.find((t) => t.slug === activeRootSlug)?.name || 'Products'}
         </h2>
         {filteredProducts.length > 0 ? (
           <>
@@ -206,7 +269,7 @@ export function StoreContent({ products, categories }: StoreContentProps) {
               No products found in this category.
             </p>
             <button
-              onClick={() => setActiveCategory('all')}
+              onClick={() => { setActiveRootSlug(''); setActiveSubcategorySlug(''); }}
               className="mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
               View all products

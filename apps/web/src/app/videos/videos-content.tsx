@@ -1,16 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { VideoCard } from '@/components/videos/video-card';
 import type { VideoCardData } from '@/components/videos/video-card';
+interface CategoryNode {
+  name: string;
+  slug: string;
+  children?: CategoryNode[];
+}
 
 interface VideosContentProps {
   videos: VideoCardData[];
   series: { name: string; slug: string }[];
+  categories?: CategoryNode[];
 }
 
-export function VideosContent({ videos, series }: VideosContentProps) {
+export function VideosContent({ videos, series, categories = [] }: VideosContentProps) {
   const [activeSeriesTab, setActiveSeriesTab] = useState('all');
+  const [activeRootSlug, setActiveRootSlug] = useState('');
+  const [activeSubcategorySlug, setActiveSubcategorySlug] = useState('');
   const [displayCount, setDisplayCount] = useState(20);
 
   const seriesTabs = [
@@ -18,17 +26,37 @@ export function VideosContent({ videos, series }: VideosContentProps) {
     ...series,
   ];
 
-  const filteredVideos =
-    activeSeriesTab === 'all'
-      ? videos
-      : videos.filter((v) => v.seriesSlug === activeSeriesTab);
+  // Find active root and its subcategories
+  const activeRoot = categories.find((c) => c.slug === activeRootSlug);
+  const subcategories = activeRoot?.children || [];
+
+  // Build set of matching category slugs for current filter
+  const matchingSlugs = useMemo(() => {
+    if (!activeRootSlug) return null; // null means "all"
+    const slugs = new Set<string>();
+    if (activeSubcategorySlug) {
+      slugs.add(activeSubcategorySlug);
+    } else {
+      // Root selected: match root + all children
+      slugs.add(activeRootSlug);
+      subcategories.forEach((sub) => slugs.add(sub.slug));
+    }
+    return slugs;
+  }, [activeRootSlug, activeSubcategorySlug, subcategories]);
+
+  const filteredVideos = videos.filter((v) => {
+    if (activeSeriesTab !== 'all' && v.seriesSlug !== activeSeriesTab) return false;
+    if (matchingSlugs && v.categorySlug && !matchingSlugs.has(v.categorySlug)) return false;
+    if (matchingSlugs && !v.categorySlug) return false;
+    return true;
+  });
 
   const visibleVideos = filteredVideos.slice(0, displayCount);
 
-  // Reset displayCount when series filter changes
+  // Reset displayCount when filters change
   useEffect(() => {
     setDisplayCount(20);
-  }, [activeSeriesTab]);
+  }, [activeSeriesTab, activeRootSlug, activeSubcategorySlug]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -64,6 +92,71 @@ export function VideosContent({ videos, series }: VideosContentProps) {
           ))}
         </div>
       </section>
+
+      {/* Category Tabs */}
+      {categories.length > 0 && (
+        <section className="mb-8">
+          {/* Root category tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2" role="tablist" aria-label="Filter by category">
+            <button
+              onClick={() => { setActiveRootSlug(''); setActiveSubcategorySlug(''); }}
+              role="tab"
+              aria-selected={!activeRootSlug}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                !activeRootSlug
+                  ? 'bg-primary-100 text-primary-700 border-primary-300'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              All Categories
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.slug}
+                onClick={() => { setActiveRootSlug(cat.slug); setActiveSubcategorySlug(''); }}
+                role="tab"
+                aria-selected={activeRootSlug === cat.slug}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                  activeRootSlug === cat.slug
+                    ? 'bg-primary-100 text-primary-700 border-primary-300'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Subcategory pills */}
+          {subcategories.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 mt-2">
+              <button
+                onClick={() => setActiveSubcategorySlug('')}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  !activeSubcategorySlug
+                    ? 'bg-primary-50 text-primary-600 ring-1 ring-primary-200'
+                    : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                }`}
+              >
+                All {activeRoot?.name}
+              </button>
+              {subcategories.map((sub) => (
+                <button
+                  key={sub.slug}
+                  onClick={() => setActiveSubcategorySlug(sub.slug)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                    activeSubcategorySlug === sub.slug
+                      ? 'bg-primary-50 text-primary-600 ring-1 ring-primary-200'
+                      : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Video Grid */}
       <section>
@@ -105,13 +198,13 @@ export function VideosContent({ videos, series }: VideosContentProps) {
               </svg>
             </div>
             <p className="text-gray-500 text-lg">
-              No videos found for this series.
+              No videos found matching your filters.
             </p>
             <button
-              onClick={() => setActiveSeriesTab('all')}
+              onClick={() => { setActiveSeriesTab('all'); setActiveRootSlug(''); setActiveSubcategorySlug(''); }}
               className="mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium"
             >
-              View all videos
+              Clear all filters
             </button>
           </div>
         )}

@@ -23,13 +23,16 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  findAll(@Query('includeInactive') includeInactive?: string) {
-    return this.categoriesService.findAll(includeInactive === 'true');
+  findAll(
+    @Query('includeInactive') includeInactive?: string,
+    @Query('type') type?: string,
+  ) {
+    return this.categoriesService.findAll(includeInactive === 'true', type);
   }
 
   @Get('tree')
-  findTree() {
-    return this.categoriesService.findTree();
+  findTree(@Query('type') type?: string) {
+    return this.categoriesService.findTree(type);
   }
 
   @Get(':id')

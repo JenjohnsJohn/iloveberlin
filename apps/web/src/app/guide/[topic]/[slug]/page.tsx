@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { GuideContent } from './guide-content';
+import { buildGuideUrl, fromGuideTopicSeoSlug, toGuideTopicSeoSlug } from '@/lib/guide-seo-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -87,6 +88,8 @@ export async function generateMetadata({
     guide.body?.replace(/<[^>]*>/g, '').slice(0, 200) ||
     undefined;
 
+  const topicSlug = guide.topic?.slug || fromGuideTopicSeoSlug(topic) || topic;
+
   return {
     title,
     description,
@@ -105,7 +108,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz/guide/${topic}/${guide.slug}`,
+      canonical: `https://iloveberlin.biz${buildGuideUrl(slug, topicSlug)}`,
     },
   };
 }
@@ -122,7 +125,15 @@ export default async function GuideDetailPage({
     notFound();
   }
 
-  const topicName = guide.topic?.name || TOPIC_NAMES[topic] || 'Guide';
+  // Validate topic segment matches guide's actual topic
+  const actualTopicSlug = guide.topic?.slug || null;
+  const expectedTopicSegment = toGuideTopicSeoSlug(actualTopicSlug || 'general');
+  if (topic !== expectedTopicSegment) {
+    permanentRedirect(buildGuideUrl(slug, actualTopicSlug));
+  }
+
+  const topicName = guide.topic?.name || TOPIC_NAMES[actualTopicSlug || ''] || 'Guide';
+  const topicSlug = actualTopicSlug || 'general';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -144,7 +155,7 @@ export default async function GuideDetailPage({
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://iloveberlin.biz/guide/${topic}/${guide.slug}`,
+      '@id': `https://iloveberlin.biz${buildGuideUrl(slug, topicSlug)}`,
     },
   };
 
@@ -175,7 +186,7 @@ export default async function GuideDetailPage({
           toc: guide.toc,
         }}
         topicName={topicName}
-        topicSlug={topic}
+        topicSlug={topicSlug}
       />
     </>
   );
