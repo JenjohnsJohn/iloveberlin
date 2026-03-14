@@ -122,8 +122,8 @@ export function RestaurantCard({ restaurant }: RestaurantCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-1 mb-2">
+      <div className="p-3">
+        <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-1 mb-1">
           {restaurant.name}
         </h3>
 

@@ -48,7 +48,7 @@ function NewsletterSignup() {
   };
 
   return (
-    <div className="mt-10 pt-10 border-t border-gray-800">
+    <div className="mt-8 pt-8 border-t border-gray-800">
       <div className="max-w-md mx-auto text-center">
         <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-2">
           Newsletter
@@ -87,8 +87,8 @@ function NewsletterSignup() {
 export function Footer() {
   return (
     <footer className="bg-gradient-to-b from-gray-900 to-gray-950 text-gray-300">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <Link href="/" className="text-xl font-heading font-bold text-primary-400">
               ILoveBerlin

@@ -58,11 +58,11 @@ export function ArticleCard({ article }: ArticleCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2">
+      <div className="p-3">
+        <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
           {article.title}
         </h3>
-        <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+        <p className="text-sm text-gray-600 line-clamp-2 mb-3">
           {article.excerpt}
         </p>
 

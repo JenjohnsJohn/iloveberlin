@@ -72,11 +72,11 @@ export function LatestProductList({ initialProducts, initialTotal }: LatestProdu
   if (products.length === 0) return null;
 
   return (
-    <section className="mt-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Latest Products</h2>
+    <section className="mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Latest Products</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((product) => (
           <Link
             key={product.slug}
@@ -114,7 +114,7 @@ export function LatestProductList({ initialProducts, initialTotal }: LatestProdu
         ))}
       </div>
       {hasMore && (
-        <div className="text-center mt-10">
+        <div className="text-center mt-6">
           <button
             onClick={handleLoadMore}
             disabled={loading}

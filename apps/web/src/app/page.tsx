@@ -61,8 +61,8 @@ function SectionHeader({
   linkText?: string;
 }) {
   return (
-    <div className="flex items-center justify-between mb-8">
-      <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>
+    <div className="flex items-center justify-between mb-5">
+      <h2 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
       <Link
         href={href}
         className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-all flex items-center gap-1 group/link"
@@ -171,12 +171,12 @@ export default function HomePage() {
         competitionsResult,
         classifiedsResult,
       ] = await Promise.allSettled([
-        apiClient.get('/articles', { params: { limit: 4, sort: 'date', order: 'desc' } }),
-        apiClient.get('/events', { params: { limit: 4, status: 'published' } }),
-        apiClient.get('/dining/restaurants', { params: { limit: 3, sort: 'created', order: 'desc' } }),
-        apiClient.get('/videos', { params: { limit: 3, status: 'published' } }),
-        apiClient.get('/competitions', { params: { limit: 2, status: 'active' } }),
-        apiClient.get('/classifieds', { params: { limit: 3, status: 'active' } }),
+        apiClient.get('/articles', { params: { limit: 5, sort: 'date', order: 'desc' } }),
+        apiClient.get('/events', { params: { limit: 6, status: 'published' } }),
+        apiClient.get('/dining/restaurants', { params: { limit: 4, sort: 'created', order: 'desc' } }),
+        apiClient.get('/videos', { params: { limit: 4, status: 'published' } }),
+        apiClient.get('/competitions', { params: { limit: 4, status: 'active' } }),
+        apiClient.get('/classifieds', { params: { limit: 6, status: 'active' } }),
       ]);
 
       // Trending articles & hero story
@@ -194,7 +194,7 @@ export default function HomePage() {
             categorySlug: first.category?.slug || first.categorySlug || 'news',
           });
           // Use remaining articles as trending (or all if only a few)
-          const trending = articles.slice(0, 4).map((a: Record<string, unknown>) => ({
+          const trending = articles.slice(0, 5).map((a: Record<string, unknown>) => ({
             slug: a.slug as string,
             title: a.title as string,
             excerpt: (a.excerpt || a.summary || '') as string,
@@ -231,9 +231,9 @@ export default function HomePage() {
             price: (e.price ?? null) as number | null,
             priceMax: (e.price_max ?? e.priceMax ?? null) as number | null,
           }));
-          setFeaturedEvents(mapped.slice(0, 3));
-          // Use first 2 events as weekend picks
-          setWeekendPicks(mapped.slice(0, 2));
+          setFeaturedEvents(mapped.slice(0, 6));
+          // Use first 4 events as weekend picks
+          setWeekendPicks(mapped.slice(0, 4));
         }
       }
 
@@ -314,10 +314,10 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero Section with Featured Story */}
-      <section className="bg-gradient-to-br from-primary-500 to-primary-700 text-white py-16 md:py-24">
+      <section className="bg-gradient-to-br from-primary-500 to-primary-700 text-white py-10 md:py-14">
         <div className="container mx-auto px-4">
           {isLoading ? (
-            <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
               <div>
                 <div className="h-6 bg-white/20 rounded-full w-32 mb-4" />
                 <div className="h-12 bg-white/20 rounded w-3/4 mb-4" />
@@ -330,27 +330,27 @@ export default function HomePage() {
               <div className="aspect-[4/3] bg-white/10 rounded-xl" />
             </div>
           ) : heroStory ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
               <div>
                 <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-4">
                   Featured Story
                 </span>
-                <h1 className="text-3xl md:text-5xl font-bold mb-4">
+                <h1 className="text-3xl md:text-4xl font-bold mb-3">
                   {heroStory.title}
                 </h1>
-                <p className="text-lg text-white/80 mb-6 max-w-xl">
+                <p className="text-base text-white/80 mb-4 max-w-xl">
                   {heroStory.excerpt}
                 </p>
                 <div className="flex items-center gap-4 flex-wrap">
                   <Link
                     href={buildArticleUrl(heroStory.slug, heroStory.categorySlug)}
-                    className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+                    className="px-5 py-2.5 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors text-sm"
                   >
                     Read More
                   </Link>
                   <Link
                     href="/events"
-                    className="px-6 py-3 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/30"
+                    className="px-5 py-2.5 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/30 text-sm"
                   >
                     Explore Events
                   </Link>
@@ -376,9 +376,9 @@ export default function HomePage() {
               </div>
             </div>
           ) : (
-            <div className="text-center py-8">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4">Welcome to ILoveBerlin</h1>
-              <p className="text-lg text-white/80 mb-6 max-w-xl mx-auto">
+            <div className="text-center py-6">
+              <h1 className="text-3xl md:text-4xl font-bold mb-3">Welcome to ILoveBerlin</h1>
+              <p className="text-base text-white/80 mb-4 max-w-xl mx-auto">
                 Your digital guide to Berlin life — news, events, dining, guides, and more.
               </p>
               <Link
@@ -393,21 +393,21 @@ export default function HomePage() {
       </section>
 
       {/* Sections Grid */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <section className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
           {SECTIONS.map((section) => (
             <Link
               key={section.title}
               href={section.href}
-              className="flex flex-col items-center p-6 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:scale-[1.02] hover:shadow-primary-glow transition-all duration-300 text-center group"
+              className="flex flex-col items-center p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:scale-[1.02] hover:shadow-primary-glow transition-all duration-300 text-center group"
             >
-              <div className="text-gray-400 group-hover:text-primary-600 transition-colors mb-3">
+              <div className="text-gray-400 group-hover:text-primary-600 transition-colors mb-2">
                 {section.icon}
               </div>
-              <h2 className="text-base font-semibold text-gray-900 mb-1">
+              <h2 className="text-sm font-semibold text-gray-900 mb-0.5">
                 {section.title}
               </h2>
-              <p className="text-xs text-gray-500">{section.desc}</p>
+              <p className="text-[11px] text-gray-500 hidden md:block">{section.desc}</p>
             </Link>
           ))}
         </div>
@@ -415,10 +415,10 @@ export default function HomePage() {
 
       {/* Trending in Berlin */}
       {trendingArticles.length > 0 && (
-        <section className="bg-primary-50/40 py-12">
+        <section className="bg-primary-50/40 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Trending in Berlin" href="/news" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {trendingArticles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
@@ -429,9 +429,9 @@ export default function HomePage() {
 
       {/* Featured Events */}
       {featuredEvents.length > 0 && (
-        <section className="container mx-auto px-4 py-12">
+        <section className="container mx-auto px-4 py-6">
           <SectionHeader title="Featured Events" href="/events" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {featuredEvents.map((event) => (
               <EventCard key={event.slug} event={event} />
             ))}
@@ -441,10 +441,10 @@ export default function HomePage() {
 
       {/* Weekend Picks */}
       {weekendPicks.length > 0 && (
-        <section className="bg-primary-50/40 py-12">
+        <section className="bg-primary-50/40 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Weekend Picks" href="/events" linkText="See all weekend events" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {weekendPicks.map((event) => (
                 <EventCard key={event.slug} event={event} />
               ))}
@@ -455,9 +455,9 @@ export default function HomePage() {
 
       {/* Dining Highlights */}
       {diningHighlights.length > 0 && (
-      <section className="container mx-auto px-4 py-12">
+      <section className="container mx-auto px-4 py-6">
         <SectionHeader title="Dining Highlights" href="/dining" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {diningHighlights.map((restaurant) => (
             <Link
               key={restaurant.slug}
@@ -474,8 +474,8 @@ export default function HomePage() {
                   {restaurant.cuisineType}
                 </span>
               </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
+              <div className="p-3">
+                <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
                   {restaurant.name}
                 </h3>
                 <div className="flex items-center justify-between text-sm text-gray-500">
@@ -494,10 +494,10 @@ export default function HomePage() {
 
       {/* Latest Videos */}
       {latestVideos.length > 0 && (
-        <section className="bg-primary-50/40 py-12">
+        <section className="bg-primary-50/40 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Latest Videos" href="/videos" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {latestVideos.map((video) => (
                 <VideoCard key={video.slug} video={video} />
               ))}
@@ -508,16 +508,16 @@ export default function HomePage() {
 
       {/* Active Competitions */}
       {competitions.length > 0 && (
-      <section className="container mx-auto px-4 py-12">
+      <section className="container mx-auto px-4 py-6">
         <SectionHeader title="Active Competitions" href="/competitions" linkText="See all competitions" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {competitions.map((comp) => (
             <Link
               key={comp.slug}
               href={buildCompetitionUrl(comp.slug, comp.categorySlug)}
-              className="group flex items-center gap-6 bg-white rounded-xl border border-gray-200 p-6 hover:shadow-primary-glow hover:border-primary-200 hover:-translate-y-1 transition-all duration-300"
+              className="group flex items-center gap-4 bg-white rounded-xl border border-gray-200 p-4 hover:shadow-primary-glow hover:border-primary-200 hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl flex items-center justify-center">
+              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-xl flex items-center justify-center">
                 <svg className="w-8 h-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
@@ -544,15 +544,15 @@ export default function HomePage() {
 
       {/* Featured Classifieds */}
       {classifieds.length > 0 && (
-      <section className="bg-primary-50/40 py-12">
+      <section className="bg-primary-50/40 py-6">
         <div className="container mx-auto px-4">
           <SectionHeader title="Featured Classifieds" href="/classifieds" linkText="Browse all classifieds" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {classifieds.map((item) => (
               <Link
                 key={item.slug}
                 href={`/classifieds/${item.slug}`}
-                className="group block bg-white rounded-xl border border-gray-200 p-5 hover:shadow-primary-glow hover:border-primary-200 hover:-translate-y-1 transition-all duration-300"
+                className="group block bg-white rounded-xl border border-gray-200 p-4 hover:shadow-primary-glow hover:border-primary-200 hover:-translate-y-1 transition-all duration-300"
               >
                 <span className="inline-block px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full mb-3">
                   {item.category}

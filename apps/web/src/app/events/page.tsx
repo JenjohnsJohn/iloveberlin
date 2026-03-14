@@ -81,13 +81,13 @@ export default async function EventsPage() {
   ]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
-      <section className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <section className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           Berlin Events
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base text-gray-600 max-w-2xl mx-auto">
           Discover the best events happening in Berlin. From art exhibitions to
           nightlife, find your next experience.
         </p>

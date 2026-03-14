@@ -92,8 +92,8 @@ export function VideoCard({ video }: VideoCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2">
+      <div className="p-3">
+        <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
           {video.title}
         </h3>
 

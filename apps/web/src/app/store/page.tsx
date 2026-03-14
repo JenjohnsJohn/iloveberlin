@@ -86,9 +86,9 @@ export default async function StorePage() {
   ]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
-      <section className="text-center mb-12">
+      <section className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
           <svg
             className="w-8 h-8 text-primary-600"
@@ -104,10 +104,10 @@ export default async function StorePage() {
             />
           </svg>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           Berlin Store
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base text-gray-600 max-w-2xl mx-auto">
           Discover unique Berlin-inspired products, from apparel and art to
           artisan food and gifts. Take a piece of Berlin home with you.
         </p>

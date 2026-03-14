@@ -92,8 +92,8 @@ export function EventCard({ event }: EventCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-2">
+      <div className="p-3">
+        <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
           {event.title}
         </h3>
 
@@ -110,7 +110,7 @@ export function EventCard({ event }: EventCardProps) {
 
         {/* Time */}
         {event.startTime && (
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+          <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-2">
             <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>

@@ -96,9 +96,9 @@ export default async function CompetitionsPage() {
   ]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
-      <section className="text-center mb-12">
+      <section className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
           <svg
             className="w-8 h-8 text-amber-600"
@@ -116,10 +116,10 @@ export default async function CompetitionsPage() {
             />
           </svg>
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
           Win Amazing Prizes
         </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base text-gray-600 max-w-2xl mx-auto">
           Enter our competitions for a chance to win incredible experiences and
           prizes in Berlin. New competitions added regularly!
         </p>
