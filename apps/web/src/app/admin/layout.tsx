@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/protected-route';
@@ -340,6 +340,14 @@ function getPageSubtitle(pathname: string): string {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+    </Suspense>
+  );
+}
+
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const fullPath = `${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;

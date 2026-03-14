@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 
@@ -40,6 +40,14 @@ const typeColors: Record<string, string> = {
 };
 
 export default function CategoriesPage() {
+  return (
+    <Suspense>
+      <CategoriesPageInner />
+    </Suspense>
+  );
+}
+
+function CategoriesPageInner() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
