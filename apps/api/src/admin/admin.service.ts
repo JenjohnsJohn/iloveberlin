@@ -128,11 +128,11 @@ export class AdminService {
   async getPopularContent(): Promise<
     { id: string; title: string; type: string; views: number; date: string }[]
   > {
-    const [articles, events, videos, guides] = await Promise.all([
+    const [articles, events, videos] = await Promise.all([
       this.articleRepository.find({
         select: ['id', 'title', 'view_count', 'created_at'],
         order: { view_count: 'DESC' },
-        take: 4,
+        take: 5,
       }),
       this.eventRepository.find({
         select: ['id', 'title', 'view_count', 'created_at'],
@@ -143,11 +143,6 @@ export class AdminService {
         select: ['id', 'title', 'view_count', 'created_at'],
         order: { view_count: 'DESC' },
         take: 2,
-      }),
-      this.guideRepository.find({
-        select: ['id', 'title', 'view_count', 'created_at'],
-        order: { view_count: 'DESC' },
-        take: 1,
       }),
     ]);
 
@@ -163,9 +158,6 @@ export class AdminService {
       })),
       ...videos.map((v) => ({
         id: v.id, title: v.title, type: 'video', views: v.view_count, date: formatDate(v.created_at),
-      })),
-      ...guides.map((g) => ({
-        id: g.id, title: g.title, type: 'guide', views: g.view_count, date: formatDate(g.created_at),
       })),
     ];
 
