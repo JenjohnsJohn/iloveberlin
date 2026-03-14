@@ -12,7 +12,7 @@ RUN pnpm --filter api build
 
 # Prune dev dependencies
 ENV CI=true
-RUN pnpm prune --prod
+RUN pnpm prune --prod --ignore-scripts
 
 # Production stage
 FROM node:22-alpine AS runner
