@@ -16,7 +16,8 @@ RUN corepack enable && corepack prepare pnpm@10.32.0 --activate
 WORKDIR /app
 COPY --from=builder /app/apps/api/dist ./dist
 COPY --from=builder /app/apps/api/package.json ./
-COPY --from=builder /app/apps/api/node_modules ./node_modules
+COPY --from=builder /app/pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
 ENV NODE_ENV=production
 EXPOSE 3001
 CMD ["node", "dist/main.js"]
