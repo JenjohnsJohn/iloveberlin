@@ -13,7 +13,7 @@ const TITLE_TEMPLATES = [
   (sub: string) => `Berlin ${sub} Competition: Spring Edition`,
   (sub: string, _d: string, l: string) => `${sub} Contest at ${l}`,
   (sub: string, d: string) => `${sub} Showdown: ${d} Edition`,
-  (sub: string) => `I Love Berlin ${sub} Awards`,
+  (sub: string) => `I ♥ Berlin ${sub} Awards`,
   (sub: string, d: string) => `${d} ${sub} Talent Search`,
   (sub: string) => `Best of Berlin ${sub} 2026`,
   (sub: string, _d: string, l: string) => `${sub} Battle near ${l}`,
@@ -23,7 +23,7 @@ const TITLE_TEMPLATES = [
 
 const PRIZE_TEMPLATES = [
   (sub: string) => `Win a ${sub} masterclass with a Berlin professional, plus a gift package worth 200 EUR.`,
-  (sub: string) => `First place receives a 500 EUR voucher for ${sub} equipment and a feature on I Love Berlin.`,
+  (sub: string) => `First place receives a 500 EUR voucher for ${sub} equipment and a feature on I ♥ Berlin.`,
   (sub: string) => `The winner gets a VIP ${sub} experience in Berlin, including dinner for two and event tickets.`,
   () => `Grand prize: 1,000 EUR cash plus a feature article on iloveberlin.biz.`,
   (sub: string) => `Top 3 entries win ${sub} supplies, Berlin merchandise packs, and gift cards worth up to 300 EUR.`,

@@ -38,13 +38,13 @@ export class CreateSiteSettingsTable1710000013000 implements MigrationInterface 
     // Seed default settings
     await queryRunner.query(`
       INSERT INTO "site_settings" ("key", "value", "type", "group", "label", "description", "is_public") VALUES
-        ('site_name', 'I Love Berlin', 'string', 'general', 'Site Name', 'The name of the website displayed in headers and titles', true),
+        ('site_name', 'I ♥ Berlin', 'string', 'general', 'Site Name', 'The name of the website displayed in headers and titles', true),
         ('site_description', 'Your guide to Berlin - events, dining, culture and more', 'text', 'general', 'Site Description', 'A brief description of the website', true),
         ('site_logo_url', NULL, 'string', 'general', 'Site Logo URL', 'URL to the site logo image', true),
         ('contact_email', 'hello@iloveberlin.de', 'string', 'contact', 'Contact Email', 'Primary contact email address', true),
         ('contact_phone', NULL, 'string', 'contact', 'Contact Phone', 'Contact phone number', true),
         ('contact_address', 'Berlin, Germany', 'text', 'contact', 'Contact Address', 'Physical address or location', true),
-        ('seo_title_suffix', '| I Love Berlin', 'string', 'seo', 'SEO Title Suffix', 'Appended to all page titles for SEO', false),
+        ('seo_title_suffix', '| I ♥ Berlin', 'string', 'seo', 'SEO Title Suffix', 'Appended to all page titles for SEO', false),
         ('seo_default_description', 'Discover the best of Berlin - events, restaurants, culture, and local guides', 'text', 'seo', 'Default Meta Description', 'Default meta description used when pages do not have their own', false),
         ('seo_default_keywords', 'Berlin, events, restaurants, culture, travel, guide', 'text', 'seo', 'Default Meta Keywords', 'Default meta keywords for SEO', false),
         ('social_facebook', NULL, 'string', 'social', 'Facebook URL', 'Facebook page or profile URL', true),

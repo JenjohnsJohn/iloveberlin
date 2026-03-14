@@ -59,7 +59,7 @@ function generateIcsContent(event: EventContentProps['event']): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ILoveBerlin//Events//EN',
+    'PRODID:-//I♥Berlin//Events//EN',
     'BEGIN:VEVENT',
     `DTSTART:${start}`,
     `DTEND:${end}`,

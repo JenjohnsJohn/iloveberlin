@@ -121,7 +121,7 @@ export default async function VideoDetailPage({
     contentUrl: video.video_url,
     publisher: {
       '@type': 'Organization',
-      name: 'ILoveBerlin',
+      name: 'I♥Berlin',
       url: 'https://iloveberlin.biz',
     },
     ...(video.view_count > 0

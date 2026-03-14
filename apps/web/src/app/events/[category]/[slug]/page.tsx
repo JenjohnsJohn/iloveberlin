@@ -140,7 +140,7 @@ export default async function EventDetailPage({
         : undefined,
     organizer: {
       '@type': 'Organization',
-      name: 'ILoveBerlin',
+      name: 'I♥Berlin',
       url: 'https://iloveberlin.biz',
     },
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',

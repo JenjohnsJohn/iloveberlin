@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Berlin Store - ILoveBerlin',
+  title: 'Berlin Store - I♥Berlin',
   description:
     'Discover unique Berlin-inspired products, from apparel and art to artisan food and gifts. Take a piece of Berlin home with you.',
   openGraph: {

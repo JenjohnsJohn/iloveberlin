@@ -48,18 +48,18 @@ async function getArchivedCompetitions(): Promise<CompetitionCardData[]> {
 }
 
 export const metadata: Metadata = {
-  title: 'Past Competitions - ILoveBerlin',
+  title: 'Past Competitions - I♥Berlin',
   description:
     'Browse our previous competitions and their winners. See what amazing prizes have been won in Berlin.',
   openGraph: {
-    title: 'Past Competitions - ILoveBerlin',
+    title: 'Past Competitions - I♥Berlin',
     description:
       'Browse our previous competitions and their winners.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Past Competitions - ILoveBerlin',
+    title: 'Past Competitions - I♥Berlin',
   },
   alternates: {
     canonical: 'https://iloveberlin.biz/competitions/archive',

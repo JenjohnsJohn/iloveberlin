@@ -10,7 +10,7 @@ export class EmailService {
     this.logger.log('========================================');
     this.logger.log('VERIFICATION EMAIL (dev mode)');
     this.logger.log(`To: ${email}`);
-    this.logger.log(`Subject: Verify your ILoveBerlin account`);
+    this.logger.log(`Subject: Verify your I♥Berlin account`);
     this.logger.log(`Verification URL: ${verificationUrl}`);
     this.logger.log(`Token: ${token}`);
     this.logger.log('========================================');
@@ -22,7 +22,7 @@ export class EmailService {
     this.logger.log('========================================');
     this.logger.log('PASSWORD RESET EMAIL (dev mode)');
     this.logger.log(`To: ${email}`);
-    this.logger.log(`Subject: Reset your ILoveBerlin password`);
+    this.logger.log(`Subject: Reset your I♥Berlin password`);
     this.logger.log(`Reset URL: ${resetUrl}`);
     this.logger.log(`Token: ${token}`);
     this.logger.log('========================================');

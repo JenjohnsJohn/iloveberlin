@@ -128,7 +128,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!info) return { title: 'Category Not Found' };
 
   return {
-    title: `${info.name} Classifieds in Berlin - ILoveBerlin`,
+    title: `${info.name} Classifieds in Berlin - I♥Berlin`,
     description: info.description,
     openGraph: {
       title: `${info.name} Classifieds in Berlin`,

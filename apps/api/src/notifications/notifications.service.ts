@@ -61,7 +61,7 @@ export class NotificationsService {
 
       this.sendEmail(
         email,
-        'Confirm your ILoveBerlin newsletter subscription',
+        'Confirm your I♥Berlin newsletter subscription',
         'newsletter-confirmation',
         { token: existing.confirmation_token },
       );
@@ -78,7 +78,7 @@ export class NotificationsService {
 
     this.sendEmail(
       email,
-      'Confirm your ILoveBerlin newsletter subscription',
+      'Confirm your I♥Berlin newsletter subscription',
       'newsletter-confirmation',
       { token: confirmationToken },
     );

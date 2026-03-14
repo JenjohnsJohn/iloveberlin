@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'ILoveBerlin terms of service - rules and guidelines for using our platform.',
+  description: 'I♥Berlin terms of service - rules and guidelines for using our platform.',
 };
 
 export default function TermsOfServicePage() {
@@ -15,7 +15,7 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Acceptance of Terms</h2>
           <p className="text-gray-600 leading-relaxed">
-            By accessing or using the ILoveBerlin platform (&quot;Service&quot;), you agree to be bound by
+            By accessing or using the I♥Berlin platform (&quot;Service&quot;), you agree to be bound by
             these Terms of Service. If you do not agree to these terms, please do not use our Service.
           </p>
         </section>
@@ -23,7 +23,7 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Description of Service</h2>
           <p className="text-gray-600 leading-relaxed">
-            ILoveBerlin is a digital lifestyle platform providing news, events, dining guides, videos,
+            I♥Berlin is a digital lifestyle platform providing news, events, dining guides, videos,
             classifieds, and other content related to life in Berlin. We reserve the right to modify,
             suspend, or discontinue any aspect of the Service at any time.
           </p>
@@ -45,7 +45,7 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">4. User Content</h2>
           <p className="text-gray-600 leading-relaxed">
-            You retain ownership of content you submit to ILoveBerlin. By posting content, you grant
+            You retain ownership of content you submit to I♥Berlin. By posting content, you grant
             us a non-exclusive, worldwide, royalty-free license to use, display, and distribute your
             content on our platform. You are responsible for ensuring your content does not violate
             any laws or third-party rights.
@@ -70,8 +70,8 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Intellectual Property</h2>
           <p className="text-gray-600 leading-relaxed">
-            The ILoveBerlin platform, including its design, logos, text, graphics, and software, is
-            owned by ILoveBerlin and is protected by copyright and trademark laws. You may not
+            The I♥Berlin platform, including its design, logos, text, graphics, and software, is
+            owned by I♥Berlin and is protected by copyright and trademark laws. You may not
             reproduce, distribute, or create derivative works without our express written permission.
           </p>
         </section>
@@ -88,7 +88,7 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">8. Limitation of Liability</h2>
           <p className="text-gray-600 leading-relaxed">
-            To the fullest extent permitted by law, ILoveBerlin shall not be liable for any indirect,
+            To the fullest extent permitted by law, I♥Berlin shall not be liable for any indirect,
             incidental, special, consequential, or punitive damages arising from your use of the Service.
           </p>
         </section>

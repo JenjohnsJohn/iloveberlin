@@ -56,7 +56,7 @@ export async function generateMetadata({
   if (!cuisineName) return { title: 'Cuisine Not Found' };
 
   return {
-    title: `${cuisineName} Restaurants in Berlin - ILoveBerlin`,
+    title: `${cuisineName} Restaurants in Berlin - I♥Berlin`,
     description: `Discover the best ${cuisineName.toLowerCase()} restaurants and eateries in Berlin.`,
     openGraph: {
       title: `${cuisineName} Restaurants in Berlin`,

@@ -23,8 +23,8 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('ILoveBerlin API')
-      .setDescription('The ILoveBerlin platform API documentation')
+      .setTitle('I♥Berlin API')
+      .setDescription('The I♥Berlin platform API documentation')
       .setVersion('0.1.0')
       .addBearerAuth()
       .build();

@@ -132,7 +132,7 @@ export function Header() {
       <div className="container mx-auto px-4" ref={navRef}>
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="text-2xl font-heading font-bold text-primary-600">
-            ILoveBerlin
+            I<span className="text-red-500">♥</span>Berlin
           </Link>
 
           {/* Desktop Nav */}

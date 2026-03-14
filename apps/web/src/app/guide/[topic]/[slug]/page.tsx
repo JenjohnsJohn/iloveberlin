@@ -150,7 +150,7 @@ export default async function GuideDetailPage({
     dateModified: guide.updated_at,
     publisher: {
       '@type': 'Organization',
-      name: 'ILoveBerlin',
+      name: 'I♥Berlin',
       url: 'https://iloveberlin.biz',
     },
     mainEntityOfPage: {

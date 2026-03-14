@@ -91,7 +91,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
             <Link href="/" className="text-xl font-heading font-bold text-primary-400">
-              ILoveBerlin
+              I<span className="text-red-400">♥</span>Berlin
             </Link>
             <p className="mt-2 text-sm text-gray-400">
               Your digital guide to Berlin life.
@@ -141,7 +141,7 @@ export function Footer() {
         <NewsletterSignup />
 
         <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} ILoveBerlin. All rights reserved.
+          &copy; {new Date().getFullYear()} I♥Berlin. All rights reserved.
         </div>
       </div>
     </footer>

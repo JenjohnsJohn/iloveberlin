@@ -30,7 +30,7 @@ function LoginForm() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-500 mt-2">Sign in to your ILoveBerlin account</p>
+          <p className="text-gray-500 mt-2">Sign in to your I♥Berlin account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
