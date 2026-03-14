@@ -10,16 +10,15 @@ COPY apps/api/ apps/api/
 COPY tsconfig.base.json ./
 RUN pnpm --filter api build
 
-# Prune dev dependencies
-ENV CI=true
-RUN pnpm prune --prod --ignore-scripts
-
 # Production stage
 FROM node:22-alpine AS runner
 WORKDIR /app
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/package.json ./
+# Preserve pnpm symlink structure: api's node_modules symlinks -> root .pnpm store
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/package.json ./apps/api/
 ENV NODE_ENV=production
+WORKDIR /app/apps/api
 EXPOSE 3001
 CMD ["node", "dist/main.js"]
