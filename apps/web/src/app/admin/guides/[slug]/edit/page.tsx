@@ -156,8 +156,8 @@ export default function EditGuidePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Edit Guide</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Edit Guide</h2>
         <button
           onClick={() => router.push('/admin/guides')}
           className="text-sm text-gray-500 hover:text-gray-700"
@@ -167,17 +167,17 @@ export default function EditGuidePage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Title */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Title *
             </label>
             <input
@@ -185,35 +185,35 @@ export default function EditGuidePage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter guide title..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
             />
           </div>
 
           {/* Excerpt */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Excerpt
             </label>
             <textarea
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="Brief summary of the guide..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
               rows={3}
             />
           </div>
 
           {/* Body */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Body *
             </label>
             <RichTextEditor value={body} onChange={setBody} />
           </div>
 
           {/* SEO */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">SEO</h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">SEO</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -225,7 +225,7 @@ export default function EditGuidePage() {
                   onChange={(e) => setSeoTitle(e.target.value)}
                   placeholder="Custom SEO title (max 70 chars)"
                   maxLength={70}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                 />
               </div>
               <div>
@@ -238,7 +238,7 @@ export default function EditGuidePage() {
                   placeholder="Custom meta description (max 500 chars)"
                   maxLength={500}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                  className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
                 />
               </div>
             </div>
@@ -246,14 +246,14 @@ export default function EditGuidePage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Status & Save */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Status</h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Status</h3>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm mb-3"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm mb-3"
             >
               <option value="draft">Draft</option>
               <option value="in_review">In Review</option>
@@ -263,19 +263,19 @@ export default function EditGuidePage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+              className="w-full px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
 
           {/* Topic */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Topic</h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Topic</h3>
             <select
               value={topicId}
               onChange={(e) => setTopicId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
             >
               <option value="">Select a topic</option>
               {topics.map((t) => (
@@ -287,8 +287,8 @@ export default function EditGuidePage() {
           </div>
 
           {/* Featured Image */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Featured Image</h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Featured Image</h3>
             {featuredImageUrl && (
               <div className="mb-3 relative">
                 <img src={featuredImageUrl} alt="Featured" className="w-full h-32 object-cover rounded-lg border border-gray-200" />

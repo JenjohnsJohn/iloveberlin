@@ -155,8 +155,8 @@ export default function SettingsAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Settings</h2>
       </div>
 
       {/* Success Banner */}
@@ -196,7 +196,7 @@ export default function SettingsAdminPage() {
       ) : (
         <>
           {/* Group Tabs */}
-          <div className="border-b border-gray-200 mb-6">
+          <div className="border-b border-gray-200 mb-4">
             <nav className="flex gap-0 -mb-px">
               {GROUPS.map((group) => (
                 <button
@@ -215,8 +215,8 @@ export default function SettingsAdminPage() {
           </div>
 
           {/* Settings Form */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="space-y-4">
               {groupSettings.map((setting) => (
                 <div key={setting.key}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -242,7 +242,7 @@ export default function SettingsAdminPage() {
                 <button
                   onClick={handleSaveGroup}
                   disabled={saving}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>

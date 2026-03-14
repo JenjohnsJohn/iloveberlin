@@ -84,106 +84,106 @@ export default function NewCompetitionPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">New Competition</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">New Competition</h2>
         <button onClick={() => router.push('/admin/competitions')} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Title */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Title *</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter competition title..."
               maxLength={255}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg"
             />
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description *</label>
             <RichTextEditor value={description} onChange={setDescription} />
           </div>
 
           {/* Prize Description */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Prize Description</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Prize Description</label>
             <textarea
               value={prizeDescription}
               onChange={(e) => setPrizeDescription(e.target.value)}
               placeholder="Describe the prizes..."
               maxLength={5000}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
               rows={6}
             />
           </div>
 
           {/* Terms & Conditions */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Terms & Conditions</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Terms & Conditions</label>
             <textarea
               value={termsConditions}
               onChange={(e) => setTermsConditions(e.target.value)}
               placeholder="Enter terms and conditions..."
               maxLength={10000}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
               rows={10}
             />
           </div>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Start Date */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Start Date *</label>
             <input
               type="datetime-local"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
             />
           </div>
 
           {/* End Date */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">End Date *</label>
             <input
               type="datetime-local"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
             />
           </div>
 
           {/* Max Entries */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Max Entries</label>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Max Entries</label>
             <input
               type="number"
               value={maxEntries}
               onChange={(e) => setMaxEntries(e.target.value)}
               placeholder="Unlimited"
               min="1"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
             />
           </div>
 
           {/* Featured Image */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Featured Image</h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Featured Image</h3>
             {featuredImageUrl && (
               <div className="mb-3 relative">
                 <img src={featuredImageUrl} alt="Featured" className="w-full h-32 object-cover rounded-lg border border-gray-200" />
@@ -195,20 +195,20 @@ export default function NewCompetitionPage() {
           </div>
 
           {/* Publish */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Publish</h3>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Publish</h3>
             <div className="flex space-x-2">
               <button
                 onClick={() => handleSave('draft')}
                 disabled={isSaving}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                className="flex-1 px-3.5 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 {isSaving ? 'Saving...' : 'Save Draft'}
               </button>
               <button
                 onClick={() => handleSave('active')}
                 disabled={isSaving}
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                className="flex-1 px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
               >
                 {isSaving ? 'Publishing...' : 'Publish'}
               </button>

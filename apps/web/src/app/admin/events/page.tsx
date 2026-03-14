@@ -145,29 +145,29 @@ export default function EventsAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Events</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Events</h2>
         <Link
           href="/admin/events/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
         >
           + New Event
         </Link>
       </div>
 
       {/* Search & Category Filter */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <input
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search events..."
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
         />
         <select
           value={categoryFilter}
           onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         >
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -179,7 +179,7 @@ export default function EventsAdminPage() {
       </div>
 
       {/* Status Filter */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-3">
         {[
           { value: '', label: 'All' },
           { value: 'draft', label: 'Draft' },
@@ -224,25 +224,25 @@ export default function EventsAdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Title
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Date
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Venue
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Category
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Status
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Price
                     </th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">
                       Actions
                     </th>
                   </tr>
@@ -253,17 +253,17 @@ export default function EventsAdminPage() {
                       key={event.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span className="font-medium text-gray-900 line-clamp-1">
                           {event.title}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                         {event.date}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{event.venue}</td>
-                      <td className="px-4 py-3 text-gray-600">{event.category}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-gray-600">{event.venue}</td>
+                      <td className="px-3 py-2 text-gray-600">{event.category}</td>
+                      <td className="px-3 py-2">
                         <select
                           value={event.status}
                           onChange={(e) => handleStatusChange(event.id, e.target.value)}
@@ -276,7 +276,7 @@ export default function EventsAdminPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span
                           className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                             event.isFree
@@ -287,23 +287,23 @@ export default function EventsAdminPage() {
                           {event.isFree ? 'Free' : `\u20AC${event.price}`}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/events/${event.slug}/edit`}
-                            className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                           >
                             Edit
                           </Link>
                           <Link
                             href={buildEventUrl(event.slug, event.categorySlug)}
-                            className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >
                             View
                           </Link>
                           <button
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                             onClick={() => handleDelete(event.id, event.title)}
                           >
                             Delete
@@ -326,7 +326,7 @@ export default function EventsAdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-3">
               <p className="text-sm text-gray-500">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button

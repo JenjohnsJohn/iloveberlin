@@ -139,10 +139,10 @@ export default function MediaPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Media Library</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">Media Library</h2>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex items-center justify-between">
           <p className="text-sm text-red-700">{error}</p>
           <button onClick={() => setError(null)} className="text-sm text-red-700 hover:text-red-900 underline">
             Dismiss
@@ -151,7 +151,7 @@ export default function MediaPage() {
       )}
 
       {/* Upload Area */}
-      <div className="bg-white rounded-lg shadow-sm border-2 border-dashed border-gray-300 p-8 mb-6 text-center hover:border-primary-400 transition-colors">
+      <div className="bg-white rounded-lg shadow-sm border-2 border-dashed border-gray-300 p-8 mb-4 text-center hover:border-primary-400 transition-colors">
         <input
           ref={fileInputRef}
           type="file"
@@ -185,13 +185,13 @@ export default function MediaPage() {
       </div>
 
       {/* Search */}
-      <div className="mb-4">
+      <div className="mb-3">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by filename or alt text..."
-          className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="w-full max-w-sm px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         />
       </div>
 
@@ -324,7 +324,7 @@ export default function MediaPage() {
             </div>
           )}
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between">
             <p className="text-sm text-gray-500">
               {media.length} file{media.length !== 1 ? 's' : ''} in library
             </p>
@@ -333,7 +333,7 @@ export default function MediaPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                  className="px-2.5 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
                 >
                   Previous
                 </button>
@@ -343,7 +343,7 @@ export default function MediaPage() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+                  className="px-2.5 py-1 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
                 >
                   Next
                 </button>

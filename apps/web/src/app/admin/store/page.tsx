@@ -486,13 +486,13 @@ export default function StoreAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Store Management</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Store Management</h2>
         <div className="flex gap-2">
           {activeTab === 'products' && (
             <button
               onClick={() => { setShowProductForm(true); setEditingProductId(null); setProductForm(EMPTY_PRODUCT_FORM); }}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+              className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               + New Product
             </button>
@@ -500,7 +500,7 @@ export default function StoreAdminPage() {
           {activeTab === 'discounts' && (
             <button
               onClick={() => { setShowDiscountForm(true); setEditingDiscountId(null); setDiscountForm(EMPTY_DISCOUNT_FORM); }}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+              className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               + New Discount
             </button>
@@ -515,7 +515,7 @@ export default function StoreAdminPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-gray-200">
+      <div className="flex items-center gap-1 mb-4 border-b border-gray-200">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -545,7 +545,7 @@ export default function StoreAdminPage() {
             <>
               {/* Inline Product Form */}
               {showProductForm && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
                   <h3 className="text-sm font-semibold text-gray-900 mb-4">
                     {editingProductId ? 'Edit Product' : 'Add Product'}
                   </h3>
@@ -709,13 +709,13 @@ export default function StoreAdminPage() {
                     <button
                       onClick={handleSaveProduct}
                       disabled={savingProduct}
-                      className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                      className="px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                     >
                       {savingProduct ? 'Saving...' : editingProductId ? 'Update' : 'Create'}
                     </button>
                     <button
                       onClick={() => { setShowProductForm(false); setEditingProductId(null); }}
-                      className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="px-3.5 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       Cancel
                     </button>
@@ -724,20 +724,20 @@ export default function StoreAdminPage() {
               )}
 
               {/* Search & Filters */}
-              <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 <div className="flex-1 min-w-[200px]">
                   <input
                     type="text"
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <select
                   value={filterProductStatus}
                   onChange={(e) => { setFilterProductStatus(e.target.value); setPage(1); }}
-                  className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">All Statuses</option>
                   {Object.entries(PRODUCT_STATUS_LABELS).map(([value, label]) => (
@@ -747,7 +747,7 @@ export default function StoreAdminPage() {
                 {(searchQuery || filterProductStatus) && (
                   <button
                     onClick={() => { setSearchQuery(''); setFilterProductStatus(''); setPage(1); }}
-                    className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
+                    className="px-2.5 py-1.5 text-sm text-gray-500 hover:text-gray-700"
                   >
                     Clear filters
                   </button>
@@ -759,28 +759,28 @@ export default function StoreAdminPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Product</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Price</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Stock</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
-                        <th className="text-right px-4 py-3 font-semibold text-gray-700">Actions</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Product</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Price</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Stock</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Status</th>
+                        <th className="text-right px-3 py-2 font-semibold text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {products.map((product) => (
                         <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className="font-medium text-gray-900">{product.name}</span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">
+                          <td className="px-3 py-2 text-gray-600">
                             {'\u20AC'}{product.price.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className={product.stock === 0 ? 'text-red-600 font-medium' : 'text-gray-600'}>
                               {product.stock}
                             </span>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <select
                               value={product.status}
                               onChange={(e) => handleProductStatusChange(product.id, e.target.value)}
@@ -791,24 +791,24 @@ export default function StoreAdminPage() {
                               ))}
                             </select>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleEditProduct(product)}
-                                className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                               >
                                 Edit
                               </button>
                               <Link
                                 href={`/store/${product.slug}`}
-                                className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                                 target="_blank"
                               >
                                 View
                               </Link>
                               <button
                                 onClick={() => handleDeleteProduct(product.id)}
-                                className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                               >
                                 Delete
                               </button>
@@ -859,24 +859,24 @@ export default function StoreAdminPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Order #</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Customer</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Date</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Total</th>
-                      <th className="text-right px-4 py-3 font-semibold text-gray-700">Actions</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Order #</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Customer</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Date</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Status</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Total</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orders.map((order) => (
                       <>
                         <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className="font-medium text-gray-900">{order.orderNumber}</span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">{order.customer}</td>
-                          <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{order.date}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2 text-gray-600">{order.customer}</td>
+                          <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{order.date}</td>
+                          <td className="px-3 py-2">
                             <select
                               value={order.status}
                               onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
@@ -887,14 +887,14 @@ export default function StoreAdminPage() {
                               ))}
                             </select>
                           </td>
-                          <td className="px-4 py-3 font-medium text-gray-900">
+                          <td className="px-3 py-2 font-medium text-gray-900">
                             {'\u20AC'}{order.total.toFixed(2)}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
-                                className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                               >
                                 {expandedOrderId === order.id ? 'Hide' : 'View'}
                               </button>
@@ -903,7 +903,7 @@ export default function StoreAdminPage() {
                         </tr>
                         {expandedOrderId === order.id && (
                           <tr key={`${order.id}-detail`} className="bg-gray-50">
-                            <td colSpan={6} className="px-6 py-4">
+                            <td colSpan={6} className="px-4 py-3">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                 <div>
                                   <p className="font-medium text-gray-700 mb-1">Customer</p>
@@ -948,7 +948,7 @@ export default function StoreAdminPage() {
             <>
               {/* Inline Discount Form */}
               {showDiscountForm && (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
                   <h3 className="text-sm font-semibold text-gray-900 mb-4">
                     {editingDiscountId ? 'Edit Discount' : 'Add Discount'}
                   </h3>
@@ -1053,13 +1053,13 @@ export default function StoreAdminPage() {
                     <button
                       onClick={handleSaveDiscount}
                       disabled={savingDiscount}
-                      className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                      className="px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                     >
                       {savingDiscount ? 'Saving...' : editingDiscountId ? 'Update' : 'Create'}
                     </button>
                     <button
                       onClick={() => { setShowDiscountForm(false); setEditingDiscountId(null); }}
-                      className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="px-3.5 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       Cancel
                     </button>
@@ -1072,45 +1072,45 @@ export default function StoreAdminPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Code</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Type</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Value</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Uses</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Active</th>
-                        <th className="text-right px-4 py-3 font-semibold text-gray-700">Actions</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Code</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Type</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Value</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Uses</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Active</th>
+                        <th className="text-right px-3 py-2 font-semibold text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {discounts.map((disc) => (
                         <tr key={disc.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className="font-mono font-medium text-gray-900">{disc.code}</span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600 capitalize">{disc.type}</td>
-                          <td className="px-4 py-3 text-gray-600">
+                          <td className="px-3 py-2 text-gray-600 capitalize">{disc.type}</td>
+                          <td className="px-3 py-2 text-gray-600">
                             {disc.type === 'percentage' ? `${disc.value}%` : `\u20AC${disc.value.toFixed(2)}`}
                           </td>
-                          <td className="px-4 py-3 text-gray-600">
+                          <td className="px-3 py-2 text-gray-600">
                             {disc.uses} / {disc.maxUses}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               disc.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                             }`}>
                               {disc.active ? 'Active' : 'Inactive'}
                             </span>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleEditDiscount(disc)}
-                                className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                               >
                                 Edit
                               </button>
                               <button
                                 onClick={() => handleDeleteDiscount(disc.id)}
-                                className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                               >
                                 Delete
                               </button>

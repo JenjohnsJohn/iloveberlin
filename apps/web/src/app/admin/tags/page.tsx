@@ -111,7 +111,7 @@ export default function TagsPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Tags</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">Tags</h2>
 
       {/* Error Message */}
       {error && (
@@ -121,7 +121,7 @@ export default function TagsPage() {
       )}
 
       {/* Create Tag */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
         <div className="flex items-center space-x-3">
           <input
             type="text"
@@ -134,7 +134,7 @@ export default function TagsPage() {
           <button
             onClick={handleCreateTag}
             disabled={saving}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50"
+            className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium disabled:opacity-50"
           >
             {saving ? 'Adding...' : 'Add Tag'}
           </button>
@@ -142,13 +142,13 @@ export default function TagsPage() {
       </div>
 
       {/* Search */}
-      <div className="mb-4">
+      <div className="mb-3">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search tags..."
-          className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="w-full max-w-sm px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         />
       </div>
 
@@ -173,16 +173,16 @@ export default function TagsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usage Count</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Usage Count</th>
+                  <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredTags.map((tag) => (
                   <tr key={tag.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       {editingId === tag.id ? (
                         <div className="flex items-center space-x-2">
                           <input
@@ -214,13 +214,13 @@ export default function TagsPage() {
                         <span className="text-sm font-medium text-gray-900">{tag.name}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">{tag.slug}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2 text-sm text-gray-500">{tag.slug}</td>
+                    <td className="px-3 py-2">
                       <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
                         {tag.usage_count}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         {editingId !== tag.id && (
                           <button

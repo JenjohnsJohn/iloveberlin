@@ -163,25 +163,25 @@ export default function VideosAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Videos</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Videos</h2>
         <Link
           href="/admin/videos/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
         >
           + Add Video
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="flex flex-col md:flex-row gap-2 mb-3">
         <div className="flex-1">
           <input
             type="text"
             placeholder="Search videos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
         <div className="flex gap-2">
@@ -189,7 +189,7 @@ export default function VideosAdminPage() {
             <button
               key={status}
               onClick={() => { setStatusFilter(status); setPage(1); }}
-              className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+              className={`px-2.5 py-1.5 rounded-lg text-sm font-medium capitalize transition-colors ${
                 statusFilter === status
                   ? 'bg-primary-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -222,28 +222,28 @@ export default function VideosAdminPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Title
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Series
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Category
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Provider
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-right px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Views
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Published
                     </th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <th className="text-right px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -251,7 +251,7 @@ export default function VideosAdminPage() {
                 <tbody className="divide-y divide-gray-100">
                   {filteredVideos.map((video) => (
                     <tr key={video.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
                             {video.title}
@@ -259,18 +259,18 @@ export default function VideosAdminPage() {
                           <div className="text-xs text-gray-400">/{video.slug}</div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-3 py-2 text-sm text-gray-600">
                         {video.seriesName || '--'}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="px-3 py-2 text-sm text-gray-600">
                         {video.categoryName || '--'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span className="text-xs text-gray-500 capitalize">
                           {video.videoProvider}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <select
                           value={video.status}
                           onChange={(e) => handleStatusChange(video.id, e.target.value)}
@@ -283,29 +283,29 @@ export default function VideosAdminPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 text-right">
+                      <td className="px-3 py-2 text-sm text-gray-600 text-right">
                         {(video.viewCount || 0).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-3 py-2 text-sm text-gray-500">
                         {formatDate(video.publishedAt)}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/videos/${video.slug}/edit`}
-                            className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                           >
                             Edit
                           </Link>
                           <Link
                             href={buildVideoUrl(video.slug, video.categorySlug)}
-                            className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >
                             View
                           </Link>
                           <button
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                             onClick={() => handleDelete(video.id, video.title)}
                           >
                             Delete
@@ -327,7 +327,7 @@ export default function VideosAdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-3">
               <p className="text-sm text-gray-500">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button
@@ -352,8 +352,8 @@ export default function VideosAdminPage() {
 
       {/* Series Overview */}
       {series.length > 0 && (
-        <div className="mt-8 p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+        <div className="mt-5 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-base font-semibold text-gray-900 mb-3">
             Video Series
           </h3>
           <div className="flex flex-wrap gap-2">

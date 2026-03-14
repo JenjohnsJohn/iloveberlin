@@ -519,19 +519,19 @@ export default function DiningAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Dining Management</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Dining Management</h2>
         <div className="flex gap-2">
           <Link
             href="/dining"
-            className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            className="px-3.5 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
           >
             View Public Page
           </Link>
           {activeTab === 'restaurants' && (
             <button
               onClick={() => { setShowRestaurantForm(true); setEditingRestaurantId(null); setRestaurantForm(EMPTY_RESTAURANT_FORM); setFeaturedImageUrl(null); }}
-              className="px-4 py-2 text-sm text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              className="px-3.5 py-1.5 text-sm text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
             >
               + Add Restaurant
             </button>
@@ -539,7 +539,7 @@ export default function DiningAdminPage() {
           {activeTab === 'cuisines' && (
             <button
               onClick={() => { setShowCuisineForm(true); setEditingCuisineId(null); setCuisineForm(EMPTY_CUISINE_FORM); }}
-              className="px-4 py-2 text-sm text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              className="px-3.5 py-1.5 text-sm text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
             >
               + Add Cuisine
             </button>
@@ -547,7 +547,7 @@ export default function DiningAdminPage() {
           {activeTab === 'offers' && (
             <button
               onClick={() => { setShowOfferForm(true); setEditingOfferId(null); setOfferForm(EMPTY_OFFER_FORM); }}
-              className="px-4 py-2 text-sm text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              className="px-3.5 py-1.5 text-sm text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
             >
               + Add Offer
             </button>
@@ -556,7 +556,7 @@ export default function DiningAdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div className="flex gap-1 mb-4 border-b border-gray-200">
         {(['restaurants', 'cuisines', 'offers'] as Tab[]).map((tab) => (
           <button
             key={tab}
@@ -584,13 +584,13 @@ export default function DiningAdminPage() {
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setRestaurantsPage(1); }}
               placeholder="Search restaurants..."
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
+              className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
             />
           </div>
 
           {/* Inline Restaurant Form */}
           {showRestaurantForm && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">
                 {editingRestaurantId ? 'Edit Restaurant' : 'Add Restaurant'}
               </h3>
@@ -748,13 +748,13 @@ export default function DiningAdminPage() {
                 <button
                   onClick={handleSaveRestaurant}
                   disabled={savingRestaurant}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  className="px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
                   {savingRestaurant ? 'Saving...' : editingRestaurantId ? 'Update' : 'Create'}
                 </button>
                 <button
                   onClick={() => { setShowRestaurantForm(false); setEditingRestaurantId(null); }}
-                  className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-3.5 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
@@ -768,33 +768,33 @@ export default function DiningAdminPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuisines</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cuisines</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {restaurants.map((r) => (
                       <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{r.name}</div>
                           <div className="text-xs text-gray-500">{r.slug}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{r.district || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{r.district || '-'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex gap-1">
                             {(r.cuisines || []).map((c) => (
                               <span key={c} className="px-2 py-0.5 bg-orange-50 text-orange-700 text-xs rounded-full">{c}</span>
                             ))}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">{priceLabel(r.priceRange)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{r.rating ? Number(r.rating).toFixed(1) : '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 font-medium">{priceLabel(r.priceRange)}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{r.rating ? Number(r.rating).toFixed(1) : '-'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
                           <select
                             value={r.status}
                             onChange={(e) => handleStatusChange(r.id, e.target.value)}
@@ -805,7 +805,7 @@ export default function DiningAdminPage() {
                             <option value="archived">Archived</option>
                           </select>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                           <button
                             className="text-primary-600 hover:text-primary-700 font-medium mr-3"
                             onClick={() => handleEditRestaurant(r)}
@@ -826,7 +826,7 @@ export default function DiningAdminPage() {
                     ))}
                     {restaurants.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                        <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
                           No restaurants found.
                         </td>
                       </tr>
@@ -836,7 +836,7 @@ export default function DiningAdminPage() {
               </div>
               {/* Pagination */}
               {restaurantsTotalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center justify-between mt-3">
                   <p className="text-sm text-gray-500">Page {restaurantsPage} of {restaurantsTotalPages}</p>
                   <div className="flex gap-2">
                     <button
@@ -868,7 +868,7 @@ export default function DiningAdminPage() {
 
           {/* Inline Cuisine Form */}
           {showCuisineForm && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">
                 {editingCuisineId ? 'Edit Cuisine' : 'Add Cuisine'}
               </h3>
@@ -898,13 +898,13 @@ export default function DiningAdminPage() {
                 <button
                   onClick={handleSaveCuisine}
                   disabled={savingCuisine}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  className="px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
                   {savingCuisine ? 'Saving...' : editingCuisineId ? 'Update' : 'Create'}
                 </button>
                 <button
                   onClick={() => { setShowCuisineForm(false); setEditingCuisineId(null); }}
-                  className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-3.5 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
@@ -917,21 +917,21 @@ export default function DiningAdminPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sort Order</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurants</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sort Order</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurants</th>
+                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {cuisines.map((c) => (
                     <tr key={c.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{c.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.slug}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{c.sortOrder}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{c.restaurantCount}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{c.name}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{c.slug}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{c.sortOrder}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{c.restaurantCount}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                         <button
                           className="text-primary-600 hover:text-primary-700 font-medium mr-3"
                           onClick={() => handleEditCuisine(c)}
@@ -947,7 +947,7 @@ export default function DiningAdminPage() {
                   ))}
                   {cuisines.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
                         No cuisines found.
                       </td>
                     </tr>
@@ -966,7 +966,7 @@ export default function DiningAdminPage() {
 
           {/* Inline Offer Form */}
           {showOfferForm && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">
                 {editingOfferId ? 'Edit Offer' : 'Add Offer'}
               </h3>
@@ -1029,13 +1029,13 @@ export default function DiningAdminPage() {
                 <button
                   onClick={handleSaveOffer}
                   disabled={savingOffer}
-                  className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  className="px-3.5 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                 >
                   {savingOffer ? 'Saving...' : editingOfferId ? 'Update' : 'Create'}
                 </button>
                 <button
                   onClick={() => { setShowOfferForm(false); setEditingOfferId(null); }}
-                  className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-3.5 py-1.5 text-sm text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1048,22 +1048,22 @@ export default function DiningAdminPage() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Restaurant</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {offers.map((o) => (
                     <tr key={o.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{o.title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{o.restaurantName}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{o.title}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{o.restaurantName}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                         {o.startDate} to {o.endDate}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-3 whitespace-nowrap">
                         <span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${
                           o.isActive
                             ? 'bg-green-100 text-green-700'
@@ -1072,7 +1072,7 @@ export default function DiningAdminPage() {
                           {o.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm">
                         <button
                           className="text-primary-600 hover:text-primary-700 font-medium mr-3"
                           onClick={() => handleEditOffer(o)}
@@ -1088,7 +1088,7 @@ export default function DiningAdminPage() {
                   ))}
                   {offers.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                      <td colSpan={5} className="px-4 py-12 text-center text-gray-500">
                         No offers found.
                       </td>
                     </tr>

@@ -165,18 +165,18 @@ export default function GuidesAdminPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Guides</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Guides</h2>
         <Link
           href="/admin/guides/new"
-          className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+          className="px-3.5 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
         >
           + New Guide
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -196,13 +196,13 @@ export default function GuidesAdminPage() {
             placeholder="Search guides..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         >
           <option value="all">All Statuses</option>
           <option value="draft">Draft</option>
@@ -214,7 +214,7 @@ export default function GuidesAdminPage() {
           <select
             value={topicFilter}
             onChange={(e) => { setTopicFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="px-2.5 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">All Topics</option>
             {topics.map((t) => (
@@ -232,20 +232,20 @@ export default function GuidesAdminPage() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-4 mb-4">
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Guides</p>
-          <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+          <p className="text-xl font-bold text-gray-900">{totalCount}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Published</p>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-xl font-bold text-green-600">
             {publishedCount}
           </p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Drafts</p>
-          <p className="text-2xl font-bold text-yellow-600">
+          <p className="text-xl font-bold text-yellow-600">
             {draftCount}
           </p>
         </div>
@@ -265,25 +265,25 @@ export default function GuidesAdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">
                       Title
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">
                       Topic
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">
                       Status
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">
                       Author
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">
                       Last Reviewed
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">
                       Updated
                     </th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-600">
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">
                       Actions
                     </th>
                   </tr>
@@ -294,13 +294,13 @@ export default function GuidesAdminPage() {
                       key={guide.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span className="font-medium text-gray-900">
                           {guide.title}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{guide.topic}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-gray-600">{guide.topic}</td>
+                      <td className="px-3 py-2">
                         <select
                           value={guide.status}
                           onChange={(e) => handleStatusChange(guide.id, e.target.value)}
@@ -311,28 +311,28 @@ export default function GuidesAdminPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{guide.author}</td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-3 py-2 text-gray-600">{guide.author}</td>
+                      <td className="px-3 py-2 text-gray-500">
                         {guide.lastReviewed || '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{guide.updatedAt}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2 text-gray-500">{guide.updatedAt}</td>
+                      <td className="px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/guides/${guide.slug}/edit`}
-                            className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                           >
                             Edit
                           </Link>
                           <Link
                             href={buildGuideUrl(guide.slug, guide.topicSlug)}
-                            className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >
                             View
                           </Link>
                           <button
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                             onClick={() => handleDelete(guide.id, guide.title)}
                           >
                             Delete
@@ -358,7 +358,7 @@ export default function GuidesAdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-3">
               <p className="text-sm text-gray-500">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button

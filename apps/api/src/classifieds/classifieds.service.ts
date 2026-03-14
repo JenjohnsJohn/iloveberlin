@@ -14,6 +14,8 @@ import { ClassifiedReport } from './entities/classified-report.entity';
 import { ClassifiedReportStatus } from './entities/classified-report.entity';
 import { CreateClassifiedDto } from './dto/create-classified.dto';
 import { UpdateClassifiedDto } from './dto/update-classified.dto';
+import { CreateClassifiedCategoryDto } from './dto/create-classified-category.dto';
+import { UpdateClassifiedCategoryDto } from './dto/update-classified-category.dto';
 import {
   ClassifiedQueryDto,
   ClassifiedSortField,
@@ -768,6 +770,137 @@ export class ClassifiedsService {
     }
     category.field_schema = schema;
     return this.categoryRepository.save(category);
+  }
+
+  // ─── Admin Category CRUD ─────────────────────────────
+
+  async findAllCategoriesAdmin(): Promise<ClassifiedCategory[]> {
+    return this.categoryRepository.find({
+      relations: ['children'],
+      order: { sort_order: 'ASC', name: 'ASC' },
+    });
+  }
+
+  async createCategory(dto: CreateClassifiedCategoryDto): Promise<ClassifiedCategory> {
+    const slug = dto.slug || generateSlug(dto.name);
+
+    // Check slug uniqueness
+    const existing = await this.categoryRepository.findOne({ where: { slug } });
+    if (existing) {
+      throw new BadRequestException(`A category with slug "${slug}" already exists`);
+    }
+
+    // Validate parent depth
+    if (dto.parent_id) {
+      await this.validateParentDepth(dto.parent_id);
+    }
+
+    const category = this.categoryRepository.create({
+      name: dto.name,
+      slug,
+      description: dto.description || null,
+      icon: dto.icon || null,
+      parent_id: dto.parent_id || null,
+      sort_order: dto.sort_order ?? 0,
+      is_active: dto.is_active ?? true,
+    });
+
+    return this.categoryRepository.save(category);
+  }
+
+  async updateCategoryAdmin(id: string, dto: UpdateClassifiedCategoryDto): Promise<ClassifiedCategory> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+    if (!category) {
+      throw new NotFoundException(`Category with id "${id}" not found`);
+    }
+
+    if (dto.name !== undefined) {
+      category.name = dto.name;
+      // Re-generate slug if name changed and no explicit slug provided
+      if (dto.slug === undefined) {
+        const newSlug = generateSlug(dto.name);
+        const existing = await this.categoryRepository.findOne({ where: { slug: newSlug } });
+        if (!existing || existing.id === id) {
+          category.slug = newSlug;
+        }
+      }
+    }
+
+    if (dto.slug !== undefined) {
+      const existing = await this.categoryRepository.findOne({ where: { slug: dto.slug } });
+      if (existing && existing.id !== id) {
+        throw new BadRequestException(`A category with slug "${dto.slug}" already exists`);
+      }
+      category.slug = dto.slug;
+    }
+
+    if (dto.parent_id !== undefined) {
+      if (dto.parent_id) {
+        if (dto.parent_id === id) {
+          throw new BadRequestException('A category cannot be its own parent');
+        }
+        await this.validateParentDepth(dto.parent_id);
+      }
+      category.parent_id = dto.parent_id || null;
+    }
+
+    if (dto.description !== undefined) category.description = dto.description || null;
+    if (dto.icon !== undefined) category.icon = dto.icon || null;
+    if (dto.sort_order !== undefined) category.sort_order = dto.sort_order;
+    if (dto.is_active !== undefined) category.is_active = dto.is_active;
+
+    return this.categoryRepository.save(category);
+  }
+
+  async deleteCategoryAdmin(id: string): Promise<void> {
+    const category = await this.categoryRepository.findOne({
+      where: { id },
+      relations: ['children'],
+    });
+    if (!category) {
+      throw new NotFoundException(`Category with id "${id}" not found`);
+    }
+
+    // Check for child categories
+    if (category.children && category.children.length > 0) {
+      throw new BadRequestException(
+        'Cannot delete a category that has subcategories. Remove or reassign them first.',
+      );
+    }
+
+    // Check for classifieds referencing this category
+    const classifiedCount = await this.classifiedRepository.count({
+      where: { category_id: id },
+    });
+    if (classifiedCount > 0) {
+      throw new BadRequestException(
+        `Cannot delete this category — ${classifiedCount} classified(s) are using it.`,
+      );
+    }
+
+    await this.categoryRepository.remove(category);
+  }
+
+  async reorderCategories(items: { id: string; sort_order: number }[]): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      for (const item of items) {
+        await manager.update(ClassifiedCategory, item.id, { sort_order: item.sort_order });
+      }
+    });
+  }
+
+  private async validateParentDepth(parentId: string): Promise<void> {
+    const parent = await this.categoryRepository.findOne({ where: { id: parentId } });
+    if (!parent) {
+      throw new BadRequestException(`Parent category with id "${parentId}" not found`);
+    }
+    // Parent must be at most 2 levels deep (root=0, child=1 → new child would be level 2, max 3 levels)
+    if (parent.parent_id) {
+      const grandparent = await this.categoryRepository.findOne({ where: { id: parent.parent_id } });
+      if (grandparent?.parent_id) {
+        throw new BadRequestException('Category hierarchy cannot exceed 3 levels');
+      }
+    }
   }
 
   // ─── Private helpers ───────────────────────────────────

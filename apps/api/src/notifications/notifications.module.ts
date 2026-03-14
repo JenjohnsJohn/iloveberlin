@@ -4,13 +4,14 @@ import { NotificationPreference } from './entities/notification-preference.entit
 import { NewsletterSubscriber } from './entities/newsletter-subscriber.entity';
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
+import { AdminNewsletterController } from './admin-newsletter.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([NotificationPreference, NewsletterSubscriber]),
   ],
   providers: [NotificationsService],
-  controllers: [NotificationsController],
+  controllers: [NotificationsController, AdminNewsletterController],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

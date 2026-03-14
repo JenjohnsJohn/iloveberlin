@@ -136,12 +136,12 @@ export default function UsersAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Users</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Users</h2>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <input
           type="text"
           value={search}
@@ -150,7 +150,7 @@ export default function UsersAdminPage() {
             setPage(1);
           }}
           placeholder="Search by name or email..."
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
         />
         <select
           value={roleFilter}
@@ -158,7 +158,7 @@ export default function UsersAdminPage() {
             setRoleFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         >
           <option value="">All Roles</option>
           <option value="user">User</option>
@@ -172,7 +172,7 @@ export default function UsersAdminPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         >
           <option value="">All Statuses</option>
           <option value="active">Active</option>
@@ -217,13 +217,13 @@ export default function UsersAdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">User</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Email</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Role</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Last Login</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Joined</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">Actions</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">User</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Email</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Role</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Status</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Last Login</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Joined</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -237,7 +237,7 @@ export default function UsersAdminPage() {
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
                         {/* Avatar + Name */}
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold flex-shrink-0 overflow-hidden">
                               {user.avatar_url ? (
@@ -260,10 +260,10 @@ export default function UsersAdminPage() {
                         </td>
 
                         {/* Email */}
-                        <td className="px-4 py-3 text-gray-600">{user.email}</td>
+                        <td className="px-3 py-2 text-gray-600">{user.email}</td>
 
                         {/* Role */}
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2">
                           {isSuperAdmin && canModify ? (
                             <select
                               value={user.role}
@@ -288,7 +288,7 @@ export default function UsersAdminPage() {
                         </td>
 
                         {/* Status */}
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2">
                           <span
                             className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[user.status]}`}
                           >
@@ -297,23 +297,23 @@ export default function UsersAdminPage() {
                         </td>
 
                         {/* Last Login */}
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                           {formatDate(user.last_login_at) || '—'}
                         </td>
 
                         {/* Joined */}
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                           {formatDate(user.created_at)}
                         </td>
 
                         {/* Actions */}
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2">
                           <div className="flex items-center justify-end gap-2">
                             {canModify && (
                               <>
                                 <button
                                   onClick={() => handleStatusToggle(user)}
-                                  className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                                  className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
                                     user.status === 'active'
                                       ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
                                       : 'text-green-700 bg-green-50 hover:bg-green-100'
@@ -325,7 +325,7 @@ export default function UsersAdminPage() {
                                   onClick={() =>
                                     handleDelete(user.id, user.display_name)
                                   }
-                                  className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                                  className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                                 >
                                   Delete
                                 </button>
@@ -353,7 +353,7 @@ export default function UsersAdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-3">
               <p className="text-sm text-gray-500">
                 Page {page} of {totalPages}
               </p>

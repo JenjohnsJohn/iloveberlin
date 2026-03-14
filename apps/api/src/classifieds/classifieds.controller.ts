@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Patch,
   Delete,
   Body,
   Param,
@@ -15,6 +16,8 @@ import {
 import { ClassifiedsService } from './classifieds.service';
 import { CreateClassifiedDto } from './dto/create-classified.dto';
 import { UpdateClassifiedDto } from './dto/update-classified.dto';
+import { CreateClassifiedCategoryDto } from './dto/create-classified-category.dto';
+import { UpdateClassifiedCategoryDto } from './dto/update-classified-category.dto';
 import { ClassifiedQueryDto } from './dto/classified-query.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -93,6 +96,45 @@ export class ClassifiedsController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   findAllAdmin(@Query() query: ClassifiedQueryDto) {
     return this.classifiedsService.findAllAdmin(query);
+  }
+
+  @Get('admin/categories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  getAdminCategories() {
+    return this.classifiedsService.findAllCategoriesAdmin();
+  }
+
+  @Post('admin/categories')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  createCategory(@Body() dto: CreateClassifiedCategoryDto) {
+    return this.classifiedsService.createCategory(dto);
+  }
+
+  @Patch('admin/categories/reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  reorderCategories(@Body() body: { items: { id: string; sort_order: number }[] }) {
+    return this.classifiedsService.reorderCategories(body.items);
+  }
+
+  @Patch('admin/categories/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  updateCategory(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateClassifiedCategoryDto,
+  ) {
+    return this.classifiedsService.updateCategoryAdmin(id, dto);
+  }
+
+  @Delete('admin/categories/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteCategory(@Param('id', ParseUUIDPipe) id: string) {
+    return this.classifiedsService.deleteCategoryAdmin(id);
   }
 
   @Get('admin/reports')

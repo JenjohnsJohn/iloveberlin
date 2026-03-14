@@ -146,18 +146,18 @@ export default function ArticlesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Articles</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Articles</h2>
         <Link
           href="/admin/articles/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
         >
           + New Article
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-2 mb-3">
         <input
           type="text"
           value={search}
@@ -166,7 +166,7 @@ export default function ArticlesPage() {
             setPage(1);
           }}
           placeholder="Search articles..."
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
         />
         <select
           value={statusFilter}
@@ -174,7 +174,7 @@ export default function ArticlesPage() {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         >
           <option value="">All Statuses</option>
           <option value="draft">Draft</option>
@@ -188,7 +188,7 @@ export default function ArticlesPage() {
             setCategoryFilter(e.target.value);
             setPage(1);
           }}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
         >
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -228,22 +228,22 @@ export default function ArticlesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Title
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Category
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Status
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Author
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Date
                     </th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">
                       Actions
                     </th>
                   </tr>
@@ -254,13 +254,13 @@ export default function ArticlesPage() {
                       key={article.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span className="font-medium text-gray-900 line-clamp-1">
                           {article.title}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{article.category}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-gray-600">{article.category}</td>
+                      <td className="px-3 py-2">
                         <select
                           value={article.status}
                           onChange={(e) =>
@@ -275,27 +275,27 @@ export default function ArticlesPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{article.author}</td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="px-3 py-2 text-gray-600">{article.author}</td>
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                         {article.date}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/articles/${article.slug}/edit`}
-                            className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                           >
                             Edit
                           </Link>
                           <Link
                             href={buildArticleUrl(article.slug, article.categorySlug)}
-                            className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >
                             View
                           </Link>
                           <button
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                             onClick={() => handleDelete(article.id)}
                           >
                             Delete
@@ -318,7 +318,7 @@ export default function ArticlesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-3">
               <p className="text-sm text-gray-500">
                 Page {page} of {totalPages}
               </p>

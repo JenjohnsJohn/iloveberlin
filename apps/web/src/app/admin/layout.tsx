@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -10,11 +10,18 @@ interface NavItem {
   label: string;
   href: string;
   icon: (cls: string) => React.ReactNode;
+  exactMatch?: boolean;
 }
 interface NavGroup {
   title: string | null;
   items: NavItem[];
 }
+
+const folderIcon = (cls: string) => (
+  <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+  </svg>
+);
 
 const adminNavGroups: NavGroup[] = [
   {
@@ -29,10 +36,19 @@ const adminNavGroups: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        label: 'Homepage',
+        href: '/admin/homepage',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+        ),
+      },
     ],
   },
   {
-    title: 'CONTENT',
+    title: 'ARTICLES',
     items: [
       {
         label: 'Articles',
@@ -44,33 +60,16 @@ const adminNavGroups: NavGroup[] = [
         ),
       },
       {
-        label: 'Categories',
-        href: '/admin/categories',
-        icon: (cls) => (
-          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
-          </svg>
-        ),
+        label: 'Article Categories',
+        href: '/admin/categories?type=article',
+        icon: folderIcon,
+        exactMatch: true,
       },
-      {
-        label: 'Tags',
-        href: '/admin/tags',
-        icon: (cls) => (
-          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
-          </svg>
-        ),
-      },
-      {
-        label: 'Media',
-        href: '/admin/media',
-        icon: (cls) => (
-          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
-        ),
-      },
+    ],
+  },
+  {
+    title: 'GUIDES',
+    items: [
       {
         label: 'Guides',
         href: '/admin/guides',
@@ -80,10 +79,19 @@ const adminNavGroups: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        label: 'Guide Topics',
+        href: '/admin/guide-topics',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+        ),
+      },
     ],
   },
   {
-    title: 'LISTINGS',
+    title: 'EVENTS',
     items: [
       {
         label: 'Events',
@@ -95,6 +103,27 @@ const adminNavGroups: NavGroup[] = [
         ),
       },
       {
+        label: 'Event Categories',
+        href: '/admin/categories?type=event',
+        icon: folderIcon,
+        exactMatch: true,
+      },
+      {
+        label: 'Venues',
+        href: '/admin/venues',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    title: 'DINING',
+    items: [
+      {
         label: 'Dining',
         href: '/admin/dining',
         icon: (cls) => (
@@ -103,6 +132,20 @@ const adminNavGroups: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        label: 'Cuisines',
+        href: '/admin/cuisines',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    title: 'VIDEOS',
+    items: [
       {
         label: 'Videos',
         href: '/admin/videos',
@@ -113,6 +156,26 @@ const adminNavGroups: NavGroup[] = [
         ),
       },
       {
+        label: 'Video Categories',
+        href: '/admin/categories?type=video',
+        icon: folderIcon,
+        exactMatch: true,
+      },
+      {
+        label: 'Video Series',
+        href: '/admin/video-series',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0 1 18 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 7.746 6 7.125v-1.5M4.875 8.25C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m-16.875 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m14.25 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m-17.25 0h1.5m14.25 0h1.5m0 0V12m-18 0v3.375m18-3.375H18m-1.5-3.75h-.375a1.125 1.125 0 0 1-1.125-1.125V5.625m2.625 3.375h.375a1.125 1.125 0 0 0 1.125-1.125V5.625" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    title: 'COMPETITIONS',
+    items: [
+      {
         label: 'Competitions',
         href: '/admin/competitions',
         icon: (cls) => (
@@ -121,6 +184,17 @@ const adminNavGroups: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        label: 'Competition Categories',
+        href: '/admin/categories?type=competition',
+        icon: folderIcon,
+        exactMatch: true,
+      },
+    ],
+  },
+  {
+    title: 'CLASSIFIEDS',
+    items: [
       {
         label: 'Classifieds',
         href: '/admin/classifieds',
@@ -132,10 +206,35 @@ const adminNavGroups: NavGroup[] = [
       },
       {
         label: 'Classified Categories',
+        href: '/admin/classifieds/manage-categories',
+        icon: folderIcon,
+      },
+      {
+        label: 'Field Schemas',
         href: '/admin/classifieds/categories',
+        icon: folderIcon,
+      },
+    ],
+  },
+  {
+    title: 'MEDIA & TAGS',
+    items: [
+      {
+        label: 'Media',
+        href: '/admin/media',
         icon: (cls) => (
           <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+        ),
+      },
+      {
+        label: 'Tags',
+        href: '/admin/tags',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6Z" />
           </svg>
         ),
       },
@@ -154,11 +253,31 @@ const adminNavGroups: NavGroup[] = [
         ),
       },
       {
+        label: 'Store Categories',
+        href: '/admin/categories?type=store',
+        icon: folderIcon,
+        exactMatch: true,
+      },
+    ],
+  },
+  {
+    title: 'MONETIZATION',
+    items: [
+      {
         label: 'Advertising',
         href: '/admin/advertising',
         icon: (cls) => (
           <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+        ),
+      },
+      {
+        label: 'Ad Positions',
+        href: '/admin/ad-positions',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM2.25 16.875c0-.621.504-1.125 1.125-1.125h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75Z" />
           </svg>
         ),
       },
@@ -173,6 +292,15 @@ const adminNavGroups: NavGroup[] = [
         icon: (cls) => (
           <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+        ),
+      },
+      {
+        label: 'Newsletter',
+        href: '/admin/newsletter',
+        icon: (cls) => (
+          <svg className={cls} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
           </svg>
         ),
       },
@@ -213,6 +341,8 @@ function getPageSubtitle(pathname: string): string {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fullPath = `${pathname}${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const user = useAuthStore((s) => s.user);
   const pageTitle = getPageTitle(pathname);
@@ -224,11 +354,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Sidebar */}
         <aside
           className={`${
-            sidebarOpen ? 'w-64' : 'w-16'
+            sidebarOpen ? 'w-56' : 'w-14'
           } bg-gradient-to-b from-gray-900 to-gray-950 text-white transition-all duration-300 flex-shrink-0`}
         >
-          <div className="h-16 px-4 flex items-center justify-between border-b border-gray-800">
-            {sidebarOpen && <span className="text-lg font-bold text-primary-500">Admin</span>}
+          <div className="h-12 px-4 flex items-center justify-between border-b border-gray-800">
+            {sidebarOpen && <span className="text-base font-bold text-primary-500">Admin</span>}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
@@ -245,30 +375,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </button>
           </div>
-          <nav className="px-2 py-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 64px)' }}>
+          <nav className="px-1.5 py-1.5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 48px)' }}>
             {adminNavGroups.map((group, gi) => (
-              <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
+              <div key={gi} className={gi > 0 ? 'mt-3' : ''}>
                 {group.title ? (
                   sidebarOpen ? (
-                    <div className="px-3 mb-1">
+                    <div className="px-3 mb-0.5">
                       <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">
                         {group.title}
                       </span>
                     </div>
                   ) : (
-                    <div className="mx-2 mb-1 border-t border-gray-800" />
+                    <div className="mx-2 mb-0.5 border-t border-gray-800" />
                   )
                 ) : null}
                 {group.items.map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== '/admin' && pathname.startsWith(item.href));
+                  const isActive = item.exactMatch
+                    ? fullPath === item.href
+                    : pathname === item.href ||
+                      (item.href !== '/admin' && pathname.startsWith(item.href));
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       title={!sidebarOpen ? item.label : undefined}
-                      className={`relative flex items-center rounded-lg px-3 py-2 text-sm transition-colors ${
+                      className={`relative flex items-center rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
                         sidebarOpen ? '' : 'justify-center'
                       } ${
                         isActive
@@ -277,10 +408,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       }`}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary-500 rounded-r-full" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-primary-500 rounded-r-full" />
                       )}
-                      {item.icon(`w-5 h-5 flex-shrink-0 ${isActive ? 'text-primary-400' : ''}`)}
-                      {sidebarOpen && <span className="ml-3">{item.label}</span>}
+                      {item.icon(`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary-400' : ''}`)}
+                      {sidebarOpen && <span className="ml-2.5">{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -291,10 +422,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Main content */}
         <div className="flex-1 flex flex-col">
-          <header className="bg-white shadow-sm border-b border-gray-200 px-6 h-16 flex items-center">
+          <header className="bg-white shadow-sm border-b border-gray-200 px-5 h-11 flex items-center">
             <div className="flex items-center justify-between w-full">
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">{pageTitle}</h1>
+                <h1 className="text-base font-semibold text-gray-900">{pageTitle}</h1>
                 <p className="text-xs text-gray-500 -mt-0.5">{pageSubtitle}</p>
               </div>
               <div className="flex items-center gap-4">
@@ -311,7 +442,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <>
                     <div className="w-px h-6 bg-gray-200" />
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-sm font-bold overflow-hidden">
+                      <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-sm font-bold overflow-hidden">
                         {user.avatar_url ? (
                           <img
                             src={user.avatar_url}
@@ -334,7 +465,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </header>
-          <main className="flex-1 p-6">{children}</main>
+          <main className="flex-1 p-4">{children}</main>
         </div>
       </div>
     </ProtectedRoute>

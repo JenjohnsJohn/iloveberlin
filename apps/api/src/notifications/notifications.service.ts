@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { NotificationPreference } from './entities/notification-preference.entity';
 import { NewsletterSubscriber } from './entities/newsletter-subscriber.entity';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
+import { AdminNewsletterQueryDto, SubscriberStatus } from './dto/admin-newsletter-query.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -144,5 +145,85 @@ export class NotificationsService {
       this.logger.log(`[PUSH] Data: ${JSON.stringify(data)}`);
     }
     this.logger.log('========================================');
+  }
+
+  // ─── Admin Newsletter Methods ────────────────────────────────
+
+  async getSubscriberList(query: AdminNewsletterQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const qb = this.subscriberRepository.createQueryBuilder('s');
+
+    if (query.status && query.status !== SubscriberStatus.ALL) {
+      switch (query.status) {
+        case SubscriberStatus.CONFIRMED:
+          qb.andWhere('s.is_confirmed = true').andWhere('s.unsubscribed_at IS NULL');
+          break;
+        case SubscriberStatus.UNCONFIRMED:
+          qb.andWhere('s.is_confirmed = false').andWhere('s.unsubscribed_at IS NULL');
+          break;
+        case SubscriberStatus.UNSUBSCRIBED:
+          qb.andWhere('s.unsubscribed_at IS NOT NULL');
+          break;
+      }
+    }
+
+    if (query.search) {
+      qb.andWhere('s.email ILIKE :search', { search: `%${query.search}%` });
+    }
+
+    qb.orderBy('s.subscribed_at', 'DESC');
+    qb.skip(skip).take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, page, limit };
+  }
+
+  async getSubscriberStats() {
+    const total = await this.subscriberRepository.count();
+    const confirmed = await this.subscriberRepository.count({
+      where: { is_confirmed: true },
+    });
+    const unsubscribed = await this.subscriberRepository
+      .createQueryBuilder('s')
+      .where('s.unsubscribed_at IS NOT NULL')
+      .getCount();
+    const unconfirmed = total - confirmed - unsubscribed;
+
+    return { total, confirmed, unconfirmed, unsubscribed };
+  }
+
+  async exportSubscribers(status?: SubscriberStatus) {
+    const qb = this.subscriberRepository.createQueryBuilder('s');
+
+    if (status && status !== SubscriberStatus.ALL) {
+      switch (status) {
+        case SubscriberStatus.CONFIRMED:
+          qb.andWhere('s.is_confirmed = true').andWhere('s.unsubscribed_at IS NULL');
+          break;
+        case SubscriberStatus.UNCONFIRMED:
+          qb.andWhere('s.is_confirmed = false').andWhere('s.unsubscribed_at IS NULL');
+          break;
+        case SubscriberStatus.UNSUBSCRIBED:
+          qb.andWhere('s.unsubscribed_at IS NOT NULL');
+          break;
+      }
+    }
+
+    qb.orderBy('s.subscribed_at', 'DESC');
+    return qb.getMany();
+  }
+
+  async removeSubscriber(id: string) {
+    const subscriber = await this.subscriberRepository.findOne({
+      where: { id },
+    });
+    if (!subscriber) {
+      throw new NotFoundException('Subscriber not found');
+    }
+    await this.subscriberRepository.remove(subscriber);
+    return { message: 'Subscriber removed successfully' };
   }
 }

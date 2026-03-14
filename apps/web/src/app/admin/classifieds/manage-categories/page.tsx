@@ -1,80 +1,44 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
 import apiClient from '@/lib/api-client';
 
-interface Category {
+interface ClassifiedCategory {
   id: string;
   name: string;
   slug: string;
-  description: string;
-  type: string;
+  description: string | null;
+  icon: string | null;
   parent_id: string | null;
-  display_order: number;
+  sort_order: number;
   is_active: boolean;
+  children?: ClassifiedCategory[];
 }
 
-const categoryTypes = ['article', 'dining', 'guide', 'event', 'video', 'classified', 'competition', 'store'];
-
-const typeLabels: Record<string, string> = {
-  article: 'Article',
-  dining: 'Dining',
-  guide: 'Guide',
-  event: 'Event',
-  video: 'Video',
-  classified: 'Classified',
-  competition: 'Competition',
-  store: 'Store',
-};
-
-const typeColors: Record<string, string> = {
-  article: 'bg-blue-50 text-blue-700 border-blue-200',
-  dining: 'bg-orange-50 text-orange-700 border-orange-200',
-  guide: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  event: 'bg-purple-50 text-purple-700 border-purple-200',
-  video: 'bg-pink-50 text-pink-700 border-pink-200',
-  classified: 'bg-amber-50 text-amber-700 border-amber-200',
-  competition: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  store: 'bg-teal-50 text-teal-700 border-teal-200',
-};
-
-export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function ManageClassifiedCategoriesPage() {
+  const [categories, setCategories] = useState<ClassifiedCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<ClassifiedCategory | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  const searchParams = useSearchParams();
-  const typeFromUrl = searchParams.get('type');
-  const isTypeFiltered = !!typeFromUrl;
-  const [typeFilter, setTypeFilter] = useState(typeFromUrl || '');
-
-  useEffect(() => {
-    setTypeFilter(typeFromUrl || '');
-    setSearchQuery('');
-  }, [typeFromUrl]);
-
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: typeFromUrl || 'article',
     parent_id: '',
+    is_active: true,
   });
 
   const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const { data } = await apiClient.get('/categories', {
-        params: { includeInactive: true },
-      });
-      const list = Array.isArray(data) ? data : (data.data ?? data.categories ?? []);
+      const { data } = await apiClient.get('/classifieds/admin/categories');
+      const list = Array.isArray(data) ? data : (data.data ?? []);
       setCategories(list);
     } catch (err: unknown) {
       const message =
@@ -91,55 +55,59 @@ export default function CategoriesPage() {
 
   // --- Hierarchical helpers ---
 
-  const getTypeFiltered = () =>
-    typeFilter ? categories.filter((c) => c.type === typeFilter) : categories;
+  const getChildrenOf = (parentId: string) =>
+    categories.filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
 
-  const getChildrenOf = (items: Category[], parentId: string) =>
-    items.filter((c) => c.parent_id === parentId).sort((a, b) => a.display_order - b.display_order);
+  const getRoots = () =>
+    categories.filter((c) => !c.parent_id).sort((a, b) => a.sort_order - b.sort_order);
 
-  const getRoots = (items: Category[]) =>
-    items.filter((c) => !c.parent_id).sort((a, b) => a.display_order - b.display_order);
-
-  const buildTree = () => {
-    const items = getTypeFiltered();
-    const roots = getRoots(items);
-    const q = searchQuery.toLowerCase().trim();
-
-    if (!q) return roots;
-
-    // In search mode, show roots that match or have matching children
-    return roots.filter((root) => {
-      if (root.name.toLowerCase().includes(q)) return true;
-      return getChildrenOf(items, root.id).some((c) => c.name.toLowerCase().includes(q));
-    });
+  /** Returns depth of a category: 0 = root, 1 = child, 2 = grandchild */
+  const getDepth = (cat: ClassifiedCategory): number => {
+    if (!cat.parent_id) return 0;
+    const parent = categories.find((c) => c.id === cat.parent_id);
+    if (!parent || !parent.parent_id) return 1;
+    return 2;
   };
 
-  const visibleRoots = buildTree();
-  const allFiltered = getTypeFiltered();
-  const activeCount = allFiltered.filter((c) => c.is_active).length;
-  const inactiveCount = allFiltered.length - activeCount;
-  const rootCount = getRoots(allFiltered).length;
+  const buildVisibleRoots = () => {
+    const roots = getRoots();
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return roots;
+
+    const branchHasMatch = (catId: string): boolean => {
+      const cat = categories.find((c) => c.id === catId);
+      if (!cat) return false;
+      if (cat.name.toLowerCase().includes(q)) return true;
+      return getChildrenOf(catId).some((child) => branchHasMatch(child.id));
+    };
+
+    return roots.filter((root) => branchHasMatch(root.id));
+  };
+
+  const visibleRoots = buildVisibleRoots();
+  const activeCount = categories.filter((c) => c.is_active).length;
+  const inactiveCount = categories.length - activeCount;
+  const rootCount = getRoots().length;
 
   // --- Sibling-aware reordering ---
 
-  const getSiblings = (category: Category): Category[] => {
-    const pool = getTypeFiltered();
-    return pool
+  const getSiblings = (category: ClassifiedCategory): ClassifiedCategory[] => {
+    return categories
       .filter((c) => c.parent_id === category.parent_id)
-      .sort((a, b) => a.display_order - b.display_order);
+      .sort((a, b) => a.sort_order - b.sort_order);
   };
 
-  const isFirstAmongSiblings = (category: Category): boolean => {
+  const isFirstAmongSiblings = (category: ClassifiedCategory): boolean => {
     const siblings = getSiblings(category);
     return siblings.length === 0 || siblings[0].id === category.id;
   };
 
-  const isLastAmongSiblings = (category: Category): boolean => {
+  const isLastAmongSiblings = (category: ClassifiedCategory): boolean => {
     const siblings = getSiblings(category);
     return siblings.length === 0 || siblings[siblings.length - 1].id === category.id;
   };
 
-  const moveSibling = async (category: Category, direction: 'up' | 'down') => {
+  const moveSibling = async (category: ClassifiedCategory, direction: 'up' | 'down') => {
     const siblings = getSiblings(category);
     const index = siblings.findIndex((c) => c.id === category.id);
     if (index < 0) return;
@@ -148,21 +116,25 @@ export default function CategoriesPage() {
 
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
     const swapCategory = siblings[swapIndex];
-    const currentOrder = category.display_order;
-    const swapOrder = swapCategory.display_order;
+    const currentOrder = category.sort_order;
+    const swapOrder = swapCategory.sort_order;
 
     setCategories((prev) =>
       prev.map((c) => {
-        if (c.id === category.id) return { ...c, display_order: swapOrder };
-        if (c.id === swapCategory.id) return { ...c, display_order: currentOrder };
+        if (c.id === category.id) return { ...c, sort_order: swapOrder };
+        if (c.id === swapCategory.id) return { ...c, sort_order: currentOrder };
         return c;
       })
     );
 
     try {
       setError(null);
-      await apiClient.patch(`/categories/${category.id}`, { display_order: swapOrder });
-      await apiClient.patch(`/categories/${swapCategory.id}`, { display_order: currentOrder });
+      await apiClient.patch('/classifieds/admin/categories/reorder', {
+        items: [
+          { id: category.id, sort_order: swapOrder },
+          { id: swapCategory.id, sort_order: currentOrder },
+        ],
+      });
       await fetchCategories();
     } catch (err: unknown) {
       const message =
@@ -183,32 +155,29 @@ export default function CategoriesPage() {
   };
 
   const expandAll = () => setCollapsed(new Set());
-  const collapseAll = () => setCollapsed(new Set(getRoots(getTypeFiltered()).map((r) => r.id)));
+  const collapseAll = () => {
+    const ids = new Set<string>();
+    for (const cat of categories) {
+      if (getChildrenOf(cat.id).length > 0) ids.add(cat.id);
+    }
+    setCollapsed(ids);
+  };
 
   // --- CRUD ---
 
-  const typeLabel = typeFilter
-    ? typeLabels[typeFilter] || typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)
-    : '';
-
   const openCreateModal = () => {
     setEditingCategory(null);
-    setFormData({
-      name: '',
-      description: '',
-      type: typeFilter || typeFromUrl || 'article',
-      parent_id: '',
-    });
+    setFormData({ name: '', description: '', parent_id: '', is_active: true });
     setShowModal(true);
   };
 
-  const openEditModal = (category: Category) => {
+  const openEditModal = (category: ClassifiedCategory) => {
     setEditingCategory(category);
     setFormData({
       name: category.name,
-      description: category.description,
-      type: category.type,
+      description: category.description || '',
       parent_id: category.parent_id || '',
+      is_active: category.is_active,
     });
     setShowModal(true);
   };
@@ -221,15 +190,15 @@ export default function CategoriesPage() {
       setError(null);
       const payload = {
         name: formData.name,
-        description: formData.description,
-        type: formData.type,
+        description: formData.description || undefined,
         parent_id: formData.parent_id || null,
+        is_active: formData.is_active,
       };
 
       if (editingCategory) {
-        await apiClient.patch(`/categories/${editingCategory.id}`, payload);
+        await apiClient.patch(`/classifieds/admin/categories/${editingCategory.id}`, payload);
       } else {
-        await apiClient.post('/categories', payload);
+        await apiClient.post('/classifieds/admin/categories', payload);
       }
 
       setShowModal(false);
@@ -246,7 +215,7 @@ export default function CategoriesPage() {
   const handleDelete = async (id: string) => {
     try {
       setError(null);
-      await apiClient.delete(`/categories/${id}`);
+      await apiClient.delete(`/classifieds/admin/categories/${id}`);
       setDeleteConfirm(null);
       await fetchCategories();
     } catch (err: unknown) {
@@ -261,7 +230,9 @@ export default function CategoriesPage() {
     if (!category) return;
     try {
       setError(null);
-      await apiClient.patch(`/categories/${id}`, { is_active: !category.is_active });
+      await apiClient.patch(`/classifieds/admin/categories/${id}`, {
+        is_active: !category.is_active,
+      });
       await fetchCategories();
     } catch (err: unknown) {
       const message =
@@ -270,23 +241,43 @@ export default function CategoriesPage() {
     }
   };
 
-  // --- Render helpers ---
+  // Parent dropdown: root + child categories (not grandchildren — would exceed 3 levels)
+  const getDescendantIds = (id: string): Set<string> => {
+    const ids = new Set<string>();
+    const collect = (parentId: string) => {
+      for (const c of categories) {
+        if (c.parent_id === parentId && !ids.has(c.id)) {
+          ids.add(c.id);
+          collect(c.id);
+        }
+      }
+    };
+    collect(id);
+    return ids;
+  };
+  const editingDescendants = editingCategory ? getDescendantIds(editingCategory.id) : new Set<string>();
+  const availableParents = categories.filter((c) => {
+    if (c.id === editingCategory?.id) return false;
+    if (editingDescendants.has(c.id)) return false;
+    return getDepth(c) <= 1;
+  });
 
-  const pageTitle = isTypeFiltered ? `${typeLabel} Categories` : 'Categories';
-
-  const availableParents = categories.filter(
-    (c) => !c.parent_id && c.type === formData.type && c.id !== editingCategory?.id
-  );
-
-  const getVisibleChildren = (parentId: string) => {
-    const items = getTypeFiltered();
-    const children = getChildrenOf(items, parentId);
+  // Get visible children considering search
+  const getVisibleChildren = (parentId: string): ClassifiedCategory[] => {
+    const children = getChildrenOf(parentId);
     const q = searchQuery.toLowerCase().trim();
     if (!q) return children;
-    // If parent matches search, show all children; otherwise only matching children
     const parent = categories.find((c) => c.id === parentId);
     if (parent?.name.toLowerCase().includes(q)) return children;
-    return children.filter((c) => c.name.toLowerCase().includes(q));
+
+    const branchHasMatch = (catId: string): boolean => {
+      const cat = categories.find((c) => c.id === catId);
+      if (!cat) return false;
+      if (cat.name.toLowerCase().includes(q)) return true;
+      return getChildrenOf(catId).some((child) => branchHasMatch(child.id));
+    };
+
+    return children.filter((c) => branchHasMatch(c.id));
   };
 
   // --- Category row component ---
@@ -298,7 +289,7 @@ export default function CategoriesPage() {
     isExpanded,
     onToggleExpand,
   }: {
-    cat: Category;
+    cat: ClassifiedCategory;
     isChild: boolean;
     childCount?: number;
     isExpanded?: boolean;
@@ -311,31 +302,29 @@ export default function CategoriesPage() {
       <div
         className={`group flex items-center gap-2 transition-colors ${
           isChild
-            ? 'px-3 py-2 hover:bg-white/60'
+            ? `px-3 py-2 hover:bg-white/60 ${hasChildren ? 'cursor-pointer' : ''}`
             : `px-3.5 py-2.5 hover:bg-gray-50 ${hasChildren ? 'cursor-pointer' : ''}`
         } ${!cat.is_active ? 'opacity-60' : ''}`}
-        onClick={!isChild && onToggleExpand ? onToggleExpand : undefined}
+        onClick={onToggleExpand || undefined}
       >
-        {/* Chevron for parents / dot for children */}
-        {!isChild ? (
-          <div className="flex-shrink-0 w-5 flex items-center justify-center">
-            {hasChildren ? (
-              <svg
-                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-              </svg>
-            ) : (
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-            )}
-          </div>
-        ) : (
-          <span className="w-1 h-1 rounded-full bg-gray-400 flex-shrink-0 ml-1" />
-        )}
+        {/* Chevron for items with children / dot for leaves */}
+        <div className="flex-shrink-0 w-5 flex items-center justify-center">
+          {hasChildren ? (
+            <svg
+              className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          ) : !isChild ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+          ) : (
+            <span className="w-1 h-1 rounded-full bg-gray-400" />
+          )}
+        </div>
 
         {/* Reorder */}
         <div
@@ -379,13 +368,12 @@ export default function CategoriesPage() {
                 {childCount}
               </span>
             )}
-            {!isTypeFiltered && (
-              <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-semibold rounded border ${typeColors[cat.type] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
-                {typeLabels[cat.type] || cat.type}
-              </span>
-            )}
           </div>
-          <p className="text-xs text-gray-400 truncate mt-0.5">{cat.slug}</p>
+          <p className="text-xs text-gray-400 truncate mt-0.5">
+            <span>{cat.slug}</span>
+            {cat.description && <span className="ml-2 text-gray-300">|</span>}
+            {cat.description && <span className="ml-2">{cat.description}</span>}
+          </p>
         </div>
 
         {/* Status toggle & actions */}
@@ -415,7 +403,7 @@ export default function CategoriesPage() {
               </svg>
             </button>
             {isDeleting ? (
-              <div className="flex items-center gap-1 animate-in slide-in-from-right-2">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleDelete(cat.id)}
                   className="px-2 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700 transition-colors"
@@ -436,7 +424,7 @@ export default function CategoriesPage() {
                 title="Delete"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 00-7.5 0" />
                 </svg>
               </button>
             )}
@@ -451,8 +439,8 @@ export default function CategoriesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">{pageTitle}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Organize and manage your content categories</p>
+          <h2 className="text-xl font-bold text-gray-900">Classified Categories</h2>
+          <p className="text-sm text-gray-500 mt-0.5">Manage categories for classified listings</p>
         </div>
         <button
           onClick={openCreateModal}
@@ -461,7 +449,7 @@ export default function CategoriesPage() {
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          New {isTypeFiltered ? typeLabel + ' ' : ''}Category
+          New Category
         </button>
       </div>
 
@@ -469,7 +457,7 @@ export default function CategoriesPage() {
       {!loading && (
         <div className="grid grid-cols-3 gap-2 mb-3">
           <div className="bg-white rounded-lg border border-gray-200 px-3 py-2">
-            <p className="text-lg font-bold text-gray-900">{allFiltered.length}</p>
+            <p className="text-lg font-bold text-gray-900">{categories.length}</p>
             <p className="text-xs text-gray-500">Total categories</p>
           </div>
           <div className="bg-white rounded-lg border border-gray-200 px-3 py-2">
@@ -503,7 +491,7 @@ export default function CategoriesPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={`Search ${isTypeFiltered ? typeLabel.toLowerCase() + ' ' : ''}categories...`}
+            placeholder="Search categories..."
             className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
           />
           {searchQuery && (
@@ -517,20 +505,6 @@ export default function CategoriesPage() {
             </button>
           )}
         </div>
-        {!isTypeFiltered && (
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
-          >
-            <option value="">All Types</option>
-            {categoryTypes.map((type) => (
-              <option key={type} value={type}>
-                {typeLabels[type] || type}
-              </option>
-            ))}
-          </select>
-        )}
         {rootCount > 0 && !searchQuery && (
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             <button
@@ -588,14 +562,12 @@ export default function CategoriesPage() {
             </svg>
           </div>
           <h3 className="text-sm font-medium text-gray-900 mb-1">
-            {searchQuery
-              ? 'No categories found'
-              : `No ${isTypeFiltered ? typeLabel.toLowerCase() + ' ' : ''}categories yet`}
+            {searchQuery ? 'No categories found' : 'No classified categories yet'}
           </h3>
           <p className="text-xs text-gray-500 mb-4">
             {searchQuery
               ? `No results for "${searchQuery}". Try a different search.`
-              : 'Create your first category to get started.'}
+              : 'Create your first category to organize classified listings.'}
           </p>
           {!searchQuery && (
             <button
@@ -635,14 +607,49 @@ export default function CategoriesPage() {
                 {hasChildren && isExpanded && (
                   <div className="border-t border-gray-100">
                     <div className="ml-5 border-l-2 border-primary-100 bg-gray-50/40">
-                      {children.map((child) => (
-                        <div
-                          key={child.id}
-                          className="border-b border-gray-100/80 last:border-b-0"
-                        >
-                          <CategoryRow cat={child} isChild={true} />
-                        </div>
-                      ))}
+                      {children.map((child) => {
+                        const grandchildren = getVisibleChildren(child.id);
+                        const childExpanded = !collapsed.has(child.id);
+                        const childHasChildren = grandchildren.length > 0;
+
+                        return (
+                          <div
+                            key={child.id}
+                            className="border-b border-gray-100/80 last:border-b-0"
+                          >
+                            <CategoryRow
+                              cat={child}
+                              isChild={true}
+                              childCount={grandchildren.length}
+                              isExpanded={childExpanded}
+                              onToggleExpand={childHasChildren ? () => toggleCollapse(child.id) : undefined}
+                            />
+
+                            {/* Grandchildren */}
+                            {childHasChildren && childExpanded && (
+                              <div className="ml-5 border-l-2 border-amber-200/60 bg-gray-50/30">
+                                {grandchildren.map((gc) => (
+                                  <div
+                                    key={gc.id}
+                                    className="border-b border-gray-100/60 last:border-b-0"
+                                  >
+                                    <CategoryRow cat={gc} isChild={true} />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {childHasChildren && !childExpanded && (
+                              <button
+                                onClick={() => toggleCollapse(child.id)}
+                                className="w-full px-4 py-1 text-xs text-gray-400 bg-gray-50/30 hover:bg-gray-50 transition-colors text-center"
+                              >
+                                {grandchildren.length} subcategor{grandchildren.length === 1 ? 'y' : 'ies'} hidden
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -670,9 +677,7 @@ export default function CategoriesPage() {
             {/* Modal header */}
             <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-base font-semibold text-gray-900">
-                {editingCategory
-                  ? 'Edit Category'
-                  : `New ${isTypeFiltered ? typeLabel + ' ' : ''}Category`}
+                {editingCategory ? 'Edit Category' : 'New Classified Category'}
               </h3>
               <button
                 onClick={() => setShowModal(false)}
@@ -693,7 +698,7 @@ export default function CategoriesPage() {
                   value={formData.name}
                   onChange={(e) => setFormData((f) => ({ ...f, name: e.target.value }))}
                   className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                  placeholder="e.g. Travel Tips"
+                  placeholder="e.g. Furniture"
                   autoFocus
                 />
                 {formData.name && (
@@ -714,23 +719,6 @@ export default function CategoriesPage() {
                 />
               </div>
 
-              {!isTypeFiltered && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) => setFormData((f) => ({ ...f, type: e.target.value, parent_id: '' }))}
-                    className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                  >
-                    {categoryTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {typeLabels[type] || type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category</label>
                 <select
@@ -741,10 +729,30 @@ export default function CategoriesPage() {
                   <option value="">None (Top Level)</option>
                   {availableParents.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}
+                      {getDepth(c) > 0 ? `\u00A0\u00A0\u00A0\u00A0${c.name}` : c.name}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Active</p>
+                  <p className="text-xs text-gray-500">Visible to users when active</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData((f) => ({ ...f, is_active: !f.is_active }))}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    formData.is_active ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      formData.is_active ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
             </div>
 

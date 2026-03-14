@@ -349,13 +349,13 @@ const ACTION_STYLES: Record<string, string> = {
 
 function StatCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 animate-pulse">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3.5 animate-pulse">
       <div className="flex items-center justify-between">
         <div>
           <div className="h-4 w-24 bg-gray-200 rounded" />
           <div className="h-7 w-16 bg-gray-200 rounded mt-2" />
         </div>
-        <div className="w-10 h-10 bg-gray-200 rounded-xl" />
+        <div className="w-8 h-8 bg-gray-200 rounded-xl" />
       </div>
       <div className="mt-2 h-3 w-32 bg-gray-100 rounded" />
     </div>
@@ -364,9 +364,9 @@ function StatCardSkeleton() {
 
 function ChartSkeleton({ label }: { label: string }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{label}</h3>
-      <div className="flex items-end gap-1 h-40">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 animate-pulse">
+      <h3 className="text-base font-semibold text-gray-900 mb-3">{label}</h3>
+      <div className="flex items-end gap-1 h-32">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-1">
             <div className="h-3 w-4 bg-gray-100 rounded" />
@@ -384,8 +384,8 @@ function ChartSkeleton({ label }: { label: string }) {
 
 function TableSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 animate-pulse">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-5 animate-pulse">
+      <div className="px-4 py-3 border-b border-gray-200">
         <div className="h-5 w-36 bg-gray-200 rounded" />
       </div>
       <div className="p-4 space-y-3">
@@ -406,14 +406,14 @@ function TableSkeleton() {
 function ActivitySkeleton() {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200">
         <div className="h-5 w-32 bg-gray-200 rounded" />
       </div>
       <div className="divide-y divide-gray-100">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="px-6 py-3 flex items-center justify-between">
+          <div key={i} className="px-4 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-200 rounded-full" />
+              <div className="w-6 h-6 bg-gray-200 rounded-full" />
               <div className="h-4 w-64 bg-gray-200 rounded" />
             </div>
             <div className="h-3 w-16 bg-gray-100 rounded" />
@@ -461,9 +461,9 @@ function SimpleBarChart({
   const maxCount = Math.max(...data.map((d) => d.count));
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">{label}</h3>
-      <div className="flex items-end gap-1 h-40">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+      <h3 className="text-base font-semibold text-gray-900 mb-3">{label}</h3>
+      <div className="flex items-end gap-1 h-32">
         {data.map((d) => {
           const heightPercent = maxCount > 0 ? (d.count / maxCount) * 100 : 0;
           return (
@@ -601,28 +601,28 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
+      <div className="mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Welcome back</h2>
         <p className="text-sm text-gray-500 mt-1">Here&apos;s what&apos;s happening with your site today.</p>
       </div>
 
       {/* Stats Cards Row */}
       {statsError && <ErrorBanner message={statsError} onRetry={fetchStats} />}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {statsLoading
           ? Array.from({ length: 10 }).map((_, i) => <StatCardSkeleton key={i} />)
           : stats.map((stat) => (
               <Link
                 key={stat.label}
                 href={stat.href}
-                className="group bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-primary-glow hover:border-primary-200 transition-all"
+                className="group bg-white rounded-xl shadow-sm border border-gray-100 p-3.5 hover:shadow-primary-glow hover:border-primary-200 transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                    <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
                   </div>
-                  <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  <div className={`w-8 h-8 ${stat.iconBg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                     {stat.icon(`w-5 h-5 ${stat.iconColor}`)}
                   </div>
                 </div>
@@ -654,7 +654,7 @@ export default function AdminDashboardPage() {
           }}
         />
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
         {contentGrowthLoading ? (
           <ChartSkeleton label="Content Growth (Last 12 Days)" />
         ) : contentGrowthData.length > 0 ? (
@@ -664,8 +664,8 @@ export default function AdminDashboardPage() {
             barColor="bg-primary-400"
           />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Content Growth (Last 12 Days)</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">Content Growth (Last 12 Days)</h3>
             <p className="text-sm text-gray-500">No content growth data available.</p>
           </div>
         )}
@@ -678,8 +678,8 @@ export default function AdminDashboardPage() {
             barColor="bg-primary-600"
           />
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">User Growth (Last 12 Days)</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-3">User Growth (Last 12 Days)</h3>
             <p className="text-sm text-gray-500">No user growth data available.</p>
           </div>
         )}
@@ -690,19 +690,19 @@ export default function AdminDashboardPage() {
       {popularLoading ? (
         <TableSkeleton />
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Popular Content</h3>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-5">
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="text-base font-semibold text-gray-900">Popular Content</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-700">#</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Title</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Type</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Views</th>
-                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Date</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-700">#</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-700">Title</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-700">Type</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-700">Views</th>
+                  <th className="text-left px-3 py-2 font-semibold text-gray-700">Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -718,13 +718,13 @@ export default function AdminDashboardPage() {
                       key={item.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3 text-gray-500">{index + 1}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 text-gray-500">{index + 1}</td>
+                      <td className="px-3 py-2">
                         <span className="font-medium text-gray-900 line-clamp-1">
                           {item.title}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span
                           className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
                             TYPE_BADGE_STYLES[item.type] || 'bg-gray-100 text-gray-700'
@@ -733,10 +733,10 @@ export default function AdminDashboardPage() {
                           {item.type}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 font-medium">
+                      <td className="px-3 py-2 text-gray-600 font-medium">
                         {item.views.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                         {item.date}
                       </td>
                     </tr>
@@ -754,22 +754,22 @@ export default function AdminDashboardPage() {
         <ActivitySkeleton />
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+          <div className="px-4 py-3 border-b border-gray-200">
+            <h3 className="text-base font-semibold text-gray-900">Recent Activity</h3>
           </div>
           <div className="divide-y divide-gray-100">
             {recentActivity.length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500">
+              <div className="px-4 py-6 text-center text-gray-500">
                 No recent activity.
               </div>
             ) : (
               recentActivity.map((activity) => (
                 <div
                   key={activity.id}
-                  className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2.5 flex items-center justify-between hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-bold text-gray-600">
                         {activity.user.charAt(0)}
                       </span>

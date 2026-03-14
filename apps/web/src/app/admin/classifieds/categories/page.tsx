@@ -90,7 +90,7 @@ export default function AdminCategorySchemaPage() {
   return (
     <ProtectedRoute requiredRoles={['admin', 'super_admin']}>
       <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
           <Link href="/admin" className="hover:text-primary-600">Admin</Link>
           <span>/</span>
           <Link href="/admin/classifieds" className="hover:text-primary-600">Classifieds</Link>
@@ -98,12 +98,12 @@ export default function AdminCategorySchemaPage() {
           <span className="text-gray-900 font-medium">Category Schemas</span>
         </nav>
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Category Field Schemas</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-4">Category Field Schemas</h1>
 
         {loading ? (
           <p className="text-gray-500">Loading categories...</p>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
             {/* Category list */}
             <div className="lg:col-span-1">
               <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3">Categories</h2>
@@ -112,7 +112,7 @@ export default function AdminCategorySchemaPage() {
                   <button
                     key={cat.id}
                     onClick={() => selectCategory(cat)}
-                    className={`w-full text-left px-4 py-3 rounded-lg border transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
                       selectedId === cat.id
                         ? 'border-primary-600 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
@@ -132,20 +132,20 @@ export default function AdminCategorySchemaPage() {
               {selected ? (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">
+                    <h2 className="text-base font-semibold text-gray-900">
                       {selected.name} — Field Schema
                     </h2>
                     <div className="flex gap-2">
                       <button
                         onClick={addField}
-                        className="px-4 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                        className="px-3.5 py-1.5 text-sm font-medium bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                       >
                         + Add Field
                       </button>
                       <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                        className="px-3.5 py-1.5 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                       >
                         {saving ? 'Saving...' : 'Save Schema'}
                       </button>
@@ -167,17 +167,17 @@ export default function AdminCategorySchemaPage() {
                       <p className="text-gray-500 mb-3">No fields defined for this category.</p>
                       <button
                         onClick={addField}
-                        className="px-4 py-2 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                        className="px-3.5 py-1.5 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                       >
                         Add First Field
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {schema.map((field, idx) => (
                         <div
                           key={idx}
-                          className="border border-gray-200 rounded-lg p-4 bg-white"
+                          className="border border-gray-200 rounded-lg p-3 bg-white"
                         >
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                             <div>
@@ -187,7 +187,7 @@ export default function AdminCategorySchemaPage() {
                                 value={field.key}
                                 onChange={(e) => updateField(idx, { key: e.target.value })}
                                 placeholder="field_key"
-                                className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
+                                className="w-full px-2.5 py-1.5 border border-gray-200 rounded text-sm"
                               />
                             </div>
                             <div>
@@ -197,7 +197,7 @@ export default function AdminCategorySchemaPage() {
                                 value={field.label}
                                 onChange={(e) => updateField(idx, { label: e.target.value })}
                                 placeholder="Display Label"
-                                className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
+                                className="w-full px-2.5 py-1.5 border border-gray-200 rounded text-sm"
                               />
                             </div>
                             <div>
@@ -205,7 +205,7 @@ export default function AdminCategorySchemaPage() {
                               <select
                                 value={field.type}
                                 onChange={(e) => updateField(idx, { type: e.target.value as FieldType })}
-                                className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
+                                className="w-full px-2.5 py-1.5 border border-gray-200 rounded text-sm"
                               >
                                 {FIELD_TYPES.map((t) => (
                                   <option key={t} value={t}>{t}</option>
@@ -217,7 +217,7 @@ export default function AdminCategorySchemaPage() {
                               <select
                                 value={field.group}
                                 onChange={(e) => updateField(idx, { group: e.target.value })}
-                                className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm"
+                                className="w-full px-2.5 py-1.5 border border-gray-200 rounded text-sm"
                               >
                                 {GROUPS.map((g) => (
                                   <option key={g} value={g}>{g}</option>

@@ -88,7 +88,7 @@ function SummaryCardSkeleton() {
 function TableSkeleton({ title, rows = 5 }: { title: string; rows?: number }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200">
         <div className="h-5 w-36 bg-gray-200 rounded" />
       </div>
       <div className="p-4 space-y-3">
@@ -108,7 +108,7 @@ function TableSkeleton({ title, rows = 5 }: { title: string; rows?: number }) {
 
 function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+    <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <svg className="w-5 h-5 text-red-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -252,9 +252,9 @@ export default function AdminAnalyticsPage() {
   return (
     <div>
       {/* Header with Date Range Selector */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics</h2>
+          <h2 className="text-xl font-bold text-gray-900">Analytics</h2>
           <p className="text-sm text-gray-500 mt-1">Site traffic and engagement metrics.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         {dailyLoading ? (
           <>
             <SummaryCardSkeleton />
@@ -291,22 +291,22 @@ export default function AdminAnalyticsPage() {
           <>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <p className="text-sm text-gray-500">Total Page Views</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{totalPageViews.toLocaleString()}</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{totalPageViews.toLocaleString()}</p>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <p className="text-sm text-gray-500">Unique Visitors</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{totalUniqueVisitors.toLocaleString()}</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{totalUniqueVisitors.toLocaleString()}</p>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <p className="text-sm text-gray-500">New Users</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{totalNewUsers.toLocaleString()}</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{totalNewUsers.toLocaleString()}</p>
             </div>
           </>
         )}
       </div>
 
       {/* Daily Stats Table */}
-      <div className="mb-8">
+      <div className="mb-5">
         {dailyError && !dailyLoading && (
           <ErrorBanner message={dailyError} onRetry={fetchDailyStats} />
         )}
@@ -314,17 +314,17 @@ export default function AdminAnalyticsPage() {
           <TableSkeleton title="Daily Stats" rows={7} />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Daily Stats</h3>
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h3 className="text-base font-semibold text-gray-900">Daily Stats</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Date</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">Page Views</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">Unique Visitors</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">New Users</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Date</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">Page Views</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">Unique Visitors</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">New Users</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -340,10 +340,10 @@ export default function AdminAnalyticsPage() {
                         key={row.date}
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <td className="px-4 py-3 text-gray-900 font-medium">{formatDateShort(row.date)}</td>
-                        <td className="px-4 py-3 text-right text-gray-600">{(row.page_views ?? 0).toLocaleString()}</td>
-                        <td className="px-4 py-3 text-right text-gray-600">{(row.unique_visitors ?? 0).toLocaleString()}</td>
-                        <td className="px-4 py-3 text-right text-gray-600">{(row.new_users ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-2 text-gray-900 font-medium">{formatDateShort(row.date)}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">{(row.page_views ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">{(row.unique_visitors ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">{(row.new_users ?? 0).toLocaleString()}</td>
                       </tr>
                     ))
                   )}
@@ -355,7 +355,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Top Pages & Traffic Sources side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
         {/* Top Pages */}
         <div>
           {topPagesError && !topPagesLoading && (
@@ -365,17 +365,17 @@ export default function AdminAnalyticsPage() {
             <TableSkeleton title="Top Pages" rows={5} />
           ) : (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Top Pages</h3>
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-base font-semibold text-gray-900">Top Pages</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">#</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Path</th>
-                      <th className="text-right px-4 py-3 font-semibold text-gray-700">Views</th>
-                      <th className="text-right px-4 py-3 font-semibold text-gray-700">Unique</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">#</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Path</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">Views</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">Unique</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -391,12 +391,12 @@ export default function AdminAnalyticsPage() {
                           key={page.path}
                           className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                         >
-                          <td className="px-4 py-3 text-gray-500">{index + 1}</td>
-                          <td className="px-4 py-3 text-gray-900 font-medium truncate max-w-[200px]" title={page.path}>
+                          <td className="px-3 py-2 text-gray-500">{index + 1}</td>
+                          <td className="px-3 py-2 text-gray-900 font-medium truncate max-w-[200px]" title={page.path}>
                             {page.path}
                           </td>
-                          <td className="px-4 py-3 text-right text-gray-600">{(page.views ?? 0).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-right text-gray-600">{(page.unique_visitors ?? 0).toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right text-gray-600">{(page.views ?? 0).toLocaleString()}</td>
+                          <td className="px-3 py-2 text-right text-gray-600">{(page.unique_visitors ?? 0).toLocaleString()}</td>
                         </tr>
                       ))
                     )}
@@ -416,16 +416,16 @@ export default function AdminAnalyticsPage() {
             <TableSkeleton title="Traffic Sources" rows={5} />
           ) : (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Traffic Sources</h3>
+              <div className="px-4 py-3 border-b border-gray-200">
+                <h3 className="text-base font-semibold text-gray-900">Traffic Sources</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Source</th>
-                      <th className="text-right px-4 py-3 font-semibold text-gray-700">Visits</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700 w-1/3">Share</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Source</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">Visits</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700 w-1/3">Share</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -441,9 +441,9 @@ export default function AdminAnalyticsPage() {
                           key={source.source}
                           className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                         >
-                          <td className="px-4 py-3 text-gray-900 font-medium">{source.source}</td>
-                          <td className="px-4 py-3 text-right text-gray-600">{(source.visits ?? 0).toLocaleString()}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2 text-gray-900 font-medium">{source.source}</td>
+                          <td className="px-3 py-2 text-right text-gray-600">{(source.visits ?? 0).toLocaleString()}</td>
+                          <td className="px-3 py-2">
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                                 <div
@@ -468,7 +468,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       {/* Search Trends */}
-      <div className="mb-8">
+      <div className="mb-5">
         {searchError && !searchLoading && (
           <ErrorBanner message={searchError} onRetry={fetchSearchTrends} />
         )}
@@ -476,17 +476,17 @@ export default function AdminAnalyticsPage() {
           <TableSkeleton title="Search Trends" rows={5} />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Search Trends</h3>
+            <div className="px-4 py-3 border-b border-gray-200">
+              <h3 className="text-base font-semibold text-gray-900">Search Trends</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">#</th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">Search Term</th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">Count</th>
-                    <th className="text-center px-4 py-3 font-semibold text-gray-700">Trend</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">#</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">Search Term</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">Count</th>
+                    <th className="text-center px-3 py-2 font-semibold text-gray-700">Trend</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -502,10 +502,10 @@ export default function AdminAnalyticsPage() {
                         key={item.term}
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <td className="px-4 py-3 text-gray-500">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{item.term}</td>
-                        <td className="px-4 py-3 text-right text-gray-600">{(item.count ?? 0).toLocaleString()}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2 text-gray-500">{index + 1}</td>
+                        <td className="px-3 py-2 text-gray-900 font-medium">{item.term}</td>
+                        <td className="px-3 py-2 text-right text-gray-600">{(item.count ?? 0).toLocaleString()}</td>
+                        <td className="px-3 py-2">
                           <div className="flex items-center justify-center gap-1.5" title={getTrendLabel(item.trend)}>
                             {getTrendIcon(item.trend)}
                             <span className="text-xs text-gray-500">{getTrendLabel(item.trend)}</span>

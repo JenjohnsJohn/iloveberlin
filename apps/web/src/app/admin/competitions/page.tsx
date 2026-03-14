@@ -133,11 +133,11 @@ export default function CompetitionsAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Competitions</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Competitions</h2>
         <Link
           href="/admin/competitions/new"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
         >
           + New Competition
         </Link>
@@ -150,7 +150,7 @@ export default function CompetitionsAdminPage() {
       )}
 
       {/* Filter bar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <div className="relative flex-1">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -170,7 +170,7 @@ export default function CompetitionsAdminPage() {
             placeholder="Search competitions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -182,7 +182,7 @@ export default function CompetitionsAdminPage() {
                   setStatusFilter(s);
                   setPage(1);
                 }}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   statusFilter === s
                     ? 'bg-primary-600 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -207,25 +207,25 @@ export default function CompetitionsAdminPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Title
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Start Date
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       End Date
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Status
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Entries
                     </th>
-                    <th className="text-left px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
                       Winner
                     </th>
-                    <th className="text-right px-4 py-3 font-semibold text-gray-700">
+                    <th className="text-right px-3 py-2 font-semibold text-gray-700">
                       Actions
                     </th>
                   </tr>
@@ -236,18 +236,18 @@ export default function CompetitionsAdminPage() {
                       key={comp.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <span className="font-medium text-gray-900 line-clamp-1">
                           {comp.title}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                         {comp.startDate || '--'}
                       </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
                         {comp.endDate || '--'}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <select
                           value={comp.status}
                           onChange={(e) => handleStatusChange(comp.id, e.target.value)}
@@ -258,11 +258,11 @@ export default function CompetitionsAdminPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-3 py-2 text-gray-600">
                         {comp.entryCount}
                         {comp.maxEntries ? ` / ${comp.maxEntries}` : ''}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         {comp.winner ? (
                           <span className="text-green-700 font-medium">
                             {comp.winner}
@@ -271,17 +271,17 @@ export default function CompetitionsAdminPage() {
                           <span className="text-gray-400">--</span>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2">
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/competitions/${comp.slug}/edit`}
-                            className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                           >
                             Edit
                           </Link>
                           <Link
                             href={buildCompetitionUrl(comp.slug)}
-                            className="px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
                             target="_blank"
                           >
                             View
@@ -290,13 +290,13 @@ export default function CompetitionsAdminPage() {
                             !comp.winner && (
                               <button
                                 onClick={() => handlePickWinner(comp.id)}
-                                className="px-3 py-1 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors"
                               >
                                 Pick Winner
                               </button>
                             )}
                           <button
-                            className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                             onClick={() => handleDelete(comp.id)}
                           >
                             Delete
@@ -320,7 +320,7 @@ export default function CompetitionsAdminPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="flex items-center justify-center gap-2 mt-3">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage((p) => p - 1)}
@@ -345,25 +345,25 @@ export default function CompetitionsAdminPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="text-sm text-gray-500 mb-1">Total Competitions</div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-xl font-bold text-gray-900">
                 {total}
               </div>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="text-sm text-gray-500 mb-1">Active</div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl font-bold text-green-600">
                 {competitions.filter((c) => c.status === 'active').length}
               </div>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="text-sm text-gray-500 mb-1">Total Entries</div>
-              <div className="text-2xl font-bold text-primary-600">
+              <div className="text-xl font-bold text-primary-600">
                 {competitions.reduce((sum, c) => sum + c.entryCount, 0).toLocaleString()}
               </div>
             </div>
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="text-sm text-gray-500 mb-1">Winners Selected</div>
-              <div className="text-2xl font-bold text-amber-600">
+              <div className="text-xl font-bold text-amber-600">
                 {competitions.filter((c) => c.winner).length}
               </div>
             </div>

@@ -266,8 +266,8 @@ export default function ClassifiedsAdminPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Classifieds Management</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Classifieds Management</h2>
         <Link
           href="/classifieds"
           className="text-sm text-primary-600 hover:text-primary-700 font-medium"
@@ -283,7 +283,7 @@ export default function ClassifiedsAdminPage() {
       )}
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b border-gray-200 mb-4">
         <div className="flex gap-0">
           {tabs.map((tab) => (
             <button
@@ -332,7 +332,7 @@ export default function ClassifiedsAdminPage() {
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-900">{listing.title}</h3>
+                              <h3 className="text-base font-semibold text-gray-900">{listing.title}</h3>
                               <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500">
                                 <span>{listing.category}</span>
                                 <span>-</span>
@@ -341,7 +341,7 @@ export default function ClassifiedsAdminPage() {
                                 <span>by {listing.seller}</span>
                               </div>
                             </div>
-                            <span className="text-lg font-bold text-primary-700 whitespace-nowrap ml-4">
+                            <span className="text-base font-bold text-primary-700 whitespace-nowrap ml-4">
                               {formatPrice(listing.price, listing.priceType)}
                             </span>
                           </div>
@@ -369,13 +369,13 @@ export default function ClassifiedsAdminPage() {
                         <div className="flex lg:flex-col gap-2 lg:justify-start flex-shrink-0">
                           <button
                             onClick={() => handleApprove(listing.id)}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                            className="px-3.5 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => handleReject(listing.id)}
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                            className="px-3.5 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                           >
                             Reject
                           </button>
@@ -391,7 +391,7 @@ export default function ClassifiedsAdminPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">All caught up!</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-1">All caught up!</h3>
                   <p className="text-sm text-gray-500">No listings are waiting for moderation.</p>
                 </div>
               )}
@@ -402,7 +402,7 @@ export default function ClassifiedsAdminPage() {
           {activeTab === 'all' && (
             <div className="space-y-4">
               {/* Search & Filters */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="flex-1 min-w-[200px]">
                   <input
                     type="text"
@@ -412,7 +412,7 @@ export default function ClassifiedsAdminPage() {
                       setSearchQuery(e.target.value);
                       setPage(1);
                     }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
                 <select
@@ -421,7 +421,7 @@ export default function ClassifiedsAdminPage() {
                     setFilterStatus(e.target.value);
                     setPage(1);
                   }}
-                  className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">All Statuses</option>
                   <option value="draft">Draft</option>
@@ -437,7 +437,7 @@ export default function ClassifiedsAdminPage() {
                     setFilterCategory(e.target.value);
                     setPage(1);
                   }}
-                  className="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">All Categories</option>
                   {categories.map((cat) => (
@@ -452,7 +452,7 @@ export default function ClassifiedsAdminPage() {
                       setFilterCategory('');
                       setPage(1);
                     }}
-                    className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
+                    className="px-2.5 py-1.5 text-sm text-gray-500 hover:text-gray-700"
                   >
                     Clear filters
                   </button>
@@ -464,13 +464,13 @@ export default function ClassifiedsAdminPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-200 bg-gray-50">
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Title</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Seller</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Price</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                      <th className="text-left px-4 py-3 font-medium text-gray-600">Date</th>
-                      <th className="text-right px-4 py-3 font-medium text-gray-600">Actions</th>
+                      <th className="text-left px-3 py-2 font-medium text-gray-600">Title</th>
+                      <th className="text-left px-3 py-2 font-medium text-gray-600">Category</th>
+                      <th className="text-left px-3 py-2 font-medium text-gray-600">Seller</th>
+                      <th className="text-left px-3 py-2 font-medium text-gray-600">Price</th>
+                      <th className="text-left px-3 py-2 font-medium text-gray-600">Status</th>
+                      <th className="text-left px-3 py-2 font-medium text-gray-600">Date</th>
+                      <th className="text-right px-3 py-2 font-medium text-gray-600">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -478,33 +478,33 @@ export default function ClassifiedsAdminPage() {
                       const badge = statusBadge(listing.status);
                       return (
                         <tr key={listing.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className="font-medium text-gray-900 line-clamp-1">{listing.title}</span>
                           </td>
-                          <td className="px-4 py-3 text-gray-600">{listing.category}</td>
-                          <td className="px-4 py-3 text-gray-600">{listing.seller}</td>
-                          <td className="px-4 py-3 font-medium text-gray-900">
+                          <td className="px-3 py-2 text-gray-600">{listing.category}</td>
+                          <td className="px-3 py-2 text-gray-600">{listing.seller}</td>
+                          <td className="px-3 py-2 font-medium text-gray-900">
                             {formatPrice(listing.price, listing.priceType)}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2">
                             <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${badge.color}`}>
                               {badge.label}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-gray-500">{listing.createdAt}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-2 text-gray-500">{listing.createdAt}</td>
+                          <td className="px-3 py-2">
                             <div className="flex items-center justify-end gap-2">
                               {listing.categorySlug && listing.slug && (
                                 <Link
                                   href={`/classifieds/${listing.categorySlug}/${listing.slug}`}
-                                  className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                                  className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                                 >
                                   View
                                 </Link>
                               )}
                               <button
                                 onClick={() => handleDelete(listing.id)}
-                                className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                                className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                               >
                                 Delete
                               </button>
@@ -585,13 +585,13 @@ export default function ClassifiedsAdminPage() {
                           <div className="flex lg:flex-col gap-2 lg:justify-start flex-shrink-0">
                             <button
                               onClick={() => handleReviewReport(report.id)}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                              className="px-3.5 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                             >
                               Review
                             </button>
                             <button
                               onClick={() => handleDismissReport(report.id)}
-                              className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                              className="px-3.5 py-1.5 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                             >
                               Dismiss
                             </button>

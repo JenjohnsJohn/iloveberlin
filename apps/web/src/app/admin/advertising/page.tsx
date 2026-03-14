@@ -251,11 +251,11 @@ export default function AdvertisingPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Advertising</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-gray-900">Advertising</h2>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
         >
           + New Campaign
         </button>
@@ -269,8 +269,8 @@ export default function AdvertisingPage() {
 
       {/* Create Campaign Form */}
       {showCreateForm && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Campaign</h3>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Create Campaign</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -335,13 +335,13 @@ export default function AdvertisingPage() {
           <div className="flex gap-3 mt-4">
             <button
               onClick={handleCreateCampaign}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+              className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
             >
               Create Campaign
             </button>
             <button
               onClick={() => setShowCreateForm(false)}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+              className="px-3.5 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
             >
               Cancel
             </button>
@@ -350,7 +350,7 @@ export default function AdvertisingPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 border-b border-gray-200">
+      <div className="flex items-center gap-1 mb-4 border-b border-gray-200">
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -379,15 +379,15 @@ export default function AdvertisingPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Campaign</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Advertiser</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Dates</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Budget</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Impressions</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">Clicks</th>
-                      <th className="text-left px-4 py-3 font-semibold text-gray-700">CTR</th>
-                      <th className="text-right px-4 py-3 font-semibold text-gray-700">Actions</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Campaign</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Advertiser</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Status</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Dates</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Budget</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Impressions</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">Clicks</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-700">CTR</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-700">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -402,7 +402,7 @@ export default function AdvertisingPage() {
                           <td colSpan={9} className="p-0">
                             {/* Campaign Row */}
                             <div className="flex items-center hover:bg-gray-50 transition-colors">
-                              <div className="px-4 py-3 flex-1 min-w-0">
+                              <div className="px-3 py-2 flex-1 min-w-0">
                                 <button
                                   onClick={() =>
                                     setExpandedCampaign(isExpanded ? null : campaign.id)
@@ -417,43 +417,43 @@ export default function AdvertisingPage() {
                                   )}
                                 </button>
                               </div>
-                              <div className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                              <div className="px-3 py-2 text-gray-600 whitespace-nowrap">
                                 {campaign.advertiser}
                               </div>
-                              <div className="px-4 py-3">
+                              <div className="px-3 py-2">
                                 <span
                                   className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${CAMPAIGN_STATUS_STYLES[campaign.status]}`}
                                 >
                                   {CAMPAIGN_STATUS_LABELS[campaign.status]}
                                 </span>
                               </div>
-                              <div className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                              <div className="px-3 py-2 text-gray-500 whitespace-nowrap text-xs">
                                 {campaign.startDate} - {campaign.endDate}
                               </div>
-                              <div className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                              <div className="px-3 py-2 text-gray-600 whitespace-nowrap">
                                 {'\u20AC'}{campaign.budget.toLocaleString()}
                               </div>
-                              <div className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                              <div className="px-3 py-2 text-gray-600 whitespace-nowrap">
                                 {campaign.impressions.toLocaleString()}
                               </div>
-                              <div className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                              <div className="px-3 py-2 text-gray-600 whitespace-nowrap">
                                 {campaign.clicks.toLocaleString()}
                               </div>
-                              <div className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                              <div className="px-3 py-2 text-gray-600 whitespace-nowrap">
                                 {ctr}%
                               </div>
-                              <div className="px-4 py-3">
+                              <div className="px-3 py-2">
                                 <div className="flex items-center justify-end gap-2">
                                   <button
                                     onClick={() => openEditModal(campaign)}
-                                    className="px-3 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                                    className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
                                   >
                                     Edit
                                   </button>
                                   {campaign.status === 'active' && (
                                     <button
                                       onClick={() => handlePauseCampaign(campaign.id)}
-                                      className="px-3 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded hover:bg-yellow-100 transition-colors"
+                                      className="px-2.5 py-1 text-xs font-medium text-yellow-600 bg-yellow-50 rounded hover:bg-yellow-100 transition-colors"
                                     >
                                       Pause
                                     </button>
@@ -461,14 +461,14 @@ export default function AdvertisingPage() {
                                   {campaign.status === 'paused' && (
                                     <button
                                       onClick={() => handleResumeCampaign(campaign.id)}
-                                      className="px-3 py-1 text-xs font-medium text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors"
+                                      className="px-2.5 py-1 text-xs font-medium text-green-600 bg-green-50 rounded hover:bg-green-100 transition-colors"
                                     >
                                       Resume
                                     </button>
                                   )}
                                   <button
                                     onClick={() => handleDeleteCampaign(campaign.id)}
-                                    className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                                    className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
                                   >
                                     Delete
                                   </button>
@@ -539,28 +539,28 @@ export default function AdvertisingPage() {
           {activeTab === 'analytics' && (
             <div>
               {/* Summary Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
                   <p className="text-sm text-gray-500">Total Impressions</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                  <p className="text-xl font-bold text-gray-900 mt-1">
                     {totalImpressions.toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
                   <p className="text-sm text-gray-500">Total Clicks</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                  <p className="text-xl font-bold text-gray-900 mt-1">
                     {totalClicks.toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
                   <p className="text-sm text-gray-500">Overall CTR</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{overallCTR}%</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{overallCTR}%</p>
                 </div>
               </div>
 
               {/* Active Campaigns Summary */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+                <h3 className="text-base font-semibold text-gray-900 mb-2">
                   Active Campaigns
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">
@@ -617,8 +617,8 @@ export default function AdvertisingPage() {
 
               {/* Top Performing Campaigns */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <h3 className="text-base font-semibold text-gray-900">
                     Top Performing Campaigns (by CTR)
                   </h3>
                 </div>
@@ -626,12 +626,12 @@ export default function AdvertisingPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">#</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Campaign</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Impressions</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Clicks</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">CTR</th>
-                        <th className="text-left px-4 py-3 font-semibold text-gray-700">Status</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">#</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Campaign</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Impressions</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Clicks</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">CTR</th>
+                        <th className="text-left px-3 py-2 font-semibold text-gray-700">Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -645,20 +645,20 @@ export default function AdvertisingPage() {
                             key={campaign.id}
                             className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                           >
-                            <td className="px-4 py-3 text-gray-500">{index + 1}</td>
-                            <td className="px-4 py-3 font-medium text-gray-900">
+                            <td className="px-3 py-2 text-gray-500">{index + 1}</td>
+                            <td className="px-3 py-2 font-medium text-gray-900">
                               {campaign.name}
                             </td>
-                            <td className="px-4 py-3 text-gray-600">
+                            <td className="px-3 py-2 text-gray-600">
                               {campaign.impressions.toLocaleString()}
                             </td>
-                            <td className="px-4 py-3 text-gray-600">
+                            <td className="px-3 py-2 text-gray-600">
                               {campaign.clicks.toLocaleString()}
                             </td>
-                            <td className="px-4 py-3 font-medium text-gray-900">
+                            <td className="px-3 py-2 font-medium text-gray-900">
                               {ctr}%
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-2">
                               <span
                                 className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${CAMPAIGN_STATUS_STYLES[campaign.status]}`}
                               >
@@ -686,8 +686,8 @@ export default function AdvertisingPage() {
       {/* Edit Campaign Modal */}
       {editingCampaign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Campaign</h3>
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 p-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Edit Campaign</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -751,13 +751,13 @@ export default function AdvertisingPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleEditCampaign}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
               >
                 Save Changes
               </button>
               <button
                 onClick={() => setEditingCampaign(null)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                className="px-3.5 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
               >
                 Cancel
               </button>
