@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { fromGuideTopicSeoSlug, buildGuideUrl, buildGuideTopicUrl } from '@/lib/guide-seo-utils';
+import { formatDate } from '@/lib/format-date';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -31,16 +32,6 @@ interface TopicResponse {
   guides: GuideCard[];
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-}
 
 async function getTopicWithGuides(topicSlug: string): Promise<TopicResponse | null> {
   try {

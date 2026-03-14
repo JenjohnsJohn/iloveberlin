@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { buildVideoUrl } from '@/lib/videos-seo-utils';
+import { formatDate } from '@/lib/format-date';
 
 export interface VideoCardData {
   slug: string;
@@ -25,15 +26,6 @@ function formatDuration(seconds: number | null): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 export function VideoCard({ video }: VideoCardProps) {
   return (

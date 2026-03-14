@@ -9,6 +9,7 @@ import type { EventCardData } from '@/components/events/event-card';
 import { sanitizeHtml } from '@/lib/sanitize';
 import apiClient from '@/lib/api-client';
 import { buildEventUrl, buildEventCategoryUrl } from '@/lib/events-seo-utils';
+import { formatDateLong, formatTime } from '@/lib/format-date';
 
 interface EventContentProps {
   event: {
@@ -33,24 +34,6 @@ interface EventContentProps {
   };
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00');
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-function formatTime(time: string | null): string {
-  if (!time) return '';
-  const [hours, minutes] = time.split(':');
-  const h = parseInt(hours, 10);
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  const displayH = h % 12 || 12;
-  return `${displayH}:${minutes} ${suffix}`;
-}
 
 function formatPrice(isFree: boolean, price: number | null, priceMax: number | null): string {
   if (isFree) return 'Free';
@@ -217,9 +200,9 @@ export function EventContent({ event }: EventContentProps) {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">Date & Time</p>
-                  <p className="text-sm text-gray-600">{formatDate(event.startDate)}</p>
+                  <p className="text-sm text-gray-600">{formatDateLong(event.startDate)}</p>
                   {event.endDate && event.endDate !== event.startDate && (
-                    <p className="text-sm text-gray-600">to {formatDate(event.endDate)}</p>
+                    <p className="text-sm text-gray-600">to {formatDateLong(event.endDate)}</p>
                   )}
                   {event.startTime && (
                     <p className="text-sm text-gray-500">

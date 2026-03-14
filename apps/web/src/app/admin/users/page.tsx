@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
+import { formatDate } from '@/lib/format-date';
 
 type UserRole = 'user' | 'editor' | 'admin' | 'super_admin';
 type UserStatusType = 'active' | 'inactive' | 'suspended' | 'deleted';
@@ -132,14 +133,6 @@ export default function UsersAdminPage() {
     }
   };
 
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   return (
     <div>
@@ -305,7 +298,7 @@ export default function UsersAdminPage() {
 
                         {/* Last Login */}
                         <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                          {formatDate(user.last_login_at)}
+                          {formatDate(user.last_login_at) || '—'}
                         </td>
 
                         {/* Joined */}

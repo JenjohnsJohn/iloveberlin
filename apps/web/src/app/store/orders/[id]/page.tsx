@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import apiClient from '@/lib/api-client';
 import { useAuthStore } from '@/store/auth-store';
+import { formatDate } from '@/lib/format-date';
 
 type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered';
 
@@ -52,16 +53,6 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   delivered: 'Delivered',
 };
 
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-}
 
 function mapOrderItem(raw: Record<string, unknown>): OrderItem {
   return {

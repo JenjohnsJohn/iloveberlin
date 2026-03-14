@@ -3,6 +3,7 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
+import { formatDateShort } from '@/lib/format-date';
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -477,7 +478,7 @@ function SimpleBarChart({
                 title={`${d.date}: ${d.count}`}
               />
               <span className="text-xs text-gray-400 truncate w-full text-center">
-                {d.date.replace('Mar ', '')}
+                {formatDateShort(d.date)}
               </span>
             </div>
           );

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { buildEventUrl } from '@/lib/events-seo-utils';
+import { formatTime } from '@/lib/format-date';
 
 export interface EventCardData {
   slug: string;
@@ -26,15 +27,6 @@ function formatDateOverlay(dateStr: string): { day: string; month: string } {
   const day = date.getDate().toString();
   const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
   return { day, month };
-}
-
-function formatTime(time: string | null): string {
-  if (!time) return '';
-  const [hours, minutes] = time.split(':');
-  const h = parseInt(hours, 10);
-  const suffix = h >= 12 ? 'PM' : 'AM';
-  const displayH = h % 12 || 12;
-  return `${displayH}:${minutes} ${suffix}`;
 }
 
 function formatPrice(isFree: boolean, price: number | null, priceMax: number | null): string {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import apiClient from '@/lib/api-client';
+import { formatDateShort, toISODate } from '@/lib/format-date';
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -35,14 +36,6 @@ interface SearchTrend {
 
 // ── Helpers ──────────────────────────────────────────────────
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function toISODate(date: Date): string {
-  return date.toISOString().split('T')[0];
-}
 
 function getDefaultDateRange(): { start: string; end: string } {
   const end = new Date();
@@ -347,7 +340,7 @@ export default function AdminAnalyticsPage() {
                         key={row.date}
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <td className="px-4 py-3 text-gray-900 font-medium">{formatDate(row.date)}</td>
+                        <td className="px-4 py-3 text-gray-900 font-medium">{formatDateShort(row.date)}</td>
                         <td className="px-4 py-3 text-right text-gray-600">{(row.page_views ?? 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-right text-gray-600">{(row.unique_visitors ?? 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-right text-gray-600">{(row.new_users ?? 0).toLocaleString()}</td>

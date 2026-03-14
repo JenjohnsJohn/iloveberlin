@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
 import type { CategoryFieldDefinition } from '@/types/category-fields';
+import { formatDate } from '@/lib/format-date';
 import { DynamicFieldDisplay } from '@/components/classifieds/dynamic-field-display';
 
 export interface ClassifiedDetailData {
@@ -170,7 +171,7 @@ export function ClassifiedDetailContent({ listing, categorySlug, categoryName }:
               )}
               <div className="flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
-                <span>Posted {listing.createdAt}</span>
+                <span>Posted {formatDate(listing.createdAt)}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -205,7 +206,7 @@ export function ClassifiedDetailContent({ listing, categorySlug, categoryName }:
               </div>
               <div>
                 <p className="font-semibold text-gray-900">{listing.sellerName}</p>
-                {listing.sellerMemberSince && <p className="text-sm text-gray-500">Member since {listing.sellerMemberSince}</p>}
+                {listing.sellerMemberSince && <p className="text-sm text-gray-500">Member since {formatDate(listing.sellerMemberSince)}</p>}
               </div>
             </div>
             {contactSent ? (

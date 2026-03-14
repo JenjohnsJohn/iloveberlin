@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import type { ClassifiedListingData } from './page';
 import apiClient from '@/lib/api-client';
+import { formatDate } from '@/lib/format-date';
 
 interface LatestClassifiedListProps {
   initialListings: ClassifiedListingData[];
@@ -39,7 +40,7 @@ function mapClassified(c: Record<string, unknown>): ClassifiedListingData {
     category: String(category?.name || ''),
     categorySlug: String(category?.slug || ''),
     imageUrl: (images?.[0]?.thumbnail_url || images?.[0]?.url || null) as string | null,
-    createdAt: ((c.created_at as string)?.split('T')[0] || '') as string,
+    createdAt: (c.created_at as string) || '',
     featured: Boolean(c.featured),
   };
 }
@@ -104,7 +105,7 @@ export function LatestClassifiedList({ initialListings, initialTotal }: LatestCl
               </div>
               <div className="flex items-center justify-between mt-2">
                 {listing.condition ? <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{formatCondition(listing.condition)}</span> : <span />}
-                <span className="text-xs text-gray-400">{listing.createdAt}</span>
+                <span className="text-xs text-gray-400">{formatDate(listing.createdAt)}</span>
               </div>
             </div>
           </Link>

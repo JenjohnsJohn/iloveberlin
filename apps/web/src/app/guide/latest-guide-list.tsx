@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { buildGuideUrl } from '@/lib/guide-seo-utils';
 import apiClient from '@/lib/api-client';
+import { formatDate } from '@/lib/format-date';
 
 interface GuideCardData {
   slug: string;
@@ -21,16 +22,6 @@ interface LatestGuideListProps {
 
 const LIMIT = 6;
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-}
 
 function mapGuide(g: Record<string, unknown>): GuideCardData {
   const author = g.author as Record<string, unknown> | null;

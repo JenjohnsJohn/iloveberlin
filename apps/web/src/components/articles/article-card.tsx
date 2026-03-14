@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { buildArticleUrl } from '@/lib/news-seo-utils';
+import { formatDate } from '@/lib/format-date';
 
 export interface ArticleCardData {
   slug: string;
@@ -84,7 +85,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
             <span className="font-medium text-gray-700">{article.author.name}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span>{article.publishedAt}</span>
+            <span>{formatDate(article.publishedAt)}</span>
             <span className="flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

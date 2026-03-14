@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api-client';
 import { buildRestaurantUrl } from '@/lib/dining-seo-utils';
+import { formatDate } from '@/lib/format-date';
 
 interface DiningOfferData {
   id: string;
@@ -45,10 +46,6 @@ function mapOffer(raw: Record<string, unknown>): DiningOfferData {
   };
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00');
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 function daysRemaining(endDateStr: string): number {
   const endDate = new Date(endDateStr + 'T23:59:59');
