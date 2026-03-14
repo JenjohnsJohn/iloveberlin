@@ -9,14 +9,16 @@ RUN pnpm install --frozen-lockfile
 COPY apps/api/ apps/api/
 COPY tsconfig.base.json ./
 RUN pnpm --filter api build
-RUN pnpm deploy --filter api --prod /app/deployed
+
+# Prune dev dependencies
+RUN pnpm prune --prod
 
 # Production stage
 FROM node:22-alpine AS runner
 WORKDIR /app
-COPY --from=builder /app/deployed/node_modules ./node_modules
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/deployed/package.json ./
+COPY --from=builder /app/apps/api/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
 ENV NODE_ENV=production
 EXPOSE 3001
 CMD ["node", "dist/main.js"]
