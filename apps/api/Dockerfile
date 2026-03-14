@@ -11,6 +11,7 @@ COPY tsconfig.base.json ./
 RUN pnpm --filter api build
 
 # Prune dev dependencies
+ENV CI=true
 RUN pnpm prune --prod
 
 # Production stage
