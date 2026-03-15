@@ -118,6 +118,30 @@ class BasePipeline(ABC):
             log.info("New items after dedup", pipeline=pipeline_name, count=len(new_items))
 
             # Step 3: Enrich with AI
+            # Reset failed enrichment items (failed + no enriched_data) back to "fetched"
+            # so they can be retried in this run
+            async with async_session() as session:
+                result = await session.execute(
+                    select(PipelineItem)
+                    .where(
+                        PipelineItem.content_type == self.content_type,
+                        PipelineItem.status == "failed",
+                        PipelineItem.enriched_data.is_(None),
+                    )
+                )
+                stale_items = result.scalars().all()
+                for stale in stale_items:
+                    stale.status = "fetched"
+                    stale.error_message = None
+                    stale.updated_at = datetime.now(timezone.utc)
+                if stale_items:
+                    await session.commit()
+                    log.info(
+                        "Reset failed enrichment items for retry",
+                        pipeline=pipeline_name,
+                        count=len(stale_items),
+                    )
+
             # Include both new items AND orphaned "fetched" items from previous runs
             enrich_batch_limit = await get_int_setting("enrich_batch_limit", 20)
             pending_ids = list(new_items)
