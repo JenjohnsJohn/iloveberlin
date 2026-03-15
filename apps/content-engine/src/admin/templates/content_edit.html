@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% set active_page = "content" %}
+
+{% block title %}Edit: {{ item.enriched_data.get('title', '') or 'Content' }}{% endblock %}
+
+{% block content %}
+<div class="flex-between mb-16">
+  <div class="flex">
+    <a href="/admin/content/{{ item.id }}" class="btn btn-secondary btn-sm">&larr; Back</a>
+    <h2>Edit {{ item.content_type | capitalize }}</h2>
+  </div>
+</div>
+
+{% set e = item.enriched_data or {} %}
+
+<div class="card">
+  <form method="POST" action="/admin/content/{{ item.id }}/edit">
+    <table style="width:100%;">
+      <tbody>
+        <!-- Common fields -->
+        {% if 'title' in e or item.content_type in ('article', 'event', 'guide', 'competition') %}
+        <tr>
+          <td style="width:140px; padding:8px 12px;"><strong>Title</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="text" name="title" value="{{ e.get('title', '') }}"
+                   style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if 'name' in e or item.content_type == 'restaurant' %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>Name</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="text" name="name" value="{{ e.get('name', '') }}"
+                   style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if 'subtitle' in e or item.content_type == 'article' %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>Subtitle</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="text" name="subtitle" value="{{ e.get('subtitle', '') }}"
+                   style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if 'excerpt' in e or item.content_type in ('article', 'event', 'guide') %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>Excerpt</strong></td>
+          <td style="padding:8px 12px;">
+            <textarea name="excerpt" rows="2"
+                      style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px; font-family:inherit;">{{ e.get('excerpt', '') }}</textarea>
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if 'body' in e or item.content_type in ('article', 'guide') %}
+        <tr>
+          <td style="padding:8px 12px; vertical-align:top;"><strong>Body (HTML)</strong></td>
+          <td style="padding:8px 12px;">
+            <textarea name="body" rows="15"
+                      style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px; font-family:monospace; font-size:13px;">{{ e.get('body', '') }}</textarea>
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if 'description' in e or item.content_type in ('event', 'restaurant', 'competition') %}
+        <tr>
+          <td style="padding:8px 12px; vertical-align:top;"><strong>Description (HTML)</strong></td>
+          <td style="padding:8px 12px;">
+            <textarea name="description" rows="8"
+                      style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px; font-family:monospace; font-size:13px;">{{ e.get('description', '') }}</textarea>
+          </td>
+        </tr>
+        {% endif %}
+
+        <!-- SEO fields for articles/guides -->
+        {% if item.content_type in ('article', 'guide') %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>SEO Title</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="text" name="seo_title" value="{{ e.get('seo_title', '') }}"
+                   style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;"><strong>SEO Description</strong></td>
+          <td style="padding:8px 12px;">
+            <textarea name="seo_description" rows="2"
+                      style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px; font-family:inherit;">{{ e.get('seo_description', '') }}</textarea>
+          </td>
+        </tr>
+        {% endif %}
+
+        {% if 'seo_keywords' in e %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>SEO Keywords</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="text" name="seo_keywords" value="{{ e.get('seo_keywords', '') }}"
+                   style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        {% endif %}
+
+        <!-- Event-specific fields -->
+        {% if item.content_type == 'event' %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>Start Date</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="date" name="start_date" value="{{ e.get('start_date', '') }}"
+                   style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;"><strong>Start Time</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="time" name="start_time" value="{{ e.get('start_time', '') }}"
+                   style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;"><strong>End Time</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="time" name="end_time" value="{{ e.get('end_time', '') }}"
+                   style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        {% endif %}
+
+        <!-- Competition-specific fields -->
+        {% if item.content_type == 'competition' %}
+        <tr>
+          <td style="padding:8px 12px;"><strong>Prize Description</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="text" name="prize_description" value="{{ e.get('prize_description', '') }}"
+                   style="width:100%; padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;"><strong>Start Date</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="date" name="start_date" value="{{ e.get('start_date', '') }}"
+                   style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px;"><strong>End Date</strong></td>
+          <td style="padding:8px 12px;">
+            <input type="date" name="end_date" value="{{ e.get('end_date', '') }}"
+                   style="padding:6px 10px; border:1px solid #ddd; border-radius:4px;">
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <div style="margin-top:16px; padding:0 12px;">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="/admin/content/{{ item.id }}" class="btn btn-secondary" style="margin-left:8px;">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

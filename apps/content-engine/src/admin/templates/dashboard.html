@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Dashboard</h2>
+
+<!-- Auto-push control -->
+<div class="card">
+  <div class="flex-between">
+    <div>
+      <h2>API Auto-Push</h2>
+      <p class="text-muted">When enabled, enriched content is automatically pushed to the I&hearts;Berlin API. When disabled, content stops at the "enriched" stage for manual review and push.</p>
+    </div>
+    <form method="POST" action="/admin/settings/auto-push" id="auto-push-form">
+      <input type="hidden" name="enabled" id="auto-push-value" value="{% if auto_push_enabled %}true{% else %}false{% endif %}">
+      <div class="toggle">
+        <span style="font-size:13px; color: {% if auto_push_enabled %}#28a745{% else %}#dc3545{% endif %}; font-weight:600;">
+          {% if auto_push_enabled %}ENABLED{% else %}DISABLED{% endif %}
+        </span>
+        <label class="toggle-switch">
+          <input type="checkbox"
+                 {% if auto_push_enabled %}checked{% endif %}
+                 onchange="document.getElementById('auto-push-value').value = this.checked ? 'true' : 'false'; this.form.submit();">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Overall stats -->
+<div class="card">
+  <h2>Pipeline Overview</h2>
+  <div class="grid">
+    <div class="stat">
+      <div class="number">{{ status_counts.get('fetched', 0) }}</div>
+      <div class="label">Fetched</div>
+      <div class="sub">{{ created_24h }} new (24h)</div>
+    </div>
+    <div class="stat">
+      <div class="number">{{ status_counts.get('enriched', 0) }}</div>
+      <div class="label">Enriched (Ready)</div>
+    </div>
+    <div class="stat">
+      <div class="number">{{ status_counts.get('pushed', 0) }}</div>
+      <div class="label">Pushed to API</div>
+      <div class="sub">{{ pushed_24h }} (24h) / {{ pushed_7d }} (7d)</div>
+    </div>
+    <div class="stat">
+      <div class="number">{{ status_counts.get('failed', 0) + status_counts.get('permanently_failed', 0) }}</div>
+      <div class="label">Failed</div>
+      <div class="sub">{{ failed_24h }} (24h) / {{ failed_7d }} (7d)</div>
+    </div>
+    <div class="stat">
+      <div class="number">{{ total_pushed }}</div>
+      <div class="label">Total Push Log</div>
+    </div>
+    <div class="stat">
+      <div class="number">{{ total_dedup }}</div>
+      <div class="label">Dedup Records</div>
+    </div>
+  </div>
+</div>
+
+<!-- Per content type breakdown -->
+<div class="card">
+  <h2>By Content Type</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Fetched</th>
+        <th>Enriched</th>
+        <th>Pushed</th>
+        <th>Failed</th>
+        <th>Total</th>
+        <th>Last Push</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ct, statuses in type_counts.items() | sort %}
+      {% set total = statuses.values() | sum %}
+      {% set ct_pipelines = [] %}
+      {% for pkey, pval in pipeline_settings.items() if pkey.endswith('.enabled') %}
+        {% set pname = pkey.replace('pipeline.', '').replace('.enabled', '') %}
+        {% if ct == 'article' and pname.startswith('articles') %}{% set _ = ct_pipelines.append((pname, pval)) %}
+        {% elif ct == 'event' and pname.startswith('events') %}{% set _ = ct_pipelines.append((pname, pval)) %}
+        {% elif ct == pname %}{% set _ = ct_pipelines.append((pname, pval)) %}
+        {% endif %}
+      {% endfor %}
+      {% set all_enabled = ct_pipelines | selectattr('1', 'equalto', 'true') | list | length == ct_pipelines | length %}
+      {% set any_disabled = ct_pipelines | rejectattr('1', 'equalto', 'true') | list | length > 0 %}
+      <tr>
+        <td>
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:{% if not any_disabled %}#28a745{% else %}#dc3545{% endif %};"></span>
+          <strong>{{ ct | capitalize }}</strong>
+        </td>
+        <td>{{ statuses.get('fetched', 0) }}</td>
+        <td>{{ statuses.get('enriched', 0) }}</td>
+        <td>{{ statuses.get('pushed', 0) }}</td>
+        <td>{{ statuses.get('failed', 0) + statuses.get('permanently_failed', 0) }}</td>
+        <td>{{ total }}</td>
+        <td class="text-muted">
+          {% if last_push_times.get(ct) %}
+          {{ last_push_times[ct].strftime('%b %d, %H:%M') }}
+          {% else %}&mdash;{% endif %}
+        </td>
+        <td>
+          <a href="/admin/content?content_type={{ ct }}" class="btn btn-secondary btn-sm">View</a>
+          {% if statuses.get('enriched', 0) > 0 %}
+          <form method="POST" action="/admin/content/push-all" style="display:inline;">
+            <input type="hidden" name="content_type" value="{{ ct }}">
+            <button type="submit" class="btn btn-success btn-sm"
+                    onclick="return confirm('Push all {{ statuses.get('enriched', 0) }} enriched {{ ct }} items?')">
+              Push {{ statuses.get('enriched', 0) }}
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Run pipeline manually -->
+<div class="card">
+  <h2>Run Pipeline Now</h2>
+  <p class="text-muted" style="margin-bottom: 12px;">Trigger a pipeline run immediately. The pipeline runs in the background — refresh the dashboard to see results.</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+    {% set pipelines = [
+      ('articles_rss', 'Articles (RSS)'),
+      ('articles_ai', 'Articles (AI)'),
+      ('events_berlinde', 'Events (berlin.de)'),
+      ('events_ai', 'Events (AI)'),
+      ('restaurants', 'Restaurants'),
+      ('guides', 'Guides'),
+      ('videos', 'Videos'),
+      ('competitions', 'Competitions'),
+    ] %}
+    {% for key, label in pipelines %}
+    <form method="POST" action="/admin/pipelines/run" style="display:inline;">
+      <input type="hidden" name="pipeline" value="{{ key }}">
+      <button type="submit" class="btn btn-primary btn-sm"
+              onclick="this.disabled=true; this.innerText='Running...'; this.form.submit();">
+        {{ label }}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+  <p class="text-muted" style="margin-top: 12px;">Dry run (fetch + enrich only, no API push):</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
+    {% for key, label in pipelines %}
+    <form method="POST" action="/admin/pipelines/run" style="display:inline;">
+      <input type="hidden" name="pipeline" value="{{ key }}">
+      <input type="hidden" name="dry_run" value="true">
+      <button type="submit" class="btn btn-warning btn-sm"
+              onclick="this.disabled=true; this.innerText='Running...'; this.form.submit();">
+        {{ label }}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Recent pipeline runs -->
+{% if recent_runs %}
+<div class="card">
+  <div class="flex-between">
+    <h2>Recent Pipeline Runs</h2>
+    <a href="/admin/runs" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Pipeline</th>
+        <th>Status</th>
+        <th>Fetched</th>
+        <th>New</th>
+        <th>Enriched</th>
+        <th>Pushed</th>
+        <th>Started</th>
+        <th>Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in recent_runs %}
+      <tr>
+        <td><strong>{{ run.pipeline_name }}</strong></td>
+        <td><span class="badge badge-{{ run.status }}">{{ run.status }}</span></td>
+        <td>{{ run.items_fetched }}</td>
+        <td>{{ run.items_new }}</td>
+        <td>{{ run.items_enriched }}</td>
+        <td>{{ run.items_pushed }}</td>
+        <td class="text-muted">{{ run.started_at.strftime('%b %d, %H:%M') }}</td>
+        <td class="text-muted">
+          {% if run.finished_at %}
+            {{ ((run.finished_at - run.started_at).total_seconds() | int) }}s
+          {% else %}
+            &mdash;
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Recent activity -->
+<div class="card">
+  <h2>Recent Activity</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Title</th>
+        <th>Status</th>
+        <th>Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in recent_items %}
+      {% set title = "" %}
+      {% if item.enriched_data %}
+        {% set title = item.enriched_data.get('title', '') or item.enriched_data.get('name', '') %}
+      {% endif %}
+      {% if not title and item.raw_data %}
+        {% set title = item.raw_data.get('title', '') or item.raw_data.get('name', '') or item.raw_data.get('topic', '') %}
+      {% endif %}
+      <tr>
+        <td>{{ item.content_type | capitalize }}</td>
+        <td class="truncate">
+          <a href="/admin/content/{{ item.id }}" style="text-decoration:none; color:#333;">
+            {{ title[:60] or '(untitled)' }}
+          </a>
+        </td>
+        <td><span class="badge badge-{{ item.status }}">{{ item.status }}</span></td>
+        <td class="text-muted">{{ item.updated_at.strftime('%b %d, %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+      {% if not recent_items %}
+      <tr><td colspan="4" style="text-align:center; padding:20px; color:#888;">No activity yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

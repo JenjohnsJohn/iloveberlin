@@ -1,0 +1,88 @@
+import httpx
+
+from config.settings import settings
+from src.api_client.auth import AuthManager
+from src.utils.circuit_breaker import CircuitBreaker
+from src.utils.logging import get_logger
+
+log = get_logger("api_client.client")
+
+# Shared circuit breaker for the I♥Berlin API
+api_circuit_breaker = CircuitBreaker(name="iloveberlin-api", failure_threshold=5, recovery_timeout=300)
+
+
+class APIClient:
+    """Base HTTP client for the I♥Berlin API with automatic auth."""
+
+    def __init__(self):
+        self.auth = AuthManager()
+        self._client: httpx.AsyncClient | None = None
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None:
+            self._client = httpx.AsyncClient(timeout=30.0)
+        return self._client
+
+    async def _headers(self) -> dict[str, str]:
+        client = await self._get_client()
+        token = await self.auth.get_token(client)
+        return {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+
+    async def get(self, path: str, **kwargs) -> httpx.Response:
+        client = await self._get_client()
+        headers = await self._headers()
+        url = f"{settings.iloveberlin_api_url}{path}"
+        try:
+            resp = await client.get(url, headers=headers, **kwargs)
+            resp.raise_for_status()
+            await api_circuit_breaker.record_success()
+            return resp
+        except (httpx.HTTPStatusError, httpx.TimeoutException, httpx.ConnectError) as e:
+            log.warning("API GET failed", path=path, error=str(e)[:200])
+            await api_circuit_breaker.record_failure()
+            raise
+
+    async def post(self, path: str, json: dict | None = None, **kwargs) -> httpx.Response:
+        client = await self._get_client()
+        headers = await self._headers()
+        url = f"{settings.iloveberlin_api_url}{path}"
+        try:
+            resp = await client.post(url, headers=headers, json=json, **kwargs)
+            log.debug(
+                "API POST",
+                path=path,
+                status=resp.status_code,
+            )
+            resp.raise_for_status()
+            await api_circuit_breaker.record_success()
+            return resp
+        except httpx.HTTPStatusError as e:
+            log.warning(
+                "API POST failed",
+                path=path,
+                status=e.response.status_code,
+                response_body=e.response.text[:500] if e.response else "",
+            )
+            await api_circuit_breaker.record_failure()
+            raise
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            log.warning("API POST failed", path=path, error=str(e)[:200])
+            await api_circuit_breaker.record_failure()
+            raise
+
+    async def put_raw(self, url: str, content: bytes, content_type: str) -> httpx.Response:
+        """PUT raw bytes to an arbitrary URL (used for media upload)."""
+        client = await self._get_client()
+        headers = await self._headers()
+        headers["Content-Type"] = content_type
+        resp = await client.put(url, content=content, headers=headers)
+        resp.raise_for_status()
+        return resp
+
+    async def close(self):
+        if self._client:
+            await self._client.aclose()
+            self._client = None

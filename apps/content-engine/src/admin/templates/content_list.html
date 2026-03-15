@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% set active_page = "content" %}
+
+{% block title %}Content{% endblock %}
+
+{% block content %}
+<div class="flex-between mb-16">
+  <h2>Content Items ({{ total }})</h2>
+  {% if status == 'enriched' and total > 0 %}
+  <form method="POST" action="/admin/content/push-all">
+    {% if content_type %}<input type="hidden" name="content_type" value="{{ content_type }}">{% endif %}
+    <button type="submit" class="btn btn-success"
+            onclick="return confirm('Push all {{ total }} enriched items to the API?')">
+      Push All Enriched ({{ total }})
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<!-- Filters + Search -->
+<div class="card">
+  <form method="GET" action="/admin/content" class="filters">
+    <select name="content_type">
+      <option value="">All Types</option>
+      {% for t in all_types %}
+      <option value="{{ t }}" {% if t == content_type %}selected{% endif %}>{{ t | capitalize }}</option>
+      {% endfor %}
+    </select>
+    <select name="status">
+      <option value="">All Statuses</option>
+      {% for s in all_statuses %}
+      <option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s | capitalize }}</option>
+      {% endfor %}
+    </select>
+    <input type="search" name="search" value="{{ search }}" placeholder="Search titles..." style="width:200px;">
+    <button type="submit" class="btn btn-secondary btn-sm">Filter</button>
+    <a href="/admin/content" class="btn btn-secondary btn-sm">Clear</a>
+  </form>
+</div>
+
+<!-- Bulk actions + Content table -->
+<form method="POST" action="/admin/content/bulk-action" id="bulk-form">
+<div class="card" style="overflow-x:auto;">
+  <!-- Bulk action bar -->
+  <div class="flex" style="margin-bottom: 12px;">
+    <label style="font-size:13px;">
+      <input type="checkbox" id="select-all" onchange="toggleAll(this.checked)"> Select all
+    </label>
+    <select name="action" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-left:12px;">
+      <option value="">Bulk action...</option>
+      <option value="delete">Delete selected</option>
+      <option value="re-enrich">Re-enrich selected</option>
+      <option value="mark-failed">Mark as failed</option>
+    </select>
+    <button type="submit" class="btn btn-secondary btn-sm"
+            onclick="return confirm('Apply bulk action to selected items?')">Apply</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30px;"></th>
+        <th>Type</th>
+        <th>Source</th>
+        <th>Title / Name</th>
+        <th>Status</th>
+        <th>Attempts</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      {% set title = "" %}
+      {% if item.enriched_data %}
+        {% set title = item.enriched_data.get('title', '') or item.enriched_data.get('name', '') %}
+      {% endif %}
+      {% if not title and item.raw_data %}
+        {% set title = item.raw_data.get('title', '') or item.raw_data.get('name', '') or item.raw_data.get('topic', '') %}
+      {% endif %}
+      <tr>
+        <td><input type="checkbox" name="item_ids" value="{{ item.id }}" class="item-cb"></td>
+        <td><strong>{{ item.content_type | capitalize }}</strong></td>
+        <td><span class="text-muted">{{ item.source_type }}</span></td>
+        <td class="truncate">
+          <a href="/admin/content/{{ item.id }}" style="text-decoration:none; color:#333;">
+            {{ title[:80] or '(untitled)' }}
+          </a>
+        </td>
+        <td><span class="badge badge-{{ item.status }}">{{ item.status }}</span></td>
+        <td>{{ item.push_attempts }}</td>
+        <td class="text-muted">{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="flex">
+          <a href="/admin/content/{{ item.id }}" class="btn btn-secondary btn-sm">View</a>
+          {% if item.status in ('enriched', 'failed') %}
+          <a href="#" class="btn btn-success btn-sm"
+             onclick="event.preventDefault(); fetch('/admin/content/{{ item.id }}/push', {method:'POST'}).then(() => location.reload());">Push</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not items %}
+      <tr><td colspan="8" style="text-align:center; padding:40px; color:#888;">No items found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+</form>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+  <a href="/admin/content?page={{ page - 1 }}&content_type={{ content_type }}&status={{ status }}&search={{ search }}">Prev</a>
+  {% endif %}
+  {% for p in range(1, total_pages + 1) %}
+    {% if p == page %}
+    <a class="active" href="#">{{ p }}</a>
+    {% elif p <= 3 or p >= total_pages - 1 or (p >= page - 1 and p <= page + 1) %}
+    <a href="/admin/content?page={{ p }}&content_type={{ content_type }}&status={{ status }}&search={{ search }}">{{ p }}</a>
+    {% elif p == 4 or p == total_pages - 2 %}
+    <span style="padding:6px;">...</span>
+    {% endif %}
+  {% endfor %}
+  {% if page < total_pages %}
+  <a href="/admin/content?page={{ page + 1 }}&content_type={{ content_type }}&status={{ status }}&search={{ search }}">Next</a>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+function toggleAll(checked) {
+  document.querySelectorAll('.item-cb').forEach(cb => cb.checked = checked);
+}
+</script>
+{% endblock %}

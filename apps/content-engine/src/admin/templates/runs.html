@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% set active_page = "runs" %}
+
+{% block title %}Pipeline Runs{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Pipeline Run History</h2>
+
+<div class="card" style="overflow-x:auto;">
+  <table>
+    <thead>
+      <tr>
+        <th>Pipeline</th>
+        <th>Status</th>
+        <th>Fetched</th>
+        <th>New</th>
+        <th>Enriched</th>
+        <th>Pushed</th>
+        <th>Started</th>
+        <th>Finished</th>
+        <th>Duration</th>
+        <th>Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in runs %}
+      <tr>
+        <td><strong>{{ run.pipeline_name }}</strong></td>
+        <td><span class="badge badge-{{ run.status }}">{{ run.status }}</span></td>
+        <td>{{ run.items_fetched }}</td>
+        <td>{{ run.items_new }}</td>
+        <td>{{ run.items_enriched }}</td>
+        <td>{{ run.items_pushed }}</td>
+        <td class="text-muted">{{ run.started_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td class="text-muted">
+          {% if run.finished_at %}
+          {{ run.finished_at.strftime('%H:%M:%S') }}
+          {% else %}&mdash;{% endif %}
+        </td>
+        <td class="text-muted">
+          {% if run.finished_at %}
+            {{ ((run.finished_at - run.started_at).total_seconds() | int) }}s
+          {% else %}
+            &mdash;
+          {% endif %}
+        </td>
+        <td>
+          {% if run.error_message %}
+          <span style="color:#dc3545; font-size:12px;">{{ run.error_message[:100] }}</span>
+          {% else %}&mdash;{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not runs %}
+      <tr><td colspan="10" style="text-align:center; padding:40px; color:#888;">No pipeline runs recorded yet.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

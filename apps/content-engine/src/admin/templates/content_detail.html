@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% set active_page = "content" %}
+
+{% block title %}{{ item.enriched_data.get('title', '') or item.raw_data.get('title', '') or 'Content Detail' }}{% endblock %}
+
+{% block content %}
+<div class="flex-between mb-16">
+  <div class="flex">
+    <a href="/admin/content" class="btn btn-secondary btn-sm">&larr; Back</a>
+    <h2>
+      {{ item.content_type | capitalize }} &mdash;
+      <span class="badge badge-{{ item.status }}">{{ item.status }}</span>
+    </h2>
+  </div>
+  <div class="flex">
+    {% if item.enriched_data %}
+    <a href="/admin/content/{{ item.id }}/edit" class="btn btn-warning btn-sm">Edit</a>
+    {% endif %}
+    {% if item.status in ('enriched', 'failed') %}
+    <form method="POST" action="/admin/content/{{ item.id }}/push">
+      <button type="submit" class="btn btn-success">Push to API</button>
+    </form>
+    {% endif %}
+    <form method="POST" action="/admin/content/{{ item.id }}/delete"
+          onsubmit="return confirm('Delete this item permanently?')">
+      <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+  </div>
+</div>
+
+<!-- Item metadata -->
+<div class="card">
+  <h2>Details</h2>
+  <dl class="detail-grid" style="margin-top:12px;">
+    <dt>ID</dt><dd class="text-muted">{{ item.id }}</dd>
+    <dt>Content Type</dt><dd>{{ item.content_type | capitalize }}</dd>
+    <dt>Source</dt><dd>{{ item.source_type }}</dd>
+    <dt>Status</dt><dd><span class="badge badge-{{ item.status }}">{{ item.status }}</span></dd>
+    <dt>Push Attempts</dt><dd>{{ item.push_attempts }}</dd>
+    {% if item.last_status_code %}
+    <dt>Last Status Code</dt><dd>{{ item.last_status_code }}</dd>
+    {% endif %}
+    {% if item.next_retry_at %}
+    <dt>Next Retry At</dt><dd>{{ item.next_retry_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</dd>
+    {% endif %}
+    <dt>Created</dt><dd>{{ item.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</dd>
+    <dt>Updated</dt><dd>{{ item.updated_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</dd>
+    {% if item.error_message %}
+    <dt>Error</dt><dd style="color:#dc3545;">{{ item.error_message }}</dd>
+    {% endif %}
+  </dl>
+</div>
+
+<!-- Enriched content (finalized) -->
+{% if item.enriched_data %}
+<div class="card">
+  <div class="flex-between">
+    <h2>Enriched Content (Finalized)</h2>
+    <a href="/admin/content/{{ item.id }}/edit" class="btn btn-warning btn-sm">Edit</a>
+  </div>
+
+  {% set e = item.enriched_data %}
+
+  {% if e.get('title') or e.get('name') %}
+  <h3 style="margin: 12px 0 4px;">{{ e.get('title', '') or e.get('name', '') }}</h3>
+  {% endif %}
+
+  {% if e.get('subtitle') %}
+  <p style="color:#666; margin-bottom:8px;">{{ e.subtitle }}</p>
+  {% endif %}
+
+  {% if e.get('excerpt') %}
+  <p style="margin-bottom:12px; font-style:italic; color:#555;">{{ e.excerpt }}</p>
+  {% endif %}
+
+  {% if e.get('body') or e.get('description') %}
+  <div class="content-preview">
+    {{ (e.get('body', '') or e.get('description', '')) | safe }}
+  </div>
+  {% endif %}
+
+  <!-- Additional fields -->
+  <dl class="detail-grid" style="margin-top:16px;">
+    {% for key, val in e.items() %}
+      {% if key not in ('title', 'name', 'subtitle', 'excerpt', 'body', 'description') and val %}
+      <dt>{{ key | replace('_', ' ') | capitalize }}</dt>
+      <dd>
+        {% if val is string and val | length > 200 %}
+          {{ val[:200] }}...
+        {% else %}
+          {{ val }}
+        {% endif %}
+      </dd>
+      {% endif %}
+    {% endfor %}
+  </dl>
+</div>
+{% endif %}
+
+<!-- Raw data -->
+<div class="card">
+  <h2>Raw Source Data</h2>
+  <pre style="background:#f8f9fa; padding:12px; border-radius:6px; font-size:12px; overflow-x:auto; max-height:300px;">{% for key, val in item.raw_data.items() if key != '_image_url' %}{{ key }}: {{ val }}
+{% endfor %}</pre>
+  {% if item.raw_data.get('_image_url') %}
+  <p style="margin-top:8px;"><strong>Image:</strong> <a href="{{ item.raw_data._image_url }}" target="_blank">{{ item.raw_data._image_url[:80] }}</a></p>
+  {% endif %}
+</div>
+
+<!-- Push history -->
+{% if push_logs %}
+<div class="card">
+  <h2>Push History</h2>
+  <table>
+    <thead>
+      <tr><th>Pushed At</th><th>API Endpoint</th><th>API Entity ID</th><th>Status Code</th><th>Response</th></tr>
+    </thead>
+    <tbody>
+      {% for pl in push_logs %}
+      <tr>
+        <td>{{ pl.pushed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ pl.api_endpoint }}</td>
+        <td class="text-muted">{{ pl.api_entity_id or '&mdash;' }}</td>
+        <td>{{ pl.status_code or '&mdash;' }}</td>
+        <td>
+          {% if pl.response_body %}
+          <details>
+            <summary class="text-muted" style="cursor:pointer;">View</summary>
+            <pre style="font-size:11px; margin-top:4px; max-height:100px; overflow:auto;">{{ pl.response_body[:500] }}</pre>
+          </details>
+          {% else %}&mdash;{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

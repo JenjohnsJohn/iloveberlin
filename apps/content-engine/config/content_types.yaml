@@ -1,0 +1,113 @@
+articles:
+  enabled: true
+  auto_publish: true
+  daily_target: 30
+  sources:
+    rss:
+      feeds:
+        # News
+        - url: "https://www.iheartberlin.de/feed/"
+          name: "iHeartBerlin"
+        - url: "https://rss.dw.com/xml/rss-en-all"
+          name: "DW Germany"
+        - url: "https://www.berliner-zeitung.de/feed.xml"
+          name: "Berliner Zeitung"
+        - url: "https://www.tip-berlin.de/feed/"
+          name: "Tip Berlin"
+        - url: "https://www.exberliner.com/feed/"
+          name: "Exberliner"
+        # Lifestyle & Culture
+        - url: "https://slowtravelberlin.com/feed/"
+          name: "Slow Travel Berlin"
+        - url: "https://thebritishberliner.com/feed/"
+          name: "The British Berliner"
+        - url: "https://www.berlinartlink.com/feed/"
+          name: "Berlin Art Link"
+        - url: "https://ceecee.cc/feed/"
+          name: "Cee Cee Berlin"
+        # Food
+        - url: "https://berlinfoodstories.com/feed/"
+          name: "Berlin Food Stories"
+        - url: "https://masha-sedgwick.com/feed/"
+          name: "Masha Sedgwick"
+    ai:
+      daily_count: 15
+      topics:
+        - "Berlin neighborhoods and local life"
+        - "Berlin food and restaurant scene"
+        - "Berlin nightlife and clubs"
+        - "Berlin art and culture"
+        - "Berlin history and architecture"
+        - "Berlin parks and outdoor activities"
+        - "Berlin shopping and markets"
+        - "Berlin tech and startup scene"
+        - "Berlin music scene"
+        - "Berlin expat life and tips"
+
+events:
+  enabled: true
+  auto_publish: false
+  daily_target: 25
+  sources:
+    berlin_de:
+      rss_url: "https://www.berlin.de/en/events/rss/"
+      html_url: "https://www.berlin.de/en/events/"
+    rss:
+      feeds:
+        - url: "https://www.visitberlin.de/en/event/feed"
+          name: "visitBerlin Events"
+        - url: "https://www.tip-berlin.de/feed/"
+          name: "Tip Berlin Events"
+        - url: "https://www.iheartberlin.de/feed/"
+          name: "iHeartBerlin Events"
+    ai:
+      daily_count: 5
+
+restaurants:
+  enabled: true
+  auto_publish: false
+  daily_target: 20
+  sources:
+    overpass:
+      endpoint: "https://overpass-api.de/api/interpreter"
+      batch_size: 20
+
+guides:
+  enabled: true
+  auto_publish: false
+  daily_target: 5
+  sources:
+    ai:
+      daily_count: 5
+      min_words: 800
+      max_words: 1500
+
+videos:
+  enabled: true
+  auto_publish: true
+  daily_target: 15
+  sources:
+    youtube:
+      search_queries:
+        - "Berlin travel vlog"
+        - "Berlin food tour"
+        - "Berlin nightlife"
+        - "Berlin street art"
+        - "Berlin history documentary"
+        - "Berlin apartment tour"
+        - "Berlin day in my life"
+        - "Berlin hidden gems"
+      max_results_per_query: 5
+
+competitions:
+  enabled: true
+  auto_publish: false
+  daily_target: 1
+  sources:
+    ai:
+      every_n_days: 3
+
+classifieds:
+  enabled: false
+  auto_publish: false
+  daily_target: 0

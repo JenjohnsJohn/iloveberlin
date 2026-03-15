@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% set active_page = "settings" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="flex-between" style="margin-bottom: 20px;">
+  <h2>Settings</h2>
+  <span class="text-muted">Schedule changes take effect after engine restart (dynamic reload coming soon).</span>
+</div>
+
+<!-- Global Settings -->
+<div class="card">
+  <h2>Global Settings</h2>
+  <form method="POST" action="/admin/settings/update">
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Auto-Push</strong></td>
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" name="_auto_push_checkbox"
+                     {% if settings.get('auto_push_enabled') and settings['auto_push_enabled'].value|lower in ('true','1','yes') %}checked{% endif %}
+                     onchange="this.form.querySelector('[name=auto_push_enabled]').value = this.checked ? 'true' : 'false'">
+              <span class="toggle-slider"></span>
+            </label>
+            <input type="hidden" name="auto_push_enabled"
+                   value="{% if settings.get('auto_push_enabled') and settings['auto_push_enabled'].value|lower in ('true','1','yes') %}true{% else %}false{% endif %}">
+          </td>
+          <td class="text-muted">{{ settings['auto_push_enabled'].description if settings.get('auto_push_enabled') else '' }}</td>
+        </tr>
+        <tr>
+          <td><strong>Max Push Attempts</strong></td>
+          <td><input type="number" name="max_push_attempts" min="1" max="10"
+                     value="{{ settings['max_push_attempts'].value if settings.get('max_push_attempts') else '3' }}"
+                     style="width:80px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;"></td>
+          <td class="text-muted">{{ settings['max_push_attempts'].description if settings.get('max_push_attempts') else '' }}</td>
+        </tr>
+        <tr>
+          <td><strong>Retry Interval (min)</strong></td>
+          <td><input type="number" name="retry_interval_minutes" min="5" max="1440"
+                     value="{{ settings['retry_interval_minutes'].value if settings.get('retry_interval_minutes') else '30' }}"
+                     style="width:80px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;"></td>
+          <td class="text-muted">{{ settings['retry_interval_minutes'].description if settings.get('retry_interval_minutes') else '' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;">
+      <button type="submit" class="btn btn-primary">Save Global Settings</button>
+    </div>
+  </form>
+</div>
+
+<!-- Pipeline Controls -->
+<div class="card">
+  <h2>Pipeline Controls</h2>
+  <form method="POST" action="/admin/settings/update">
+    <table>
+      <thead>
+        <tr>
+          <th>Pipeline</th>
+          <th>Enabled</th>
+          <th>Auto-Publish</th>
+          <th>Schedule (cron)</th>
+          <th>Daily Target</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% set seen_types = [] %}
+        {% for pkey, pinfo in pipeline_labels.items() %}
+        {% set plabel = pinfo[0] %}
+        {% set ptype = pinfo[1] %}
+        {% set enabled_key = 'pipeline.' ~ pkey ~ '.enabled' %}
+        {% set publish_key = 'publish.' ~ ptype %}
+        {% set schedule_key = 'schedule.' ~ pkey %}
+        {% set enabled_val = settings[enabled_key].value|lower if settings.get(enabled_key) else 'true' %}
+        {% set publish_val = settings[publish_key].value|lower if settings.get(publish_key) else 'false' %}
+        {% set schedule_val = settings[schedule_key].value if settings.get(schedule_key) else '' %}
+        {% set target_setting_key = target_keys.get(pkey, '') %}
+        {% set target_val = settings[target_setting_key].value if target_setting_key and settings.get(target_setting_key) else '' %}
+        {% set is_first_of_type = ptype not in seen_types %}
+        {% if is_first_of_type %}{% set _ = seen_types.append(ptype) %}{% endif %}
+        <tr>
+          <td><strong>{{ plabel }}</strong></td>
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" name="_enabled_cb_{{ pkey }}"
+                     {% if enabled_val in ('true','1','yes') %}checked{% endif %}
+                     onchange="this.form.querySelector('[name=\'{{ enabled_key }}\']').value = this.checked ? 'true' : 'false'">
+              <span class="toggle-slider"></span>
+            </label>
+            <input type="hidden" name="{{ enabled_key }}" value="{{ enabled_val }}">
+          </td>
+          <td>
+            {% if is_first_of_type %}
+            <select name="{{ publish_key }}" style="padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;">
+              <option value="true" {% if publish_val in ('true','1','yes') %}selected{% endif %}>Published</option>
+              <option value="false" {% if publish_val not in ('true','1','yes') %}selected{% endif %}>Draft</option>
+            </select>
+            {% else %}
+            <span class="text-muted" style="font-size:12px;">(same as above)</span>
+            {% endif %}
+          </td>
+          <td>
+            <input type="text" name="{{ schedule_key }}" value="{{ schedule_val }}"
+                   style="width:220px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;font-family:monospace;">
+          </td>
+          <td>
+            {% if target_setting_key %}
+            <input type="number" name="{{ target_setting_key }}" min="1" max="100"
+                   value="{{ target_val }}"
+                   style="width:70px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;">
+            {% else %}
+            <span class="text-muted">&mdash;</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top:12px;">
+      <button type="submit" class="btn btn-primary">Save Pipeline Settings</button>
+    </div>
+  </form>
+</div>
+
+<!-- Housekeeping Settings -->
+<div class="card">
+  <h2>Data Housekeeping</h2>
+  <form method="POST" action="/admin/settings/update">
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Dedup Retention (days)</strong></td>
+          <td><input type="number" name="housekeeping.dedup_retention_days" min="7" max="365"
+                     value="{{ settings['housekeeping.dedup_retention_days'].value if settings.get('housekeeping.dedup_retention_days') else '90' }}"
+                     style="width:80px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;"></td>
+          <td class="text-muted">Days to keep dedup log entries before cleanup</td>
+        </tr>
+        <tr>
+          <td><strong>Pushed Items Retention (days)</strong></td>
+          <td><input type="number" name="housekeeping.pushed_retention_days" min="7" max="365"
+                     value="{{ settings['housekeeping.pushed_retention_days'].value if settings.get('housekeeping.pushed_retention_days') else '30' }}"
+                     style="width:80px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;"></td>
+          <td class="text-muted">Days to keep pushed pipeline items before cleanup</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;">
+      <button type="submit" class="btn btn-primary">Save Housekeeping Settings</button>
+    </div>
+  </form>
+</div>
+
+<!-- AI Configuration -->
+<div class="card">
+  <h2>AI Configuration</h2>
+  <form method="POST" action="/admin/settings/update">
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Value</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Model Name</strong></td>
+          <td><input type="text" name="ai.model"
+                     value="{{ settings['ai.model'].value if settings.get('ai.model') else 'kimi-k2.5' }}"
+                     style="width:200px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;"></td>
+          <td class="text-muted">{{ settings['ai.model'].description if settings.get('ai.model') else '' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;">
+      <button type="submit" class="btn btn-primary">Save AI Settings</button>
+    </div>
+  </form>
+</div>
+
+<!-- RSS Feeds -->
+<div class="card">
+  <h2>RSS Feeds</h2>
+  <p class="text-muted" style="margin-bottom:12px;">Manage RSS feed sources for the Articles (RSS) pipeline. Stored as JSON.</p>
+  {% set feeds_json = settings['source.rss_feeds'].value if settings.get('source.rss_feeds') else '[]' %}
+  <div id="rss-feeds-container">
+    <table id="rss-feeds-table">
+      <thead>
+        <tr><th>Name</th><th>URL</th><th></th></tr>
+      </thead>
+      <tbody id="rss-feeds-body"></tbody>
+    </table>
+    <div style="margin-top:8px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="addRssFeed()">+ Add Feed</button>
+    </div>
+  </div>
+  <form method="POST" action="/admin/settings/update-json" id="rss-feeds-form" style="margin-top:12px;">
+    <input type="hidden" name="key" value="source.rss_feeds">
+    <input type="hidden" name="value" id="rss-feeds-value">
+    <button type="submit" class="btn btn-primary" onclick="saveRssFeeds()">Save RSS Feeds</button>
+  </form>
+</div>
+
+<!-- YouTube Search Queries -->
+<div class="card">
+  <h2>YouTube Search Queries</h2>
+  <p class="text-muted" style="margin-bottom:12px;">Manage YouTube search queries for the Videos pipeline. Stored as JSON.</p>
+  {% set queries_json = settings['source.youtube_queries'].value if settings.get('source.youtube_queries') else '[]' %}
+  <div id="yt-queries-container">
+    <table id="yt-queries-table">
+      <thead>
+        <tr><th>Query</th><th></th></tr>
+      </thead>
+      <tbody id="yt-queries-body"></tbody>
+    </table>
+    <div style="margin-top:8px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="addYtQuery()">+ Add Query</button>
+    </div>
+  </div>
+  <form method="POST" action="/admin/settings/update-json" id="yt-queries-form" style="margin-top:12px;">
+    <input type="hidden" name="key" value="source.youtube_queries">
+    <input type="hidden" name="value" id="yt-queries-value">
+    <button type="submit" class="btn btn-primary" onclick="saveYtQueries()">Save YouTube Queries</button>
+  </form>
+</div>
+
+<!-- All Settings (raw view, secrets masked) -->
+<div class="card">
+  <h2>All Settings (Raw)</h2>
+  <p class="text-muted" style="margin-bottom:12px;">Read-only view of all settings. Sensitive values are masked.</p>
+  <table>
+    <thead>
+      <tr><th>Key</th><th>Value</th><th>Updated</th></tr>
+    </thead>
+    <tbody>
+      {% for key, setting in settings.items() | sort %}
+      <tr>
+        <td><code style="font-size:12px;">{{ key }}</code></td>
+        <td>
+          {% set is_sensitive = 'key' in key.lower() or 'password' in key.lower() or 'secret' in key.lower() or 'token' in key.lower() or 'hash' in key.lower() %}
+          {% if is_sensitive and setting.value %}
+            <span style="color:#999;">&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;</span>
+          {% else %}
+            <span class="text-muted" style="max-width:400px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ setting.value[:100] }}</span>
+          {% endif %}
+        </td>
+        <td class="text-muted">{{ setting.updated_at.strftime('%Y-%m-%d %H:%M') if setting.updated_at else '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+// --- RSS Feeds ---
+let rssFeeds = [];
+try { rssFeeds = {{ feeds_json | safe }}; } catch(e) { rssFeeds = []; }
+
+function renderRssFeeds() {
+  const tbody = document.getElementById('rss-feeds-body');
+  tbody.innerHTML = '';
+  rssFeeds.forEach((feed, i) => {
+    const tr = document.createElement('tr');
+    const tdName = document.createElement('td');
+    const inputName = document.createElement('input');
+    inputName.type = 'text'; inputName.value = feed.name || '';
+    inputName.style.cssText = 'width:180px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;';
+    inputName.onchange = function() { rssFeeds[i].name = this.value; };
+    tdName.appendChild(inputName);
+
+    const tdUrl = document.createElement('td');
+    const inputUrl = document.createElement('input');
+    inputUrl.type = 'text'; inputUrl.value = feed.url || '';
+    inputUrl.style.cssText = 'width:400px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;';
+    inputUrl.onchange = function() { rssFeeds[i].url = this.value; };
+    tdUrl.appendChild(inputUrl);
+
+    const tdBtn = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'btn btn-danger btn-sm'; btn.textContent = 'Remove';
+    btn.onclick = function() { removeRssFeed(i); };
+    tdBtn.appendChild(btn);
+
+    tr.appendChild(tdName); tr.appendChild(tdUrl); tr.appendChild(tdBtn);
+    tbody.appendChild(tr);
+  });
+}
+
+function addRssFeed() {
+  rssFeeds.push({url: '', name: ''});
+  renderRssFeeds();
+}
+
+function removeRssFeed(i) {
+  rssFeeds.splice(i, 1);
+  renderRssFeeds();
+}
+
+function saveRssFeeds() {
+  document.getElementById('rss-feeds-value').value = JSON.stringify(rssFeeds);
+}
+
+renderRssFeeds();
+
+// --- YouTube Queries ---
+let ytQueries = [];
+try { ytQueries = {{ queries_json | safe }}; } catch(e) { ytQueries = []; }
+
+function renderYtQueries() {
+  const tbody = document.getElementById('yt-queries-body');
+  tbody.innerHTML = '';
+  ytQueries.forEach((q, i) => {
+    const tr = document.createElement('tr');
+    const tdQ = document.createElement('td');
+    const input = document.createElement('input');
+    input.type = 'text'; input.value = q;
+    input.style.cssText = 'width:400px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;';
+    input.onchange = function() { ytQueries[i] = this.value; };
+    tdQ.appendChild(input);
+
+    const tdBtn = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'btn btn-danger btn-sm'; btn.textContent = 'Remove';
+    btn.onclick = function() { removeYtQuery(i); };
+    tdBtn.appendChild(btn);
+
+    tr.appendChild(tdQ); tr.appendChild(tdBtn);
+    tbody.appendChild(tr);
+  });
+}
+
+function addYtQuery() {
+  ytQueries.push('');
+  renderYtQueries();
+}
+
+function removeYtQuery(i) {
+  ytQueries.splice(i, 1);
+  renderYtQueries();
+}
+
+function saveYtQueries() {
+  document.getElementById('yt-queries-value').value = JSON.stringify(ytQueries);
+}
+
+renderYtQueries();
+</script>
+{% endblock %}
