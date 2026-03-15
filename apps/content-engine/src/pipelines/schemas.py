@@ -11,7 +11,7 @@ class BaseEnrichedData(BaseModel):
 
 class ArticleEnrichedData(BaseEnrichedData):
     title: str = Field(min_length=1, max_length=500)
-    description: str = Field(min_length=1)
+    body: str = Field(min_length=1)
 
 
 class EventEnrichedData(BaseEnrichedData):

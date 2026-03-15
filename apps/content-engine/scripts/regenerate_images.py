@@ -100,7 +100,8 @@ async def main():
             for item in items[:args.limit]:
                 item_id = item.get("id", "")
                 title = item.get("title", item.get("name", ""))
-                featured = item.get("featured_image")
+                image_key = "thumbnail" if content_type == "video" else "featured_image"
+                featured = item.get(image_key)
 
                 if featured and featured.get("url"):
                     exists = await check_image_exists(featured["url"])
@@ -182,8 +183,9 @@ async def main():
 
                 # Patch the content item
                 patch_endpoint = f"{endpoint}/{item_id}"
+                image_field = "thumbnail_id" if content_type == "video" else "featured_image_id"
                 try:
-                    await client.patch(patch_endpoint, json={"featured_image_id": media_id})
+                    await client.patch(patch_endpoint, json={image_field: media_id})
                     print(f"    OK (media_id={media_id})")
                     regenerated += 1
                 except Exception as e:

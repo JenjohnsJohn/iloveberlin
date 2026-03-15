@@ -118,8 +118,36 @@ class BasePipeline(ABC):
             log.info("New items after dedup", pipeline=pipeline_name, count=len(new_items))
 
             # Step 3: Enrich with AI
+            # Include both new items AND orphaned "fetched" items from previous runs
+            enrich_batch_limit = await get_int_setting("enrich_batch_limit", 20)
+            pending_ids = list(new_items)
+
+            # Pick up orphaned "fetched" items not in current batch
+            async with async_session() as session:
+                remaining_slots = max(0, enrich_batch_limit - len(pending_ids))
+                if remaining_slots > 0:
+                    result = await session.execute(
+                        select(PipelineItem.id)
+                        .where(
+                            PipelineItem.content_type == self.content_type,
+                            PipelineItem.status == "fetched",
+                            PipelineItem.enriched_data.is_(None),
+                            PipelineItem.id.notin_(pending_ids) if pending_ids else True,
+                        )
+                        .order_by(PipelineItem.created_at)
+                        .limit(remaining_slots)
+                    )
+                    backlog_ids = [row[0] for row in result.all()]
+                    if backlog_ids:
+                        log.info(
+                            "Picking up backlog items for enrichment",
+                            pipeline=pipeline_name,
+                            count=len(backlog_ids),
+                        )
+                        pending_ids.extend(backlog_ids)
+
             enriched_count = 0
-            for item_id in new_items:
+            for item_id in pending_ids:
                 try:
                     await self._enrich_item(item_id)
                     enriched_count += 1
@@ -158,7 +186,30 @@ class BasePipeline(ABC):
                         enriched=enriched_count,
                     )
                 else:
-                    for item_id in new_items:
+                    # Push items from current batch + any orphaned "enriched" items
+                    push_ids = list(pending_ids)
+                    async with async_session() as session:
+                        result = await session.execute(
+                            select(PipelineItem.id)
+                            .where(
+                                PipelineItem.content_type == self.content_type,
+                                PipelineItem.status == "enriched",
+                                PipelineItem.enriched_data.isnot(None),
+                                PipelineItem.id.notin_(push_ids) if push_ids else True,
+                            )
+                            .order_by(PipelineItem.created_at)
+                            .limit(enrich_batch_limit)
+                        )
+                        backlog_push_ids = [row[0] for row in result.all()]
+                        if backlog_push_ids:
+                            log.info(
+                                "Picking up backlog items for push",
+                                pipeline=pipeline_name,
+                                count=len(backlog_push_ids),
+                            )
+                            push_ids.extend(backlog_push_ids)
+
+                    for item_id in push_ids:
                         try:
                             success = await self._push_item(item_id)
                             if success:
