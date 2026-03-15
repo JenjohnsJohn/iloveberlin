@@ -14,6 +14,7 @@
       <p class="text-muted">When enabled, enriched content is automatically pushed to the I&hearts;Berlin API. When disabled, content stops at the "enriched" stage for manual review and push.</p>
     </div>
     <form method="POST" action="/admin/settings/auto-push" id="auto-push-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <input type="hidden" name="enabled" id="auto-push-value" value="{% if auto_push_enabled %}true{% else %}false{% endif %}">
       <div class="toggle">
         <span style="font-size:13px; color: {% if auto_push_enabled %}#28a745{% else %}#dc3545{% endif %}; font-weight:600;">
@@ -112,6 +113,7 @@
           <a href="/admin/content?content_type={{ ct }}" class="btn btn-secondary btn-sm">View</a>
           {% if statuses.get('enriched', 0) > 0 %}
           <form method="POST" action="/admin/content/push-all" style="display:inline;">
+            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
             <input type="hidden" name="content_type" value="{{ ct }}">
             <button type="submit" class="btn btn-success btn-sm"
                     onclick="return confirm('Push all {{ statuses.get('enriched', 0) }} enriched {{ ct }} items?')">
@@ -143,6 +145,7 @@
     ] %}
     {% for key, label in pipelines %}
     <form method="POST" action="/admin/pipelines/run" style="display:inline;">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <input type="hidden" name="pipeline" value="{{ key }}">
       <button type="submit" class="btn btn-primary btn-sm"
               onclick="this.disabled=true; this.innerText='Running...'; this.form.submit();">
@@ -155,6 +158,7 @@
   <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px;">
     {% for key, label in pipelines %}
     <form method="POST" action="/admin/pipelines/run" style="display:inline;">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <input type="hidden" name="pipeline" value="{{ key }}">
       <input type="hidden" name="dry_run" value="true">
       <button type="submit" class="btn btn-warning btn-sm"

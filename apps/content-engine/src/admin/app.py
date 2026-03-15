@@ -3,7 +3,9 @@
 import asyncio
 import json
 import secrets
+import time
 import uuid
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -32,10 +34,33 @@ from src.utils.logging import get_logger
 
 log = get_logger("admin")
 
+# --- Rate limiting for login ---
+_login_attempts: dict[str, list[float]] = defaultdict(list)
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_WINDOW_SECONDS = 900  # 15 minutes
+
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 admin_app = FastAPI(title="Content Engine Admin", docs_url=None, redoc_url=None)
+
+
+@admin_app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all admin responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; "
+        "frame-ancestors 'none'"
+    )
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    return response
 
 # --- Pipeline concurrency locks (Phase 1.5) ---
 _pipeline_locks: dict[str, asyncio.Lock] = {}
@@ -67,6 +92,69 @@ def _generate_csrf_token(request: Request) -> str:
     return request.state._csrf_token
 
 
+# --- CSRF session store (session_token -> (csrf_token, created_at)) ---
+_csrf_store: dict[str, tuple[str, float]] = {}
+_CSRF_MAX_AGE = 86400  # 24 hours
+_CSRF_MAX_ENTRIES = 500
+
+
+def _get_or_create_csrf(request: Request) -> str:
+    """Get or create a CSRF token tied to the session cookie."""
+    # Prune expired entries periodically
+    if len(_csrf_store) > _CSRF_MAX_ENTRIES:
+        now = time.time()
+        expired = [k for k, (_, ts) in _csrf_store.items() if now - ts > _CSRF_MAX_AGE]
+        for k in expired:
+            del _csrf_store[k]
+
+    session_token = request.cookies.get(SESSION_COOKIE, "")
+    entry = _csrf_store.get(session_token)
+    if not entry or time.time() - entry[1] > _CSRF_MAX_AGE:
+        _csrf_store[session_token] = (secrets.token_hex(32), time.time())
+    return _csrf_store[session_token][0]
+
+
+def _validate_csrf(request: Request, form_token: str) -> bool:
+    """Validate CSRF token from form against session."""
+    session_token = request.cookies.get(SESSION_COOKIE, "")
+    entry = _csrf_store.get(session_token)
+    if not entry or not form_token:
+        return False
+    expected, created_at = entry
+    if time.time() - created_at > _CSRF_MAX_AGE:
+        return False
+    return secrets.compare_digest(expected, form_token)
+
+
+def _parse_uuid(value: str) -> uuid.UUID | None:
+    """Safely parse a UUID string, returning None on invalid input."""
+    try:
+        return uuid.UUID(value)
+    except (ValueError, AttributeError):
+        return None
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP from request."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _is_rate_limited(ip: str) -> bool:
+    """Check if an IP has exceeded the login rate limit."""
+    now = time.time()
+    # Prune old attempts
+    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < LOGIN_WINDOW_SECONDS]
+    return len(_login_attempts[ip]) >= LOGIN_MAX_ATTEMPTS
+
+
+def _record_login_attempt(ip: str):
+    """Record a failed login attempt."""
+    _login_attempts[ip].append(time.time())
+
+
 # --- Login ---
 
 @admin_app.get("/login", response_class=HTMLResponse)
@@ -76,6 +164,14 @@ async def login_page(request: Request):
 
 @admin_app.post("/login")
 async def login_submit(request: Request):
+    ip = _get_client_ip(request)
+    if _is_rate_limited(ip):
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "error": "Too many login attempts. Try again in 15 minutes."},
+            status_code=429,
+        )
+
     form = await request.form()
     password = form.get("password", "")
 
@@ -87,10 +183,14 @@ async def login_submit(request: Request):
             token,
             max_age=86400 * 7,
             httponly=True,
-            samesite="lax",
+            secure=True,
+            samesite="strict",
         )
+        # Clear rate limit on success
+        _login_attempts.pop(ip, None)
         return response
 
+    _record_login_attempt(ip)
     return templates.TemplateResponse(
         "login.html",
         {"request": request, "error": "Invalid password."},
@@ -218,6 +318,7 @@ async def dashboard(request: Request):
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
+        "csrf_token": _get_or_create_csrf(request),
         "status_counts": status_counts,
         "type_counts": type_counts,
         "total_pushed": total_pushed,
@@ -242,6 +343,8 @@ async def dashboard(request: Request):
 @require_auth
 async def toggle_auto_push(request: Request):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/", status_code=303)
     enabled = form.get("enabled", "false")
     await set_setting(
         "auto_push_enabled",
@@ -279,6 +382,7 @@ async def settings_page(request: Request):
     all_settings = await get_all_settings()
     return templates.TemplateResponse("settings.html", {
         "request": request,
+        "csrf_token": _get_or_create_csrf(request),
         "settings": all_settings,
         "pipeline_labels": PIPELINE_LABELS,
         "target_keys": TARGET_KEYS,
@@ -290,8 +394,19 @@ async def settings_page(request: Request):
 @require_auth
 async def update_settings(request: Request):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/settings", status_code=303)
+    # Only allow updating known setting key prefixes to prevent injection
+    ALLOWED_SETTING_PREFIXES = (
+        "auto_push_enabled", "max_push_attempts", "retry_interval_minutes",
+        "pipeline.", "publish.", "schedule.", "target.", "ai.",
+        "housekeeping.", "notifications.", "ingest.",
+    )
     for key, value in form.items():
         if key.startswith("_"):
+            continue
+        if not any(key == prefix or key.startswith(prefix) for prefix in ALLOWED_SETTING_PREFIXES):
+            log.warning("Rejected setting update for disallowed key", key=key)
             continue
         await set_setting(key, value)
     return RedirectResponse(url="/admin/settings", status_code=303)
@@ -301,11 +416,19 @@ async def update_settings(request: Request):
 @require_auth
 async def update_json_setting(request: Request):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/settings", status_code=303)
     key = form.get("key", "")
     value = form.get("value", "[]")
-    if key:
+    ALLOWED_JSON_KEYS = {"source.rss_feeds", "source.youtube_queries"}
+    if key and key in ALLOWED_JSON_KEYS:
         try:
-            json.loads(value)
+            parsed = json.loads(value)
+            # Enforce reasonable size limits
+            if len(value) > 50_000:
+                return RedirectResponse(url="/admin/settings", status_code=303)
+            if not isinstance(parsed, (list, dict)):
+                return RedirectResponse(url="/admin/settings", status_code=303)
         except json.JSONDecodeError:
             return RedirectResponse(url="/admin/settings", status_code=303)
         await set_setting(key, value)
@@ -318,6 +441,8 @@ async def update_json_setting(request: Request):
 @require_auth
 async def run_pipeline_now(request: Request):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/", status_code=303)
     pipeline_name = form.get("pipeline", "")
     dry_run = form.get("dry_run", "false") == "true"
 
@@ -441,6 +566,7 @@ async def content_list(
 
     return templates.TemplateResponse("content_list.html", {
         "request": request,
+        "csrf_token": _get_or_create_csrf(request),
         "items": items,
         "content_type": content_type,
         "status": status,
@@ -459,8 +585,11 @@ async def content_list(
 @admin_app.get("/content/{item_id}", response_class=HTMLResponse)
 @require_auth
 async def content_detail(request: Request, item_id: str):
+    uid = _parse_uuid(item_id)
+    if not uid:
+        return HTMLResponse("Invalid ID", status_code=400)
     async with async_session() as session:
-        item = await session.get(PipelineItem, uuid.UUID(item_id))
+        item = await session.get(PipelineItem, uid)
         if not item:
             return HTMLResponse("Not found", status_code=404)
 
@@ -474,6 +603,7 @@ async def content_detail(request: Request, item_id: str):
 
     return templates.TemplateResponse("content_detail.html", {
         "request": request,
+        "csrf_token": _get_or_create_csrf(request),
         "item": item,
         "push_logs": push_logs,
     })
@@ -484,13 +614,17 @@ async def content_detail(request: Request, item_id: str):
 @admin_app.get("/content/{item_id}/edit", response_class=HTMLResponse)
 @require_auth
 async def content_edit_page(request: Request, item_id: str):
+    uid = _parse_uuid(item_id)
+    if not uid:
+        return HTMLResponse("Invalid ID", status_code=400)
     async with async_session() as session:
-        item = await session.get(PipelineItem, uuid.UUID(item_id))
+        item = await session.get(PipelineItem, uid)
         if not item:
             return HTMLResponse("Not found", status_code=404)
 
     return templates.TemplateResponse("content_edit.html", {
         "request": request,
+        "csrf_token": _get_or_create_csrf(request),
         "item": item,
     })
 
@@ -499,14 +633,32 @@ async def content_edit_page(request: Request, item_id: str):
 @require_auth
 async def content_edit_submit(request: Request, item_id: str):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url=f"/admin/content/{item_id}", status_code=303)
+    uid = _parse_uuid(item_id)
+    if not uid:
+        return RedirectResponse(url="/admin/content", status_code=303)
     async with async_session() as session:
-        item = await session.get(PipelineItem, uuid.UUID(item_id))
+        item = await session.get(PipelineItem, uid)
         if not item:
             return HTMLResponse("Not found", status_code=404)
 
+        # Whitelist of allowed enriched_data fields to prevent injection
+        ALLOWED_FIELDS = {
+            "title", "name", "subtitle", "excerpt", "body", "description",
+            "address", "district", "phone", "website", "email",
+            "latitude", "longitude", "rating", "price_range",
+            "start_date", "end_date", "start_time", "end_time",
+            "location", "venue", "category", "tags",
+            "youtube_id", "duration", "channel",
+            "prize", "entry_method", "rules",
+            "cuisines", "opening_hours",
+        }
         enriched = dict(item.enriched_data or {})
         for key, value in form.items():
             if key.startswith("_"):
+                continue
+            if key not in ALLOWED_FIELDS:
                 continue
             if value:
                 enriched[key] = value
@@ -522,19 +674,25 @@ async def content_edit_submit(request: Request, item_id: str):
 @admin_app.post("/content/{item_id}/push")
 @require_auth
 async def manual_push(request: Request, item_id: str):
+    form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url=f"/admin/content/{item_id}", status_code=303)
     from src.api_client.client import APIClient
     from src.pipelines import get_pipeline
 
+    uid = _parse_uuid(item_id)
+    if not uid:
+        return RedirectResponse(url="/admin/content", status_code=303)
     client = APIClient()
     try:
         async with async_session() as session:
-            item = await session.get(PipelineItem, uuid.UUID(item_id))
+            item = await session.get(PipelineItem, uid)
             if not item:
                 return RedirectResponse(url="/admin/content", status_code=303)
 
         pipeline = get_pipeline(item.content_type, client)
         if pipeline:
-            await pipeline._push_item(uuid.UUID(item_id))
+            await pipeline._push_item(uid)
     finally:
         await client.close()
 
@@ -547,6 +705,8 @@ async def manual_push(request: Request, item_id: str):
 @require_auth
 async def push_all_enriched(request: Request):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/content", status_code=303)
     content_type = form.get("content_type", "")
 
     from src.api_client.client import APIClient
@@ -580,13 +740,18 @@ async def push_all_enriched(request: Request):
 @require_auth
 async def bulk_action(request: Request):
     form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/content", status_code=303)
     action = form.get("action", "")
     item_ids = form.getlist("item_ids")
 
-    if not item_ids or not action:
+    VALID_ACTIONS = {"delete", "re-enrich", "mark-failed"}
+    if not item_ids or not action or action not in VALID_ACTIONS:
         return RedirectResponse(url="/admin/content", status_code=303)
 
-    uuids = [uuid.UUID(i) for i in item_ids]
+    uuids = [uid for i in item_ids if (uid := _parse_uuid(i)) is not None]
+    if not uuids:
+        return RedirectResponse(url="/admin/content", status_code=303)
 
     if action == "delete":
         async with async_session() as session:
@@ -623,7 +788,12 @@ async def bulk_action(request: Request):
 @admin_app.post("/content/{item_id}/delete")
 @require_auth
 async def delete_item(request: Request, item_id: str):
-    uid = uuid.UUID(item_id)
+    form = await request.form()
+    if not _validate_csrf(request, form.get("_csrf", "")):
+        return RedirectResponse(url="/admin/content", status_code=303)
+    uid = _parse_uuid(item_id)
+    if not uid:
+        return RedirectResponse(url="/admin/content", status_code=303)
     async with async_session() as session:
         await session.execute(delete(PushLog).where(PushLog.pipeline_item_id == uid))
         await session.execute(delete(PipelineItem).where(PipelineItem.id == uid))
@@ -643,8 +813,8 @@ async def health():
         async with async_session() as session:
             await session.execute(select(func.now()))
         checks["db"] = "ok"
-    except Exception as e:
-        checks["db"] = f"error: {str(e)[:100]}"
+    except Exception:
+        checks["db"] = "error"
         overall = "degraded"
 
     status_code = 200 if overall == "ok" else 503

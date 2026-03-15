@@ -10,6 +10,7 @@ import {
 import { BookmarksService } from './bookmarks.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { parsePagination } from '../common/utils/pagination.util';
 
 @Controller('bookmarks')
 @UseGuards(JwtAuthGuard)
@@ -32,12 +33,8 @@ export class BookmarksController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.bookmarksService.findByUser(
-      userId,
-      type,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
-    );
+    const p = parsePagination(page, limit);
+    return this.bookmarksService.findByUser(userId, type, p.page, p.limit);
   }
 
   @Get('check/:type/:id')

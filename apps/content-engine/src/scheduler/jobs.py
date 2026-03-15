@@ -81,6 +81,8 @@ async def _run_housekeeping():
     dedup_cutoff = now - timedelta(days=dedup_retention_days)
     pushed_cutoff = now - timedelta(days=pushed_retention_days)
 
+    perm_failed_cutoff = now - timedelta(days=30)
+
     async with async_session() as session:
         # Clean old dedup records
         result = await session.execute(
@@ -97,13 +99,23 @@ async def _run_housekeeping():
         )
         pushed_deleted = result.rowcount
 
+        # Clean permanently failed items older than 30 days
+        result = await session.execute(
+            delete(PipelineItem).where(
+                PipelineItem.status == "permanently_failed",
+                PipelineItem.updated_at < perm_failed_cutoff,
+            )
+        )
+        perm_failed_deleted = result.rowcount
+
         await session.commit()
 
-    if dedup_deleted or pushed_deleted:
+    if dedup_deleted or pushed_deleted or perm_failed_deleted:
         log.info(
             "Housekeeping complete",
             dedup_deleted=dedup_deleted,
             pushed_deleted=pushed_deleted,
+            perm_failed_deleted=perm_failed_deleted,
         )
 
 

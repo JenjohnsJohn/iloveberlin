@@ -15,6 +15,7 @@ from src.db.engine import async_session
 from src.db.models import DedupLog, PipelineItem, PipelineRun, PushLog
 from src.db.settings import get_bool_setting, get_int_setting
 from src.sources.base import RawItem
+from src.pipelines.schemas import validate_enriched_data
 from src.utils.logging import get_logger
 from src.utils.notifications import notify_pipeline_failure, notify_zero_items
 
@@ -230,23 +231,13 @@ class BasePipeline(ABC):
         return enriched
 
     async def _dedup_and_store(self, raw_items: list[RawItem]) -> list[uuid.UUID]:
-        """Check dedup, store new items. Returns list of new pipeline_item IDs."""
+        """Atomic dedup+store using INSERT ... ON CONFLICT. Returns new pipeline_item IDs."""
         new_ids: list[uuid.UUID] = []
 
         async with async_session() as session:
             for item in raw_items:
-                # Check dedup
-                exists = await session.execute(
-                    select(DedupLog.id).where(
-                        DedupLog.content_type == item.content_type,
-                        DedupLog.fingerprint == item.source_id,
-                    )
-                )
-                if exists.scalar_one_or_none():
-                    continue
-
-                # Insert dedup record
-                await session.execute(
+                # Atomic insert — ON CONFLICT DO NOTHING returns 0 rows if duplicate
+                result = await session.execute(
                     pg_insert(DedupLog)
                     .values(
                         content_type=item.content_type,
@@ -257,6 +248,10 @@ class BasePipeline(ABC):
                         index_elements=["content_type", "fingerprint"]
                     )
                 )
+
+                if result.rowcount == 0:
+                    # Already existed — skip
+                    continue
 
                 # Store pipeline item
                 pi = PipelineItem(
@@ -282,6 +277,21 @@ class BasePipeline(ABC):
                 return
 
             enriched = await self.enrich(item.raw_data)
+
+            # Validate enriched data against schema
+            validation_error = validate_enriched_data(self.content_type, enriched)
+            if validation_error:
+                item.status = "failed"
+                item.error_message = f"Enriched data validation failed: {validation_error}"
+                item.updated_at = datetime.now(timezone.utc)
+                await session.commit()
+                log.warning(
+                    "Enriched data validation failed",
+                    item_id=str(item_id),
+                    error=validation_error[:200],
+                )
+                return
+
             item.enriched_data = enriched
             item.status = "enriched"
             item.updated_at = datetime.now(timezone.utc)

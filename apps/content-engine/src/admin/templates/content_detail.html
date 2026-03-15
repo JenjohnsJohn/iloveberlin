@@ -18,11 +18,13 @@
     {% endif %}
     {% if item.status in ('enriched', 'failed') %}
     <form method="POST" action="/admin/content/{{ item.id }}/push">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <button type="submit" class="btn btn-success">Push to API</button>
     </form>
     {% endif %}
     <form method="POST" action="/admin/content/{{ item.id }}/delete"
           onsubmit="return confirm('Delete this item permanently?')">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <button type="submit" class="btn btn-danger">Delete</button>
     </form>
   </div>
@@ -75,7 +77,7 @@
 
   {% if e.get('body') or e.get('description') %}
   <div class="content-preview">
-    {{ (e.get('body', '') or e.get('description', '')) | safe }}
+    {{ (e.get('body', '') or e.get('description', '')) | e }}
   </div>
   {% endif %}
 

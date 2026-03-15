@@ -23,6 +23,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { parsePagination } from '../common/utils/pagination.util';
 
 @Controller('media')
 export class MediaController {
@@ -74,13 +75,13 @@ export class MediaController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.mediaService.findAll(
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
-    );
+    const p = parsePagination(page, limit);
+    return this.mediaService.findAll(p.page, p.limit);
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.EDITOR, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.mediaService.findOne(id);
   }

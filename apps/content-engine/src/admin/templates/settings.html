@@ -13,6 +13,7 @@
 <div class="card">
   <h2>Global Settings</h2>
   <form method="POST" action="/admin/settings/update">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <table>
       <thead>
         <tr><th>Setting</th><th>Value</th><th>Description</th></tr>
@@ -58,6 +59,7 @@
 <div class="card">
   <h2>Pipeline Controls</h2>
   <form method="POST" action="/admin/settings/update">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <table>
       <thead>
         <tr>
@@ -131,6 +133,7 @@
 <div class="card">
   <h2>Data Housekeeping</h2>
   <form method="POST" action="/admin/settings/update">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <table>
       <thead>
         <tr><th>Setting</th><th>Value</th><th>Description</th></tr>
@@ -162,6 +165,7 @@
 <div class="card">
   <h2>AI Configuration</h2>
   <form method="POST" action="/admin/settings/update">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <table>
       <thead>
         <tr><th>Setting</th><th>Value</th><th>Description</th></tr>
@@ -199,6 +203,7 @@
     </div>
   </div>
   <form method="POST" action="/admin/settings/update-json" id="rss-feeds-form" style="margin-top:12px;">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <input type="hidden" name="key" value="source.rss_feeds">
     <input type="hidden" name="value" id="rss-feeds-value">
     <button type="submit" class="btn btn-primary" onclick="saveRssFeeds()">Save RSS Feeds</button>
@@ -222,6 +227,7 @@
     </div>
   </div>
   <form method="POST" action="/admin/settings/update-json" id="yt-queries-form" style="margin-top:12px;">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <input type="hidden" name="key" value="source.youtube_queries">
     <input type="hidden" name="value" id="yt-queries-value">
     <button type="submit" class="btn btn-primary" onclick="saveYtQueries()">Save YouTube Queries</button>

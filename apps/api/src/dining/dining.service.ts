@@ -23,6 +23,7 @@ import {
   SortOrder,
 } from './dto/restaurant-query.dto';
 import { generateSlug } from '../common/utils/slug.util';
+import { sanitize } from '../common/utils/sanitize.util';
 
 @Injectable()
 export class DiningService {
@@ -54,19 +55,7 @@ export class DiningService {
   // ─── HTML Sanitization ─────────────────────────────────
 
   private sanitizeHtml(html: string): string {
-    if (!html) return html;
-    let sanitized = html;
-    // Strip script tags and content
-    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-    // Strip event handlers
-    sanitized = sanitized.replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
-    // Strip javascript: URIs
-    sanitized = sanitized.replace(/href\s*=\s*["']?\s*javascript:/gi, 'href="');
-    // Strip iframe srcdoc
-    sanitized = sanitized.replace(/srcdoc\s*=\s*(?:"[^"]*"|'[^']*')/gi, '');
-    // Strip object, embed tags
-    sanitized = sanitized.replace(/<\/?(?:object|embed)\b[^>]*>/gi, '');
-    return sanitized;
+    return sanitize(html);
   }
 
   // ─── FK Validation Helpers ─────────────────────────────

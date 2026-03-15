@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Media } from './entities/media.entity';
@@ -23,7 +23,13 @@ export class MediaService {
   async presign(
     dto: PresignMediaDto,
   ): Promise<{ upload_url: string; storage_key: string }> {
-    const ext = dto.filename.split('.').pop() || '';
+    const ext = (dto.filename.split('.').pop() || '').toLowerCase();
+    const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'svg'];
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      throw new BadRequestException(
+        `File extension ".${ext}" is not allowed. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}`,
+      );
+    }
     const storageKey = `${uuidv4()}.${ext}`;
     const uploadUrl = this.storage.getUploadUrl(storageKey);
 
@@ -118,7 +124,7 @@ export class MediaService {
 
   async update(id: string, dto: UpdateMediaDto): Promise<Media> {
     const media = await this.findOne(id);
-    Object.assign(media, dto);
+    if (dto.alt_text !== undefined) media.alt_text = dto.alt_text;
     return this.mediaRepository.save(media);
   }
 

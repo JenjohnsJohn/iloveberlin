@@ -1,3 +1,5 @@
+import DOMPurify from 'isomorphic-dompurify';
+
 const PURIFY_CONFIG = {
   ALLOWED_TAGS: [
     'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -21,16 +23,8 @@ const PURIFY_CONFIG = {
 };
 
 /**
- * Sanitize HTML content. Uses DOMPurify on the client.
- * On the server (SSR), returns HTML as-is since content originates from our CMS.
+ * Sanitize HTML content. Uses isomorphic-dompurify for both SSR and client.
  */
 export function sanitizeHtml(dirty: string): string {
-  if (typeof window === 'undefined') {
-    // SSR: content is from our own CMS/database, sanitized on input
-    return dirty;
-  }
-  // Lazy-load DOMPurify only on client to avoid jsdom SSR issues
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const DOMPurify = require('dompurify');
   return DOMPurify.sanitize(dirty, PURIFY_CONFIG);
 }

@@ -37,3 +37,36 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def validate_settings():
+    """Validate critical settings at startup. Raise on missing required keys, warn on optional."""
+    import sys
+    import logging
+
+    logger = logging.getLogger("config.settings")
+    errors = []
+
+    if not settings.iloveberlin_api_url:
+        errors.append("iloveberlin_api_url is required")
+    if not settings.iloveberlin_admin_email:
+        errors.append("iloveberlin_admin_email is required")
+    if not settings.iloveberlin_admin_password:
+        errors.append("iloveberlin_admin_password is required")
+    if not settings.admin_password_hash:
+        errors.append("admin_password_hash is required for admin panel auth")
+
+    if errors:
+        for e in errors:
+            logger.critical("MISSING REQUIRED CONFIG: %s", e)
+        sys.exit(1)
+
+    # Warn on optional keys
+    if not settings.google_places_api_key:
+        logger.warning("google_places_api_key not set — restaurant pipeline will be disabled")
+    if not settings.kimi_api_key:
+        logger.warning("kimi_api_key not set — AI enrichment will be disabled")
+    if not settings.kling_access_key or not settings.kling_secret_key:
+        logger.warning("Kling credentials not set — AI image generation will be disabled")
+    if not settings.youtube_api_key:
+        logger.warning("youtube_api_key not set — video pipeline will be disabled")

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Login | I&hearts;Berlin Content Engine</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,7 +29,7 @@
     {% endif %}
     <form method="POST" action="/admin/login">
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" placeholder="Enter admin password" autofocus required>
+      <input type="password" id="password" name="password" placeholder="Enter admin password" autofocus required autocomplete="current-password">
       <button type="submit">Sign In</button>
     </form>
   </div>

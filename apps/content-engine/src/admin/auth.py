@@ -60,9 +60,12 @@ def verify_session_token(token: str) -> bool:
 
 
 def is_authenticated(request: Request) -> bool:
-    """Check if the current request has a valid session."""
+    """Check if the current request has a valid session.
+
+    Fail-secure: if no password is configured, deny access.
+    """
     if not settings.admin_password_hash:
-        return True  # No password configured = no auth required
+        return False  # No password configured = deny access (fail-secure)
     token = request.cookies.get(SESSION_COOKIE)
     if not token:
         return False

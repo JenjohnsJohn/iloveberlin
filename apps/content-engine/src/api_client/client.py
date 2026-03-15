@@ -73,6 +73,29 @@ class APIClient:
             await api_circuit_breaker.record_failure()
             raise
 
+    async def patch(self, path: str, json: dict | None = None, **kwargs) -> httpx.Response:
+        client = await self._get_client()
+        headers = await self._headers()
+        url = f"{settings.iloveberlin_api_url}{path}"
+        try:
+            resp = await client.patch(url, headers=headers, json=json, **kwargs)
+            resp.raise_for_status()
+            await api_circuit_breaker.record_success()
+            return resp
+        except httpx.HTTPStatusError as e:
+            log.warning(
+                "API PATCH failed",
+                path=path,
+                status=e.response.status_code,
+                response_body=e.response.text[:500] if e.response else "",
+            )
+            await api_circuit_breaker.record_failure()
+            raise
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            log.warning("API PATCH failed", path=path, error=str(e)[:200])
+            await api_circuit_breaker.record_failure()
+            raise
+
     async def put_raw(self, url: str, content: bytes, content_type: str) -> httpx.Response:
         """PUT raw bytes to an arbitrary URL (used for media upload)."""
         client = await self._get_client()

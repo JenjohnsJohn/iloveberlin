@@ -58,6 +58,29 @@ jobs:
           DATABASE_PASSWORD: iloveberlin
           DATABASE_NAME: iloveberlin_test
 
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Audit Node.js dependencies
+        run: pnpm audit --production || true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Audit Python dependencies
+        run: |
+          pip install pip-audit
+          cd apps/content-engine && pip-audit . || true
+
   build:
     name: Build
     runs-on: ubuntu-latest

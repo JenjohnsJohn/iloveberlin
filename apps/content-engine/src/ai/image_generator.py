@@ -15,6 +15,21 @@ log = get_logger("ai.image_generator")
 
 KLING_API_BASE = "https://api.klingai.com/v1"
 
+# Shared connection-pooled client
+_http_client: httpx.AsyncClient | None = None
+
+
+def _get_http_client() -> httpx.AsyncClient:
+    """Get or create a shared httpx client with connection pooling."""
+    global _http_client
+    if _http_client is None or _http_client.is_closed:
+        _http_client = httpx.AsyncClient(
+            timeout=30.0,
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+        )
+    return _http_client
+
+
 # Cached JWT token
 _cached_token: str | None = None
 _token_expires_at: float = 0
@@ -187,23 +202,23 @@ async def generate_image(content_type: str, enriched: dict) -> bytes | None:
     log.info("Generating image via Kling AI", content_type=content_type, prompt=prompt[:100])
 
     try:
-        async with httpx.AsyncClient() as client:
-            task_id = await _submit_generation(client, prompt)
-            if not task_id:
-                log.warning("Kling API did not return a task_id")
-                return None
+        client = _get_http_client()
+        task_id = await _submit_generation(client, prompt)
+        if not task_id:
+            log.warning("Kling API did not return a task_id")
+            return None
 
-            image_url = await _poll_result(client, task_id)
-            if not image_url:
-                return None
+        image_url = await _poll_result(client, task_id)
+        if not image_url:
+            return None
 
-            # Download the generated image
-            resp = await client.get(image_url, timeout=30)
-            resp.raise_for_status()
-            image_bytes = resp.content
+        # Download the generated image
+        resp = await client.get(image_url, timeout=30)
+        resp.raise_for_status()
+        image_bytes = resp.content
 
-            # Add watermark
-            return add_watermark(image_bytes)
+        # Add watermark
+        return add_watermark(image_bytes)
 
     except Exception as e:
         log.warning("Kling image generation failed", error=str(e), content_type=content_type)

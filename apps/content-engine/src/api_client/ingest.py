@@ -48,8 +48,18 @@ async def ingest_content(request: Request, x_api_key: str | None = Header(defaul
     if not await _verify_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
+    # Enforce request body size limit (1MB)
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > 1_048_576:
+        raise HTTPException(status_code=413, detail="Request body too large (max 1MB)")
+
     try:
+        raw_body = await request.body()
+        if len(raw_body) > 1_048_576:
+            raise HTTPException(status_code=413, detail="Request body too large (max 1MB)")
         body = await request.json()
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid JSON body")
 

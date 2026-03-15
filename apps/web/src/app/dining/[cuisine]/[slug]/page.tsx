@@ -105,6 +105,36 @@ export default async function RestaurantDetailPage({
     permanentRedirect(buildRestaurantUrl(slug, primaryCuisineSlug));
   }
 
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://iloveberlin.biz',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Dining',
+        item: 'https://iloveberlin.biz/dining',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: restaurant.cuisines[0]?.name || 'Restaurants',
+        item: `https://iloveberlin.biz/dining/${cuisine}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: restaurant.name,
+      },
+    ],
+  };
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Restaurant',
@@ -158,6 +188,10 @@ export default async function RestaurantDetailPage({
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

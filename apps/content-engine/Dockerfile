@@ -11,6 +11,10 @@ RUN pip install --no-cache-dir .
 
 COPY . .
 
+RUN useradd -r -u 1001 -s /usr/sbin/nologin appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8100
 
 CMD ["python", "-m", "src.main"]

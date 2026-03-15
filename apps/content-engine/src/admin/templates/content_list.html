@@ -8,6 +8,7 @@
   <h2>Content Items ({{ total }})</h2>
   {% if status == 'enriched' and total > 0 %}
   <form method="POST" action="/admin/content/push-all">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     {% if content_type %}<input type="hidden" name="content_type" value="{{ content_type }}">{% endif %}
     <button type="submit" class="btn btn-success"
             onclick="return confirm('Push all {{ total }} enriched items to the API?')">
@@ -40,6 +41,7 @@
 
 <!-- Bulk actions + Content table -->
 <form method="POST" action="/admin/content/bulk-action" id="bulk-form">
+<input type="hidden" name="_csrf" value="{{ csrf_token }}">
 <div class="card" style="overflow-x:auto;">
   <!-- Bulk action bar -->
   <div class="flex" style="margin-bottom: 12px;">
@@ -93,8 +95,10 @@
         <td class="flex">
           <a href="/admin/content/{{ item.id }}" class="btn btn-secondary btn-sm">View</a>
           {% if item.status in ('enriched', 'failed') %}
-          <a href="#" class="btn btn-success btn-sm"
-             onclick="event.preventDefault(); fetch('/admin/content/{{ item.id }}/push', {method:'POST'}).then(() => location.reload());">Push</a>
+          <form method="POST" action="/admin/content/{{ item.id }}/push" style="display:inline;">
+            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-success btn-sm">Push</button>
+          </form>
           {% endif %}
         </td>
       </tr>

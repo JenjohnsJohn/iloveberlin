@@ -38,8 +38,8 @@ async def health():
     try:
         async with async_session() as session:
             await session.execute(select(func.now()))
-    except Exception as e:
-        checks["db"] = f"error: {str(e)[:100]}"
+    except Exception:
+        checks["db"] = "error"
         overall = "degraded"
 
     # Check scheduler
@@ -72,6 +72,10 @@ async def main():
     setup_logging()
     log = get_logger("main")
     log.info("I\u2665Berlin Content Engine starting up")
+
+    # Validate configuration
+    from config.settings import validate_settings
+    validate_settings()
 
     # Initialize staging database tables
     log.info("Initializing database")

@@ -14,6 +14,21 @@ log = get_logger("sources.google_places")
 SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 MEDIA_URL = "https://places.googleapis.com/v1"
 
+# Shared connection-pooled client
+_http_client: httpx.AsyncClient | None = None
+
+
+def _get_http_client() -> httpx.AsyncClient:
+    """Get or create a shared httpx client with connection pooling."""
+    global _http_client
+    if _http_client is None or _http_client.is_closed:
+        _http_client = httpx.AsyncClient(
+            timeout=15.0,
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+            follow_redirects=True,
+        )
+    return _http_client
+
 FIELD_MASK = ",".join([
     "places.id",
     "places.displayName",
@@ -76,16 +91,16 @@ class GooglePlacesSource(Source):
             "pageSize": self.batch_size,
         }
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                SEARCH_URL,
-                json=body,
-                headers={
-                    "X-Goog-Api-Key": settings.google_places_api_key,
-                    "X-Goog-FieldMask": FIELD_MASK,
-                },
-            )
-            resp.raise_for_status()
+        client = _get_http_client()
+        resp = await client.post(
+            SEARCH_URL,
+            json=body,
+            headers={
+                "X-Goog-Api-Key": settings.google_places_api_key,
+                "X-Goog-FieldMask": FIELD_MASK,
+            },
+        )
+        resp.raise_for_status()
 
         data = resp.json()
         places = data.get("places", [])
@@ -156,12 +171,12 @@ class GooglePlacesSource(Source):
 async def _fetch_photo_bytes(photo_name: str) -> tuple[bytes, str] | None:
     """Fetch the actual photo bytes from a Google Places photo resource."""
     url = f"{MEDIA_URL}/{photo_name}/media"
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        resp = await client.get(
-            url,
-            params={"maxWidthPx": 1200, "key": settings.google_places_api_key},
-        )
-        resp.raise_for_status()
+    client = _get_http_client()
+    resp = await client.get(
+        url,
+        params={"maxWidthPx": 1200, "key": settings.google_places_api_key},
+    )
+    resp.raise_for_status()
 
     content_type = resp.headers.get("content-type", "image/jpeg").split(";")[0]
     if not content_type.startswith("image/"):

@@ -16,10 +16,10 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     // Control referrer information
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-    // Basic Content Security Policy
+    // Content Security Policy
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
     );
 
     // Strict Transport Security (for HTTPS)

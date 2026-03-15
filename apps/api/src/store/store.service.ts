@@ -27,6 +27,7 @@ import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { CreateDiscountDto, ValidateDiscountDto } from './dto/create-discount.dto';
 import { generateSlug } from '../common/utils/slug.util';
+import { sanitize } from '../common/utils/sanitize.util';
 
 @Injectable()
 export class StoreService {
@@ -65,15 +66,7 @@ export class StoreService {
   // ─── Sanitization ───────────────────────────────────────
 
   private sanitizeHtml(input: string): string {
-    let text = input;
-    text = text.replace(/<script[\s\S]*?<\/script>/gi, '');
-    text = text.replace(/<iframe[\s\S]*?srcdoc[\s\S]*?>/gi, '');
-    text = text.replace(/<object[\s\S]*?<\/object>/gi, '');
-    text = text.replace(/<embed[\s\S]*?>/gi, '');
-    text = text.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '');
-    text = text.replace(/\son\w+\s*=\s*[^\s>]*/gi, '');
-    text = text.replace(/javascript\s*:/gi, '');
-    return text;
+    return sanitize(input);
   }
 
   // ─── FK Validation ──────────────────────────────────────
