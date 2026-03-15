@@ -1,8 +1,10 @@
 """
 Regenerate missing image files for all published content.
 
-Reads media records from the API, checks if file exists on disk via HTTP,
-and regenerates missing images using Kling AI.
+Priority order for each item:
+  1. Original source image URL (from RSS feed / source site)
+  2. Google Places photo (restaurants)
+  3. Kling AI generation (fallback)
 
 Usage:
     cd apps/content-engine
@@ -11,10 +13,16 @@ Usage:
 
 import argparse
 import asyncio
+import uuid as uuid_mod
+
+import httpx
 
 from src.ai.image_generator import generate_image
 from src.api_client.client import APIClient
-from src.api_client.media import upload_image
+from src.api_client.media import download_image, upload_image
+from src.db.engine import async_session
+from src.db.models import PipelineItem, PushLog
+from sqlalchemy import select
 
 
 CONTENT_ENDPOINTS = {
@@ -28,13 +36,33 @@ CONTENT_ENDPOINTS = {
 
 async def check_image_exists(url: str) -> bool:
     """Check if an image URL returns 200."""
-    import httpx
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.head(url)
             return resp.status_code == 200
     except Exception:
         return False
+
+
+async def get_original_image_url(api_entity_id: str) -> str | None:
+    """Look up the original source image URL from the pipeline DB."""
+    async with async_session() as session:
+        # Find the push log that created this API entity
+        result = await session.execute(
+            select(PushLog.pipeline_item_id)
+            .where(PushLog.api_entity_id == api_entity_id)
+            .order_by(PushLog.pushed_at.desc())
+            .limit(1)
+        )
+        row = result.first()
+        if not row:
+            return None
+
+        item = await session.get(PipelineItem, row[0])
+        if not item:
+            return None
+
+        return item.raw_data.get("_image_url")
 
 
 async def main():
@@ -74,11 +102,7 @@ async def main():
                 title = item.get("title", item.get("name", ""))
                 featured = item.get("featured_image")
 
-                if not featured or not featured.get("url"):
-                    # No image record at all — generate new
-                    pass
-                else:
-                    # Check if file exists
+                if featured and featured.get("url"):
                     exists = await check_image_exists(featured["url"])
                     if exists:
                         skipped += 1
@@ -90,32 +114,73 @@ async def main():
                     regenerated += 1
                     continue
 
-                # Generate new image via Kling AI
-                enriched = {"title": title, "name": title}
-                if item.get("description"):
-                    enriched["description"] = item["description"][:200]
-                if item.get("cuisines"):
-                    enriched["cuisines"] = ", ".join(
-                        c.get("name", "") for c in item["cuisines"]
-                    )
-                if item.get("district"):
-                    enriched["district"] = item["district"]
+                image_bytes = None
+                ct = "image/jpeg"
 
-                image_bytes = await generate_image(content_type, enriched)
+                # Strategy 1: Try original source image URL from pipeline DB
+                source_url = await get_original_image_url(item_id)
+                if source_url:
+                    result = await download_image(source_url)
+                    if result:
+                        image_bytes, ct = result
+                        print(f"    Source: original URL")
+
+                # Strategy 2: Google Places photo (restaurants)
+                if not image_bytes and content_type == "restaurant":
+                    gp_id = item.get("google_place_id")
+                    if gp_id:
+                        from src.sources.google_places import get_photo_by_resource_name
+                        # We don't have the photo resource name from the API response,
+                        # but we can look it up from the pipeline DB
+                        async with async_session() as session:
+                            result = await session.execute(
+                                select(PushLog.pipeline_item_id)
+                                .where(PushLog.api_entity_id == item_id)
+                                .limit(1)
+                            )
+                            row = result.first()
+                            if row:
+                                pi = await session.get(PipelineItem, row[0])
+                                if pi and pi.enriched_data:
+                                    photo_res = pi.enriched_data.get("_photo_resource_name")
+                                    if photo_res:
+                                        gp_result = await get_photo_by_resource_name(photo_res)
+                                        if gp_result:
+                                            image_bytes, ct = gp_result
+                                            print(f"    Source: Google Places photo")
+
+                # Strategy 3: Kling AI generation
                 if not image_bytes:
-                    print(f"    FAILED to generate image")
+                    enriched = {"title": title, "name": title}
+                    if item.get("description"):
+                        enriched["description"] = item["description"][:200]
+                    if item.get("cuisines"):
+                        enriched["cuisines"] = ", ".join(
+                            c.get("name", "") for c in item["cuisines"]
+                        )
+                    if item.get("district"):
+                        enriched["district"] = item["district"]
+
+                    image_bytes = await generate_image(content_type, enriched)
+                    if image_bytes:
+                        ct = "image/jpeg"
+                        print(f"    Source: Kling AI")
+
+                if not image_bytes:
+                    print(f"    FAILED — no image source available")
                     failed += 1
                     continue
 
                 # Upload to API
-                filename = f"regen-{item_id}.jpg"
-                media_id = await upload_image(client, image_bytes, filename, "image/jpeg")
+                ext = ct.split("/")[-1]
+                filename = f"regen-{item_id}.{ext}"
+                media_id = await upload_image(client, image_bytes, filename, ct)
                 if not media_id:
-                    print(f"    FAILED to upload image")
+                    print(f"    FAILED to upload")
                     failed += 1
                     continue
 
-                # Patch the content item with new image
+                # Patch the content item
                 patch_endpoint = f"{endpoint}/{item_id}"
                 try:
                     await client.patch(patch_endpoint, json={"featured_image_id": media_id})
@@ -125,7 +190,7 @@ async def main():
                     print(f"    PATCH failed: {e}")
                     failed += 1
 
-                await asyncio.sleep(1)  # Rate limit Kling API
+                await asyncio.sleep(1)
 
     finally:
         await client.close()
