@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Media } from './entities/media.entity';
 import { PresignMediaDto } from './dto/presign-media.dto';
 import { ConfirmMediaDto } from './dto/confirm-media.dto';
 import { UpdateMediaDto } from './dto/update-media.dto';
-import { LocalStorageService } from './storage/local-storage.service';
+import { StorageService } from './storage/storage.interface';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -13,7 +13,8 @@ export class MediaService {
   constructor(
     @InjectRepository(Media)
     private readonly mediaRepository: Repository<Media>,
-    private readonly storage: LocalStorageService,
+    @Inject('STORAGE_SERVICE')
+    private readonly storage: StorageService,
   ) {}
 
   /**

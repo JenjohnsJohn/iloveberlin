@@ -2,9 +2,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { StorageService } from './storage.interface';
 
 @Injectable()
-export class LocalStorageService implements OnModuleInit {
+export class LocalStorageService implements StorageService, OnModuleInit {
   private uploadDir: string;
   private mediaBaseUrl: string;
 
