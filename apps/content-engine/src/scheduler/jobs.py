@@ -111,91 +111,82 @@ def setup_scheduler(api_client: APIClient) -> AsyncIOScheduler:
     """Configure all cron jobs and return the scheduler."""
     scheduler = AsyncIOScheduler(timezone=TIMEZONE)
 
-    # Articles (RSS) — every 2 hours from 6am to 10pm
+    # Articles (RSS) — every 5 minutes
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[ArticleRSSPipeline, api_client],
-        hour="6,8,10,12,14,16,18,20,22",
-        minute=0,
+        minutes=5,
         id="articles_rss",
         name="Articles from RSS feeds",
     )
 
-    # Articles (AI originals) — daily at 5:00am
+    # Articles (AI originals) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[ArticleAIPipeline, api_client],
-        hour=5,
-        minute=0,
+        hours=2,
         id="articles_ai",
         name="AI-generated articles",
     )
 
-    # Events (berlin.de) — twice daily: 6am, 2pm
+    # Events (berlin.de) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[EventBerlinDePipeline, api_client],
-        hour="6,14",
-        minute=0,
+        hours=2,
         id="events_berlinde",
         name="Events from berlin.de",
     )
 
-    # Events (AI) — daily at 5:30am
+    # Events (AI) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[EventAIPipeline, api_client],
-        hour=5,
-        minute=30,
+        hours=2,
         id="events_ai",
         name="AI-generated events",
     )
 
-    # Restaurants (Overpass) — daily at 3:00am
+    # Restaurants (Overpass) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[RestaurantPipeline, api_client],
-        hour=3,
-        minute=0,
+        hours=2,
         id="restaurants",
         name="Restaurants from OpenStreetMap",
     )
 
-    # Guides (AI) — daily at 4:00am
+    # Guides (AI) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[GuidePipeline, api_client],
-        hour=4,
-        minute=0,
+        hours=2,
         id="guides",
         name="AI-generated guides",
     )
 
-    # Videos (YouTube) — twice daily: 8am, 4pm
+    # Videos (YouTube) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[VideoPipeline, api_client],
-        hour="8,16",
-        minute=0,
+        hours=2,
         id="videos",
         name="Videos from YouTube",
     )
 
-    # Competitions (AI) — every 3 days at 6am
+    # Competitions (AI) — every 2 hours
     scheduler.add_job(
         _run_pipeline,
-        "cron",
+        "interval",
         args=[CompetitionPipeline, api_client],
-        day="*/3",
-        hour=6,
-        minute=0,
+        hours=2,
         id="competitions",
         name="AI-generated competitions",
     )
