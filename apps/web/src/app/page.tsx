@@ -588,6 +588,14 @@ export default function HomePage() {
       const resultMap = new Map<string, PromiseSettledResult<unknown>>();
       fallbackKeys.forEach((key, i) => resultMap.set(key, fallbackResults[i]));
 
+      // Helper to extract image URL from either a string or {url: string} object
+      function extractImageUrl(val: unknown): string | null {
+        if (!val) return null;
+        if (typeof val === 'string') return val;
+        if (typeof val === 'object' && val !== null && 'url' in val) return (val as Record<string, unknown>).url as string;
+        return null;
+      }
+
       // Helper to extract data array from an axios-style response
       function extractList(key: string): Record<string, unknown>[] | null {
         const r = resultMap.get(key);
@@ -605,7 +613,7 @@ export default function HomePage() {
           slug: a.slug as string,
           title: a.title as string,
           excerpt: (a.excerpt || a.summary || '') as string,
-          featuredImage: (a.featured_image || a.featuredImage || null) as string | null,
+          featuredImage: extractImageUrl(a.featured_image ?? a.featuredImage),
           category: ((a.category as Record<string, unknown>)?.name || a.category || '') as string,
           categorySlug: ((a.category as Record<string, unknown>)?.slug || a.categorySlug || '') as string,
           author: {
@@ -625,7 +633,7 @@ export default function HomePage() {
           slug: e.slug as string,
           title: e.title as string,
           excerpt: (e.excerpt || e.description || e.summary || '') as string,
-          featuredImage: (e.featured_image || e.featuredImage || null) as string | null,
+          featuredImage: extractImageUrl(e.featured_image ?? e.featuredImage),
           category: ((e.category as Record<string, unknown>)?.name || e.category || '') as string,
           categorySlug: ((e.category as Record<string, unknown>)?.slug || e.categorySlug || '') as string,
           venueName: ((e.venue as Record<string, unknown>)?.name || e.venue_name || e.venueName || null) as string | null,
@@ -646,7 +654,7 @@ export default function HomePage() {
           slug: e.slug as string,
           title: e.title as string,
           excerpt: (e.excerpt || e.description || e.summary || '') as string,
-          featuredImage: (e.featured_image || e.featuredImage || null) as string | null,
+          featuredImage: extractImageUrl(e.featured_image ?? e.featuredImage),
           category: ((e.category as Record<string, unknown>)?.name || e.category || '') as string,
           categorySlug: ((e.category as Record<string, unknown>)?.slug || e.categorySlug || '') as string,
           venueName: ((e.venue as Record<string, unknown>)?.name || e.venue_name || e.venueName || null) as string | null,
@@ -674,7 +682,7 @@ export default function HomePage() {
             slug: r.slug as string,
             name: (r.name || r.title || '') as string,
             description: (r.description || r.excerpt || '') as string,
-            featuredImage: (r.featured_image || r.featuredImage || null) as string | null,
+            featuredImage: extractImageUrl(r.featured_image ?? r.featuredImage),
             cuisines: Array.isArray(cuisines) ? cuisines.map((c) => String(c.name || c)) : [],
             primaryCuisineSlug: Array.isArray(cuisines) && cuisines.length > 0 ? String(cuisines[0].slug || '') : null,
             district: (r.district || null) as string | null,
@@ -691,7 +699,7 @@ export default function HomePage() {
         const mapped = videosList.map((v) => ({
           slug: v.slug as string,
           title: v.title as string,
-          thumbnailUrl: (v.thumbnail_url || v.thumbnailUrl || null) as string | null,
+          thumbnailUrl: extractImageUrl(v.thumbnail ?? v.thumbnail_url ?? v.thumbnailUrl),
           seriesName: ((v.series as Record<string, unknown>)?.name || v.series_name || v.seriesName || null) as string | null,
           seriesSlug: ((v.series as Record<string, unknown>)?.slug || v.series_slug || v.seriesSlug || null) as string | null,
           durationSeconds: (v.duration_seconds || v.durationSeconds || v.duration || null) as number | null,
@@ -711,7 +719,7 @@ export default function HomePage() {
             title: c.title as string,
             description: (c.description || c.excerpt || '') as string,
             prizeDescription: (c.prize || c.prize_description || c.prizeDescription || null) as string | null,
-            featuredImage: (c.featured_image || c.featuredImage || null) as string | null,
+            featuredImage: extractImageUrl(c.featured_image ?? c.featuredImage),
             endDate: (c.ends_at || c.endsAt || c.end_date || c.endDate || '') as string,
             entryCount: (c.entry_count || c.entryCount || 0) as number,
             status: (c.status || 'active') as string,
@@ -734,7 +742,7 @@ export default function HomePage() {
             categorySlug: (cat?.slug || item.categorySlug || item.category_slug || 'general') as string,
             price: item.price != null ? Number(item.price) : null,
             priceType: (item.price_type || item.priceType || 'fixed') as string,
-            imageUrl: (item.featured_image || item.featuredImage || item.image_url || item.imageUrl || null) as string | null,
+            imageUrl: extractImageUrl(item.featured_image ?? item.featuredImage ?? item.image_url ?? item.imageUrl),
             location: (item.location || item.district || null) as string | null,
             condition: (item.condition || null) as string | null,
             featured: (item.featured || item.is_featured || false) as boolean,
@@ -757,7 +765,7 @@ export default function HomePage() {
             restaurant: {
               slug: (rest?.slug || '') as string,
               name: (rest?.name || '') as string,
-              featuredImage: (rest?.featured_image || rest?.featuredImage || null) as string | null,
+              featuredImage: extractImageUrl(rest?.featured_image ?? rest?.featuredImage),
               primaryCuisineSlug: Array.isArray(cuisines) && cuisines.length > 0 ? String(cuisines[0].slug || '') : null,
               district: (rest?.district || '') as string,
             },
@@ -795,7 +803,7 @@ export default function HomePage() {
             shortDescription: (p.short_description || p.shortDescription || p.description || '') as string,
             basePrice: Number(p.base_price || p.basePrice || p.price || 0),
             compareAtPrice: p.compare_at_price != null ? Number(p.compare_at_price) : (p.compareAtPrice != null ? Number(p.compareAtPrice) : null),
-            imageUrl: (p.image_url || p.imageUrl || p.featured_image || p.featuredImage || null) as string | null,
+            imageUrl: extractImageUrl(p.image_url ?? p.imageUrl ?? p.featured_image ?? p.featuredImage),
             category: (cat?.name || p.category_name || '') as string,
             categorySlug: (cat?.slug || p.category_slug || p.categorySlug || '') as string,
             isFeatured: (p.is_featured || p.isFeatured || false) as boolean,
