@@ -46,7 +46,7 @@ ARTICLE_SUMMARY_USER = """Summarize this Berlin news article for our readers:
 
 Source: {feed_name}
 Headline: {title}
-Summary: {summary}
+{content_block}
 
 Respond with ONLY valid JSON (no markdown fences):
 {{

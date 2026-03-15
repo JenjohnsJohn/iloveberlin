@@ -112,11 +112,20 @@ async def summarize_article_from_rss(raw_data: dict) -> dict:
     feed_name = raw_data.get("feed_name", "")
     title = raw_data.get("title", "")
     link = raw_data.get("link", "")
+    content = raw_data.get("content", "")
+    summary = raw_data.get("summary", "")
+
+    # Use full content when available (truncated to ~3000 chars to save tokens),
+    # fall back to summary
+    if content and len(content) > 100:
+        content_block = f"Full article text:\n{content[:3000]}"
+    else:
+        content_block = f"Summary: {summary}"
 
     user_prompt = prompts.ARTICLE_SUMMARY_USER.format(
         feed_name=feed_name,
         title=title,
-        summary=raw_data.get("summary", ""),
+        content_block=content_block,
     )
     result = await ai_generate(
         prompts.ARTICLE_SUMMARY_SYSTEM, user_prompt, max_tokens=1000

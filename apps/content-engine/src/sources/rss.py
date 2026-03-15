@@ -101,6 +101,11 @@ class RSSSource(Source):
             if not image_url and self.fetch_og_images and entry.get("link"):
                 image_url = await self._fetch_og_image(client, entry["link"])
 
+            # Extract full content if available
+            content = ""
+            if hasattr(entry, "content") and entry.content:
+                content = entry.content[0].get("value", "")
+
             items.append(
                 RawItem(
                     source_type="rss",
@@ -112,6 +117,7 @@ class RSSSource(Source):
                         "title": entry.get("title", ""),
                         "link": entry.get("link", ""),
                         "summary": strip_html(entry.get("summary", "")),
+                        "content": strip_html(content) if content else "",
                         "published": entry.get("published", ""),
                         "author": entry.get("author", ""),
                     },
