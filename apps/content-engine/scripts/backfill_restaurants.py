@@ -31,7 +31,7 @@ async def fetch_restaurants(api_client: APIClient, limit: int = 100) -> list[dic
     page = 1
     while True:
         resp = await api_client.get(
-            f"/dining/restaurants?page={page}&limit=50&status=published"
+            f"/dining/restaurants?page={page}&limit=50"
         )
         data = resp.json()
         items = data.get("data", data) if isinstance(data, dict) else data
