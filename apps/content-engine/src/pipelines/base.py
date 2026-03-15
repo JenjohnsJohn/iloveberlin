@@ -20,6 +20,56 @@ from src.utils.notifications import notify_pipeline_failure, notify_zero_items
 
 log = get_logger("pipelines.base")
 
+# Curated Berlin stock images from Unsplash (direct CDN, free to use)
+# Each list provides varied images per content type
+_FALLBACK_IMAGES = {
+    "article": [
+        "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=1200&h=800&fit=crop",  # Berlin TV Tower
+        "https://images.unsplash.com/photo-1566404791232-af9fe5513af5?w=1200&h=800&fit=crop",  # Brandenburg Gate
+        "https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=1200&h=800&fit=crop",  # Berlin skyline
+        "https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=800&fit=crop",  # Berlin street
+        "https://images.unsplash.com/photo-1551522435-a13afa10f103?w=1200&h=800&fit=crop",  # Berlin buildings
+        "https://images.unsplash.com/photo-1599946347371-68eb71b16afc?w=1200&h=800&fit=crop",  # Berlin graffiti
+    ],
+    "guide": [
+        "https://images.unsplash.com/photo-1449452198679-05c7fd30f416?w=1200&h=800&fit=crop",  # Berlin map/travel
+        "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=1200&h=800&fit=crop",  # Berlin Tower
+        "https://images.unsplash.com/photo-1571167530149-c1105da4c2c7?w=1200&h=800&fit=crop",  # Berlin park
+        "https://images.unsplash.com/photo-1587330979470-3595ac045ab0?w=1200&h=800&fit=crop",  # Berlin street
+        "https://images.unsplash.com/photo-1546726747-421c6d69c929?w=1200&h=800&fit=crop",  # Museum Island
+    ],
+    "event": [
+        "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&h=800&fit=crop",  # Concert crowd
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&h=800&fit=crop",  # Festival lights
+        "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&h=800&fit=crop",  # Event
+        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=800&fit=crop",  # Conference
+        "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=1200&h=800&fit=crop",  # Night event
+    ],
+    "restaurant": [
+        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&h=800&fit=crop",  # Restaurant interior
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&h=800&fit=crop",  # Restaurant bar
+        "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=1200&h=800&fit=crop",  # Food plate
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&h=800&fit=crop",  # Fine dining
+        "https://images.unsplash.com/photo-1552566626-52f8b828add9?w=1200&h=800&fit=crop",  # Cafe
+        "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&h=800&fit=crop",  # Outdoor dining
+    ],
+    "competition": [
+        "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1200&h=800&fit=crop",  # Celebration
+        "https://images.unsplash.com/photo-1531686264889-56fdcabd163f?w=1200&h=800&fit=crop",  # Prize/trophy
+    ],
+}
+
+
+def _get_unsplash_fallback(content_type: str, title: str = "") -> str | None:
+    """Pick a curated Berlin/themed stock image for content without source images."""
+    import hashlib
+    images = _FALLBACK_IMAGES.get(content_type, _FALLBACK_IMAGES.get("article", []))
+    if not images:
+        return None
+    # Use title hash to consistently pick the same image for the same content
+    idx = int(hashlib.md5(title.encode()).hexdigest(), 16) % len(images) if title else 0
+    return images[idx]
+
 # Phase 1.5: module-level concurrency locks per pipeline key
 _pipeline_locks: dict[str, asyncio.Lock] = {}
 
@@ -306,6 +356,12 @@ class BasePipeline(ABC):
             # Handle image upload if present
             media_id = None
             image_url = item.raw_data.get("_image_url")
+
+            # Fallback: use Unsplash for content without source images
+            if not image_url:
+                title = enriched.get("title", enriched.get("name", ""))
+                image_url = _get_unsplash_fallback(item.content_type, title)
+
             if image_url:
                 result = await download_image(image_url)
                 if result:
