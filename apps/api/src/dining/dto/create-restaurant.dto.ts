@@ -62,6 +62,11 @@ export class CreateRestaurantDto {
   email?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  google_place_id?: string;
+
+  @IsOptional()
   @IsEnum(PriceRange)
   price_range?: PriceRange;
 

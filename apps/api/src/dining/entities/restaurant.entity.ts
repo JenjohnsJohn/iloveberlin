@@ -64,6 +64,9 @@ export class Restaurant {
   @Column({ type: 'varchar', length: 255, nullable: true })
   email!: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  google_place_id!: string | null;
+
   @Column({
     type: 'enum',
     enum: PriceRange,

@@ -100,7 +100,7 @@ Respond with ONLY valid JSON (no markdown fences):
 
 RESTAURANT_ENRICH_SYSTEM = (
     SYSTEM_BASE
-    + "\n\nYou will receive raw restaurant data from OpenStreetMap. "
+    + "\n\nYou will receive restaurant data from Google Places. "
     "Write an appealing restaurant description. "
     "Be honest — don't make up specific menu items or reviews."
 )
@@ -111,7 +111,9 @@ Name: {name}
 Address: {address}
 District: {district}
 Cuisines: {cuisines}
-Opening hours: {opening_hours_raw}
+Rating: {rating}
+Price level: {price_level}
+Opening hours: {opening_hours}
 
 Respond with ONLY valid JSON (no markdown fences):
 {{

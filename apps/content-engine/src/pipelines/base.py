@@ -320,13 +320,11 @@ class BasePipeline(ABC):
 
             # 2. Try Google Places photo (restaurants only)
             if not media_id and item.content_type == "restaurant":
-                from src.sources.google_places import get_restaurant_photo
+                photo_resource = enriched.get("_photo_resource_name")
+                if photo_resource:
+                    from src.sources.google_places import get_photo_by_resource_name
 
-                name = item.raw_data.get("name") or enriched.get("name", "")
-                lat = item.raw_data.get("latitude")
-                lon = item.raw_data.get("longitude")
-                if name:
-                    gp_result = await get_restaurant_photo(name, lat, lon)
+                    gp_result = await get_photo_by_resource_name(photo_resource)
                     if gp_result:
                         image_bytes, content_type = gp_result
                         ext = content_type.split("/")[-1]

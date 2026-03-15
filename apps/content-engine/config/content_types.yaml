@@ -68,8 +68,7 @@ restaurants:
   auto_publish: false
   daily_target: 20
   sources:
-    overpass:
-      endpoint: "https://overpass-api.de/api/interpreter"
+    google_places:
       batch_size: 20
 
 guides:

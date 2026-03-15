@@ -139,13 +139,15 @@ async def generate_event() -> dict:
 
 
 async def enrich_restaurant(raw_data: dict) -> dict:
-    """Generate a description for a restaurant from OSM data."""
+    """Generate a description for a restaurant from Google Places data."""
     user_prompt = prompts.RESTAURANT_ENRICH_USER.format(
         name=raw_data.get("name", ""),
         address=raw_data.get("address", ""),
         district=raw_data.get("district", ""),
         cuisines=", ".join(raw_data.get("cuisines", [])),
-        opening_hours_raw=raw_data.get("opening_hours_raw", ""),
+        rating=raw_data.get("rating", "N/A"),
+        price_level=raw_data.get("price_level", "N/A"),
+        opening_hours=raw_data.get("opening_hours", "N/A"),
     )
     result = await ai_generate(prompts.RESTAURANT_ENRICH_SYSTEM, user_prompt)
     data = _parse_json_response(result)

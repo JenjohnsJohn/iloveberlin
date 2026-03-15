@@ -119,6 +119,7 @@ export class DiningService {
       phone: dto.phone || null,
       website: dto.website || null,
       email: dto.email || null,
+      google_place_id: dto.google_place_id || null,
       price_range: dto.price_range,
       rating: dto.rating || null,
       opening_hours: dto.opening_hours || {},
@@ -269,6 +270,7 @@ export class DiningService {
     if (dto.phone !== undefined) restaurant.phone = dto.phone || null;
     if (dto.website !== undefined) restaurant.website = dto.website || null;
     if (dto.email !== undefined) restaurant.email = dto.email || null;
+    if (dto.google_place_id !== undefined) restaurant.google_place_id = dto.google_place_id || null;
     if (dto.price_range !== undefined) restaurant.price_range = dto.price_range;
     if (dto.rating !== undefined) restaurant.rating = dto.rating || null;
     if (dto.opening_hours !== undefined) restaurant.opening_hours = dto.opening_hours;
