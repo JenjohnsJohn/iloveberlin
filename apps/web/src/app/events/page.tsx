@@ -55,7 +55,7 @@ async function getLatestEvents(): Promise<{ events: EventCardData[]; total: numb
         slug: e.slug as string,
         title: e.title as string,
         excerpt: (e.excerpt || e.description || e.summary || '') as string,
-        featuredImage: (e.featured_image || e.featuredImage || null) as string | null,
+        featuredImage: ((e.featured_image as Record<string, unknown>)?.url || e.featured_image || e.featuredImage || null) as string | null,
         category: ((e.category as Record<string, unknown>)?.name || e.category || '') as string,
         categorySlug: ((e.category as Record<string, unknown>)?.slug || e.categorySlug || '') as string,
         venueName: ((e.venue as Record<string, unknown>)?.name || e.venue_name || e.venueName || null) as string | null,

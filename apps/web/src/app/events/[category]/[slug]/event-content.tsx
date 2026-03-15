@@ -107,7 +107,7 @@ export function EventContent({ event }: EventContentProps) {
               slug: String(e.slug || ''),
               title: String(e.title || ''),
               excerpt: String(e.excerpt || ''),
-              featuredImage: (e.featured_image ?? e.featuredImage ?? null) as string | null,
+              featuredImage: ((e.featured_image as Record<string, unknown>)?.url || e.featured_image || e.featuredImage || null) as string | null,
               category: String(cat?.name || ''),
               categorySlug: String(cat?.slug || ''),
               venueName: String(venue?.name || '') || null,

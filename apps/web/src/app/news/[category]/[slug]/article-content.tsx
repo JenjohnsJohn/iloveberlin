@@ -66,7 +66,7 @@ export function ArticleContent({ article }: ArticleContentProps) {
                 slug: String(a.slug || ''),
                 title: String(a.title || ''),
                 excerpt: String(a.excerpt || ''),
-                featuredImage: (a.featured_image ?? a.featuredImage ?? null) as string | null,
+                featuredImage: ((a.featured_image as Record<string, unknown>)?.url || a.featured_image || a.featuredImage || null) as string | null,
                 category: String(cat?.name || ''),
                 categorySlug: String(cat?.slug || ''),
                 author: {
