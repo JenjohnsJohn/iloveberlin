@@ -206,8 +206,14 @@ export class ArticlesService {
       article.read_time_minutes = this.calculateReadTime(article.body);
     }
     if (dto.excerpt !== undefined) article.excerpt = dto.excerpt || null;
-    if (dto.featured_image_id !== undefined) article.featured_image_id = dto.featured_image_id || null;
-    if (dto.category_id !== undefined) article.category_id = dto.category_id || null;
+    if (dto.featured_image_id !== undefined) {
+      article.featured_image_id = dto.featured_image_id || null;
+      article.featured_image = null as unknown as any; // Clear loaded relation so TypeORM uses FK
+    }
+    if (dto.category_id !== undefined) {
+      article.category_id = dto.category_id || null;
+      article.category = null as unknown as any; // Clear loaded relation so TypeORM uses FK
+    }
     if (dto.seo_title !== undefined) article.seo_title = dto.seo_title || null;
     if (dto.seo_description !== undefined) article.seo_description = dto.seo_description || null;
     if (dto.seo_keywords !== undefined) article.seo_keywords = dto.seo_keywords || null;
