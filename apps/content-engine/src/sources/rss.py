@@ -18,14 +18,21 @@ IMG_RE = re.compile(r'<img[^>]+src=["\']([^"\'> ]+)', re.IGNORECASE)
 class RSSSource(Source):
     source_type = "rss"
 
-    def __init__(self, feeds: list[dict], fetch_og_images: bool = True):
+    def __init__(
+        self,
+        feeds: list[dict],
+        fetch_og_images: bool = True,
+        max_items_per_feed: int = 0,
+    ):
         """
         Args:
             feeds: List of dicts with 'url' and 'name' keys.
             fetch_og_images: If True, fetch article pages to get og:image when no image in feed.
+            max_items_per_feed: If > 0, only take the latest N items per feed.
         """
         self.feeds = feeds
         self.fetch_og_images = fetch_og_images
+        self.max_items_per_feed = max_items_per_feed
 
     async def fetch(self) -> list[RawItem]:
         items: list[RawItem] = []
@@ -79,8 +86,11 @@ class RSSSource(Source):
             await set_setting(last_modified_key, new_modified)
 
         parsed = feedparser.parse(resp.text)
+        entries = parsed.entries
+        if self.max_items_per_feed > 0:
+            entries = entries[: self.max_items_per_feed]
         items = []
-        for entry in parsed.entries:
+        for entry in entries:
             source_id = entry.get("id") or entry.get("link", "")
             fingerprint = hashlib.sha256(source_id.encode()).hexdigest()
 

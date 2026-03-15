@@ -4,18 +4,15 @@ articles:
   daily_target: 30
   sources:
     rss:
+      max_items_per_feed: 5
       feeds:
-        # News
+        # Berlin-focused news
         - url: "https://www.iheartberlin.de/feed/"
           name: "iHeartBerlin"
-        - url: "https://rss.dw.com/xml/rss-en-all"
-          name: "DW Germany"
-        - url: "https://www.berliner-zeitung.de/feed.xml"
-          name: "Berliner Zeitung"
-        - url: "https://www.tip-berlin.de/feed/"
-          name: "Tip Berlin"
         - url: "https://www.exberliner.com/feed/"
           name: "Exberliner"
+        - url: "https://www.tip-berlin.de/feed/"
+          name: "Tip Berlin"
         # Lifestyle & Culture
         - url: "https://slowtravelberlin.com/feed/"
           name: "Slow Travel Berlin"

@@ -98,13 +98,19 @@ class ArticleRSSPipeline(_ArticleCategoryMixin, BasePipeline):
         super().__init__(api_client)
         config = _load_config()
         self.auto_publish = config.get("auto_publish", True)
-        self._yaml_feeds = config.get("sources", {}).get("rss", {}).get("feeds", [])
-        self.source = RSSSource(self._yaml_feeds)
+        rss_config = config.get("sources", {}).get("rss", {})
+        self._yaml_feeds = rss_config.get("feeds", [])
+        self._max_items_per_feed = rss_config.get("max_items_per_feed", 0)
+        self.source = RSSSource(
+            self._yaml_feeds, max_items_per_feed=self._max_items_per_feed
+        )
 
     async def fetch(self) -> list[RawItem]:
         db_feeds = await get_json_setting("source.rss_feeds", [])
         if db_feeds:
-            self.source = RSSSource(db_feeds)
+            self.source = RSSSource(
+                db_feeds, max_items_per_feed=self._max_items_per_feed
+            )
         return await self.source.fetch()
 
     async def enrich(self, raw_data: dict) -> dict:
