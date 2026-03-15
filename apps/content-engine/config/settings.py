@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # Admin panel auth
     admin_password_hash: str = ""
 
+    # Kling AI image generation
+    kling_access_key: str = ""
+    kling_secret_key: str = ""
+
     # Logging
     log_level: str = "INFO"
 
