@@ -51,6 +51,8 @@ class CompetitionPipeline(BasePipeline):
             "description": enriched.get("description", ""),
             "start_date": enriched.get("start_date", datetime.now(timezone.utc).strftime("%Y-%m-%d")),
             "end_date": enriched.get("end_date", ""),
+            # Competitions use active/draft, not published/draft
+            "status": "draft",
         }
         if enriched.get("prize_description"):
             payload["prize_description"] = enriched["prize_description"]
