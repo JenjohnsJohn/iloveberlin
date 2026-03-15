@@ -17,11 +17,13 @@ export function CategoryArticleList({ categorySlug, categoryName }: CategoryArti
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const limit = 12;
 
   const fetchArticles = useCallback(async (pageNum: number, append: boolean) => {
     try {
       setLoading(true);
+      setError(null);
       const { data: responseData } = await apiClient.get('/articles', {
         params: { category: categorySlug, page: pageNum, limit },
       });
@@ -62,11 +64,11 @@ export function CategoryArticleList({ categorySlug, categoryName }: CategoryArti
         setArticles(fetched);
       }
     } catch {
-      // API error - leave existing articles
+      setError('Failed to load articles. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [categorySlug, categoryName]);
+  }, [categorySlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setPage(1);
@@ -131,6 +133,10 @@ export function CategoryArticleList({ categorySlug, categoryName }: CategoryArti
           </div>
         )}
       </section>
+
+      {error && (
+        <p className="text-center text-red-600 text-sm mt-4">{error}</p>
+      )}
 
       {/* Load More */}
       {hasMore && (

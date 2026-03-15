@@ -15,6 +15,34 @@ from src.utils.logging import get_logger
 
 log = get_logger("pipelines.articles")
 
+# Category slug -> keyword mappings for auto-assignment
+CATEGORY_KEYWORDS: dict[str, list[str]] = {
+    "city-politics": ["politics", "government", "mayor", "senate", "election", "policy", "law", "regulation", "council", "parliament", "protest", "demonstration"],
+    "business-economy": ["business", "economy", "startup", "company", "investment", "market", "trade", "finance", "economic", "industry", "tech", "commerce"],
+    "culture": ["art", "museum", "gallery", "theater", "film", "cinema", "music", "concert", "festival", "exhibition", "literary", "opera", "dance", "performance"],
+    "community": ["community", "neighborhood", "volunteer", "charity", "social", "integration", "refugee", "expat", "immigrant", "solidarity", "diversity"],
+    "sports": ["sport", "football", "soccer", "marathon", "athletic", "olympic", "hertha", "union berlin", "basketball", "cycling", "fitness"],
+    "education": ["education", "university", "school", "student", "research", "academic", "erasmus", "scholarship", "study", "campus"],
+    "health": ["health", "hospital", "medical", "wellness", "mental health", "pandemic", "vaccine", "healthcare", "doctor", "clinic"],
+    "environment": ["environment", "climate", "sustainability", "green", "energy", "recycling", "pollution", "park", "nature", "ecological"],
+    "lifestyle": ["lifestyle", "food", "restaurant", "fashion", "shopping", "nightlife", "club", "bar", "cafe", "dating", "living"],
+    "travel-tourism": ["travel", "tourism", "tourist", "hotel", "sightseeing", "day trip", "guide", "visit", "landmark", "attraction"],
+}
+
+
+def _assign_category_slug(title: str, body: str) -> str | None:
+    """Auto-assign a category slug based on keyword matching in title+body."""
+    text = f"{title} {body}".lower()
+    scores: dict[str, int] = {}
+    for slug, keywords in CATEGORY_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw in text)
+        if score > 0:
+            scores[slug] = score
+    if not scores:
+        return "lifestyle"  # Default category
+    return max(scores, key=scores.get)
+
+
 # Phase 3.1: default topics, can be overridden via DB setting
 DEFAULT_ARTICLE_TOPICS = [
     "Berlin neighborhoods and local life",
@@ -35,7 +63,32 @@ def _load_config() -> dict:
         return yaml.safe_load(f).get("articles", {})
 
 
-class ArticleRSSPipeline(BasePipeline):
+class _ArticleCategoryMixin:
+    """Shared category resolution for article pipelines."""
+
+    _category_cache: dict[str, str] = {}
+
+    async def _resolve_category_id(self, api_client: APIClient, slug: str | None) -> str | None:
+        """Resolve a category slug to its UUID via the API, with caching."""
+        if not slug:
+            return None
+        if slug in self._category_cache:
+            return self._category_cache[slug]
+        try:
+            resp = await api_client.get(f"/categories/tree?type=article")
+            categories = resp.json()
+            if isinstance(categories, dict):
+                categories = categories.get("data", categories)
+            for cat in (categories if isinstance(categories, list) else []):
+                self._category_cache[cat.get("slug", "")] = cat.get("id", "")
+                for child in cat.get("children", []):
+                    self._category_cache[child.get("slug", "")] = child.get("id", "")
+        except Exception:
+            pass
+        return self._category_cache.get(slug)
+
+
+class ArticleRSSPipeline(_ArticleCategoryMixin, BasePipeline):
     """Fetch RSS feeds -> AI rewrite -> push as articles."""
 
     content_type = "article"
@@ -57,6 +110,23 @@ class ArticleRSSPipeline(BasePipeline):
     async def enrich(self, raw_data: dict) -> dict:
         return await enrich_article_from_rss(raw_data)
 
+    async def build_api_payload_async(self, enriched: dict, media_id: str | None = None) -> dict:
+        payload = {
+            "title": enriched.get("title", ""),
+            "body": enriched.get("body", ""),
+        }
+        for field in ["subtitle", "excerpt", "seo_title", "seo_description", "seo_keywords"]:
+            if enriched.get(field):
+                payload[field] = enriched[field]
+        if media_id:
+            payload["featured_image_id"] = media_id
+        # Auto-assign category
+        cat_slug = _assign_category_slug(payload.get("title", ""), payload.get("body", ""))
+        cat_id = await self._resolve_category_id(self.api_client, cat_slug)
+        if cat_id:
+            payload["category_id"] = cat_id
+        return payload
+
     def build_api_payload(self, enriched: dict, media_id: str | None = None) -> dict:
         payload = {
             "title": enriched.get("title", ""),
@@ -70,7 +140,7 @@ class ArticleRSSPipeline(BasePipeline):
         return payload
 
 
-class ArticleAIPipeline(BasePipeline):
+class ArticleAIPipeline(_ArticleCategoryMixin, BasePipeline):
     """Generate fully original AI articles."""
 
     content_type = "article"
@@ -115,6 +185,23 @@ class ArticleAIPipeline(BasePipeline):
 
     async def enrich(self, raw_data: dict) -> dict:
         return await enrich_article_original(raw_data.get("topic", "Berlin lifestyle"))
+
+    async def build_api_payload_async(self, enriched: dict, media_id: str | None = None) -> dict:
+        payload = {
+            "title": enriched.get("title", ""),
+            "body": enriched.get("body", ""),
+        }
+        for field in ["subtitle", "excerpt", "seo_title", "seo_description", "seo_keywords"]:
+            if enriched.get(field):
+                payload[field] = enriched[field]
+        if media_id:
+            payload["featured_image_id"] = media_id
+        # Auto-assign category
+        cat_slug = _assign_category_slug(payload.get("title", ""), payload.get("body", ""))
+        cat_id = await self._resolve_category_id(self.api_client, cat_slug)
+        if cat_id:
+            payload["category_id"] = cat_id
+        return payload
 
     def build_api_payload(self, enriched: dict, media_id: str | None = None) -> dict:
         payload = {

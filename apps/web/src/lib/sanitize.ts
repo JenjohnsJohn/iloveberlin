@@ -11,14 +11,13 @@ const PURIFY_CONFIG = {
     'table', 'thead', 'tbody', 'tr', 'th', 'td',
     'div', 'span',
     'figure', 'figcaption',
-    'iframe',
   ],
   ALLOWED_ATTR: [
     'href', 'target', 'rel',
     'src', 'alt', 'width', 'height',
     'class', 'id',
-    'allowfullscreen', 'frameborder',
   ],
+  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):\/\/|\/|#)/i,
   ALLOW_DATA_ATTR: false,
 };
 

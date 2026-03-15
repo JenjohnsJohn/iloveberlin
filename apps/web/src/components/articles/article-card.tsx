@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { buildArticleUrl } from '@/lib/news-seo-utils';
 import { formatDate } from '@/lib/format-date';
 
@@ -30,10 +31,12 @@ export function ArticleCard({ article }: ArticleCardProps) {
       {/* Image */}
       <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
         {article.featuredImage ? (
-          <img
+          <Image
             src={article.featuredImage}
             alt={article.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200">
@@ -53,9 +56,11 @@ export function ArticleCard({ article }: ArticleCardProps) {
           </div>
         )}
         {/* Category Badge */}
-        <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">
-          {article.category}
-        </span>
+        {article.category && (
+          <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">
+            {article.category}
+          </span>
+        )}
       </div>
 
       {/* Content */}
@@ -73,13 +78,15 @@ export function ArticleCard({ article }: ArticleCardProps) {
             {/* Author Avatar */}
             <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold overflow-hidden flex-shrink-0">
               {article.author.avatarUrl ? (
-                <img
+                <Image
                   src={article.author.avatarUrl}
                   alt={article.author.name}
+                  width={24}
+                  height={24}
                   className="w-full h-full object-cover"
                 />
               ) : (
-                article.author.name.charAt(0).toUpperCase()
+                (article.author.name?.[0] ?? '?').toUpperCase()
               )}
             </div>
             <span className="font-medium text-gray-700">{article.author.name}</span>

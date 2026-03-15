@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { ArticleCard } from '@/components/articles/article-card';
 import type { ArticleCardData } from '@/components/articles/article-card';
 import apiClient from '@/lib/api-client';
@@ -41,13 +41,18 @@ export function LatestArticleList({ initialArticles, initialTotal }: LatestArtic
   const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const loadingRef = useRef(false);
 
   const hasMore = page * LIMIT < total;
 
   const handleLoadMore = useCallback(async () => {
+    if (loadingRef.current) return; // Prevent concurrent fetches
+    loadingRef.current = true;
     const nextPage = page + 1;
     try {
       setLoading(true);
+      setError(null);
       const { data: responseData } = await apiClient.get('/articles', {
         params: { page: nextPage, limit: LIMIT, sort: 'date', order: 'desc' },
       });
@@ -60,9 +65,10 @@ export function LatestArticleList({ initialArticles, initialTotal }: LatestArtic
       setPage(nextPage);
       setArticles((prev) => [...prev, ...fetched]);
     } catch {
-      // API error - leave existing articles
+      setError('Failed to load more articles. Please try again.');
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   }, [page, total]);
 
@@ -78,6 +84,10 @@ export function LatestArticleList({ initialArticles, initialTotal }: LatestArtic
           <ArticleCard key={article.slug} article={article} />
         ))}
       </div>
+
+      {error && (
+        <p className="text-center text-red-600 text-sm mt-4">{error}</p>
+      )}
 
       {hasMore && (
         <div className="text-center mt-6">

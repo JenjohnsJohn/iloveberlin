@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
   ManyToOne,
   ManyToMany,
   OneToMany,
@@ -36,6 +37,7 @@ export class Article {
   @Column({ type: 'varchar', length: 255, nullable: true })
   subtitle!: string | null;
 
+  @Index()
   @Column({ type: 'varchar', length: 300, unique: true })
   slug!: string;
 
@@ -52,6 +54,7 @@ export class Article {
   @JoinColumn({ name: 'featured_image_id' })
   featured_image!: Media | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   category_id!: string | null;
 
@@ -66,6 +69,7 @@ export class Article {
   @JoinColumn({ name: 'author_id' })
   author!: User;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: ArticleStatus,
@@ -73,12 +77,14 @@ export class Article {
   })
   status!: ArticleStatus;
 
+  @Index()
   @Column({ type: 'timestamptz', nullable: true })
   published_at!: Date | null;
 
   @Column({ type: 'timestamptz', nullable: true })
   scheduled_at!: Date | null;
 
+  @Index()
   @Column({ type: 'int', default: 0 })
   view_count!: number;
 

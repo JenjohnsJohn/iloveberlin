@@ -88,8 +88,32 @@ export default async function NewsPage() {
     getLatestArticles(),
   ]);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Berlin News',
+    description: 'Stay informed with the latest stories, events, and happenings from Berlin.',
+    url: 'https://iloveberlin.biz/news',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'I♥Berlin',
+      url: 'https://iloveberlin.biz',
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://iloveberlin.biz' },
+        { '@type': 'ListItem', position: 2, name: 'News' },
+      ],
+    },
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <section className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">

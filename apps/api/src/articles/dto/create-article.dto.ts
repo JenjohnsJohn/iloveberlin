@@ -22,6 +22,8 @@ export class CreateArticleDto {
   subtitle?: string;
 
   @IsString()
+  @IsNotEmpty({ message: 'Body must not be empty' })
+  @MaxLength(500000, { message: 'Body must not exceed 500,000 characters' })
   body!: string;
 
   @IsOptional()

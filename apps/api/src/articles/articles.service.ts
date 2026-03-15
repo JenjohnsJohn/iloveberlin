@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder, In } from 'typeorm';
+import { Repository, SelectQueryBuilder, In, DataSource } from 'typeorm';
 import { Article, ArticleStatus } from './entities/article.entity';
 import { ArticleRevision } from './entities/article-revision.entity';
 import { Tag } from '../tags/entities/tag.entity';
@@ -13,6 +13,7 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto, ArticleSortField, SortOrder } from './dto/article-query.dto';
 import { generateSlug } from '../common/utils/slug.util';
+import { sanitize } from '../common/utils/sanitize.util';
 
 @Injectable()
 export class ArticlesService {
@@ -27,6 +28,7 @@ export class ArticlesService {
     private readonly tagRepository: Repository<Tag>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(dto: CreateArticleDto, authorId: string): Promise<Article> {
@@ -42,40 +44,59 @@ export class ArticlesService {
     const sanitizedBody = this.sanitizeBody(dto.body);
     const readTime = this.calculateReadTime(sanitizedBody);
 
-    const article = this.articleRepository.create({
-      title: dto.title,
-      subtitle: dto.subtitle,
-      slug,
-      body: sanitizedBody,
-      excerpt: dto.excerpt,
-      featured_image_id: dto.featured_image_id,
-      category_id: dto.category_id,
-      author_id: authorId,
-      status: dto.status || ArticleStatus.DRAFT,
-      scheduled_at: dto.scheduled_at ? new Date(dto.scheduled_at) : null,
-      read_time_minutes: readTime,
-      seo_title: dto.seo_title,
-      seo_description: dto.seo_description,
-      seo_keywords: dto.seo_keywords,
-    });
+    // Wrap in transaction to ensure article + tags + revision are atomic
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    if (article.status === ArticleStatus.PUBLISHED) {
-      article.published_at = new Date();
+    try {
+      const article = this.articleRepository.create({
+        title: dto.title,
+        subtitle: dto.subtitle,
+        slug,
+        body: sanitizedBody,
+        excerpt: dto.excerpt,
+        featured_image_id: dto.featured_image_id,
+        category_id: dto.category_id,
+        author_id: authorId,
+        status: dto.status || ArticleStatus.DRAFT,
+        scheduled_at: dto.scheduled_at ? new Date(dto.scheduled_at) : null,
+        read_time_minutes: readTime,
+        seo_title: dto.seo_title,
+        seo_description: dto.seo_description,
+        seo_keywords: dto.seo_keywords,
+      });
+
+      if (article.status === ArticleStatus.PUBLISHED) {
+        article.published_at = new Date();
+      }
+
+      const savedArticle = await queryRunner.manager.save(article);
+
+      // Attach tags
+      if (dto.tag_ids && dto.tag_ids.length > 0) {
+        const tags = await this.tagRepository.findBy({ id: In(dto.tag_ids) });
+        savedArticle.tags = tags;
+        await queryRunner.manager.save(savedArticle);
+      }
+
+      // Save initial revision
+      const revision = this.revisionRepository.create({
+        article_id: savedArticle.id,
+        title: dto.title,
+        body: dto.body,
+        edited_by: authorId,
+      });
+      await queryRunner.manager.save(revision);
+
+      await queryRunner.commitTransaction();
+      return this.findById(savedArticle.id);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
     }
-
-    const savedArticle = await this.articleRepository.save(article);
-
-    // Attach tags
-    if (dto.tag_ids && dto.tag_ids.length > 0) {
-      const tags = await this.tagRepository.findBy({ id: In(dto.tag_ids) });
-      savedArticle.tags = tags;
-      await this.articleRepository.save(savedArticle);
-    }
-
-    // Save initial revision
-    await this.saveRevision(savedArticle.id, dto.title, dto.body, authorId);
-
-    return this.findById(savedArticle.id);
   }
 
   async findAll(
@@ -311,14 +332,7 @@ export class ArticlesService {
   }
 
   private sanitizeBody(body: string): string {
-    // Strip dangerous HTML: script tags, event handlers, javascript: URIs
-    return body
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
-      .replace(/javascript\s*:/gi, '')
-      .replace(/<iframe\b[^>]*\bsrcdoc\s*=/gi, '<iframe ')
-      .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
-      .replace(/<embed\b[^>]*\/?>/gi, '');
+    return sanitize(body);
   }
 
   private async generateUniqueSlug(title: string): Promise<string> {

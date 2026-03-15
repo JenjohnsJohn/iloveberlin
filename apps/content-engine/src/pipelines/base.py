@@ -354,8 +354,11 @@ class BasePipeline(ABC):
                         self.api_client, image_bytes, filename, "image/jpeg"
                     )
 
-            # Build and send payload
-            payload = self.build_api_payload(enriched, media_id)
+            # Build and send payload (use async version if available for category resolution)
+            if hasattr(self, 'build_api_payload_async'):
+                payload = await self.build_api_payload_async(enriched, media_id)
+            else:
+                payload = self.build_api_payload(enriched, media_id)
 
             # Set status based on per-type auto_publish setting from DB
             should_publish = await get_bool_setting(
