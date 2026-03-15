@@ -65,6 +65,8 @@ export class ArticlesService {
         seo_title: dto.seo_title,
         seo_description: dto.seo_description,
         seo_keywords: dto.seo_keywords,
+        source_url: dto.source_url,
+        source_name: dto.source_name,
       });
 
       if (article.status === ArticleStatus.PUBLISHED) {
@@ -217,6 +219,8 @@ export class ArticlesService {
     if (dto.seo_title !== undefined) article.seo_title = dto.seo_title || null;
     if (dto.seo_description !== undefined) article.seo_description = dto.seo_description || null;
     if (dto.seo_keywords !== undefined) article.seo_keywords = dto.seo_keywords || null;
+    if (dto.source_url !== undefined) article.source_url = dto.source_url || null;
+    if (dto.source_name !== undefined) article.source_name = dto.source_name || null;
     if (dto.scheduled_at !== undefined) article.scheduled_at = dto.scheduled_at ? new Date(dto.scheduled_at) : null;
 
     // Sync tags

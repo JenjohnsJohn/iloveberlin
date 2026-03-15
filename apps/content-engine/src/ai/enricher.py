@@ -107,6 +107,42 @@ async def enrich_article_from_rss(raw_data: dict) -> dict:
     return data
 
 
+async def summarize_article_from_rss(raw_data: dict) -> dict:
+    """Summarize an RSS article (150-200 words) with source attribution."""
+    feed_name = raw_data.get("feed_name", "")
+    title = raw_data.get("title", "")
+    link = raw_data.get("link", "")
+
+    user_prompt = prompts.ARTICLE_SUMMARY_USER.format(
+        feed_name=feed_name,
+        title=title,
+        summary=raw_data.get("summary", ""),
+    )
+    result = await ai_generate(
+        prompts.ARTICLE_SUMMARY_SYSTEM, user_prompt, max_tokens=1000
+    )
+    data = _parse_json_response(result)
+    body = sanitize_html(data.get("body", ""))
+
+    # Append source attribution block if we have a valid link
+    if link and link.startswith("http"):
+        attribution = (
+            "<hr>"
+            f'<p>Originally published by <strong>{feed_name or "the original source"}</strong>. '
+            f'<a href="{link}" target="_blank" rel="noopener noreferrer">'
+            f"Read the full article \u2192</a></p>"
+        )
+        body = body + attribution
+
+    data["body"] = body
+    # Keep original RSS title instead of AI-rewritten
+    data["title"] = title
+    # Pass through source fields for the API
+    data["source_url"] = link if link and link.startswith("http") else None
+    data["source_name"] = feed_name or None
+    return data
+
+
 async def enrich_article_original(topic: str) -> dict:
     """Generate a fully original article on a topic."""
     user_prompt = prompts.ARTICLE_ORIGINAL_USER.format(topic=topic)

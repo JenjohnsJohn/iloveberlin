@@ -34,6 +34,29 @@ Respond with ONLY valid JSON (no markdown fences):
   "seo_keywords": "comma, separated, keywords"
 }}"""
 
+ARTICLE_SUMMARY_SYSTEM = (
+    SYSTEM_BASE
+    + "\n\nYou will receive a news headline and summary from a Berlin news source. "
+    "Write a concise 150-200 word summary of the key points for readers. "
+    "Use <h2> and <p> tags. Do NOT copy the original — summarize in your own words. "
+    "Keep it informative and engaging."
+)
+
+ARTICLE_SUMMARY_USER = """Summarize this Berlin news article for our readers:
+
+Source: {feed_name}
+Headline: {title}
+Summary: {summary}
+
+Respond with ONLY valid JSON (no markdown fences):
+{{
+  "body": "<h2>Key Points</h2><p>Your 150-200 word summary in HTML format. Use <h2>, <p> tags.</p>",
+  "excerpt": "A 1-2 sentence excerpt for previews",
+  "seo_title": "SEO optimized title (max 60 chars)",
+  "seo_description": "SEO meta description (max 155 chars)",
+  "seo_keywords": "comma, separated, keywords"
+}}"""
+
 ARTICLE_ORIGINAL_SYSTEM = (
     SYSTEM_BASE
     + "\n\nWrite an original lifestyle article about Berlin. "

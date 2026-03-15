@@ -100,6 +100,12 @@ export class Article {
   @Column({ type: 'varchar', length: 500, nullable: true })
   seo_keywords!: string | null;
 
+  @Column({ type: 'varchar', length: 2000, nullable: true })
+  source_url!: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  source_name!: string | null;
+
   @ManyToMany(() => Tag, { eager: false })
   @JoinTable({
     name: 'article_tags',

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import yaml
 
-from src.ai.enricher import enrich_article_from_rss, enrich_article_original
+from src.ai.enricher import enrich_article_from_rss, enrich_article_original, summarize_article_from_rss
 from src.api_client.client import APIClient
 from src.db.settings import get_int_setting, get_json_setting
 from src.pipelines.base import BasePipeline
@@ -114,14 +114,14 @@ class ArticleRSSPipeline(_ArticleCategoryMixin, BasePipeline):
         return await self.source.fetch()
 
     async def enrich(self, raw_data: dict) -> dict:
-        return await enrich_article_from_rss(raw_data)
+        return await summarize_article_from_rss(raw_data)
 
     async def build_api_payload_async(self, enriched: dict, media_id: str | None = None) -> dict:
         payload = {
             "title": enriched.get("title", ""),
             "body": enriched.get("body", ""),
         }
-        for field in ["subtitle", "excerpt", "seo_title", "seo_description", "seo_keywords"]:
+        for field in ["subtitle", "excerpt", "seo_title", "seo_description", "seo_keywords", "source_url", "source_name"]:
             if enriched.get(field):
                 payload[field] = enriched[field]
         if media_id:
@@ -138,7 +138,7 @@ class ArticleRSSPipeline(_ArticleCategoryMixin, BasePipeline):
             "title": enriched.get("title", ""),
             "body": enriched.get("body", ""),
         }
-        for field in ["subtitle", "excerpt", "seo_title", "seo_description", "seo_keywords"]:
+        for field in ["subtitle", "excerpt", "seo_title", "seo_description", "seo_keywords", "source_url", "source_name"]:
             if enriched.get(field):
                 payload[field] = enriched[field]
         if media_id:

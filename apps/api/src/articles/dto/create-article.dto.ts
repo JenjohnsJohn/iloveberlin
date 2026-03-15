@@ -59,6 +59,16 @@ export class CreateArticleDto {
   seo_keywords?: string;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  source_url?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  source_name?: string;
+
+  @IsOptional()
   @IsEnum(ArticleStatus)
   status?: ArticleStatus;
 

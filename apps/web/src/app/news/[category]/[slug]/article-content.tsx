@@ -28,6 +28,8 @@ interface ArticleContentProps {
     publishedAt: string;
     readTime: number;
     tags: string[];
+    sourceUrl: string | null;
+    sourceName: string | null;
   };
 }
 
@@ -193,6 +195,24 @@ export function ArticleContent({ article }: ArticleContentProps) {
             className="prose prose-lg max-w-none mb-8 prose-headings:font-heading prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary-600 hover:prose-a:text-primary-700"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.body) }}
           />
+
+          {/* Source Attribution */}
+          {article.sourceUrl && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+              <p className="text-sm text-blue-900">
+                This article was originally published by{' '}
+                <strong>{article.sourceName || 'the original source'}</strong>.
+              </p>
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 text-sm font-semibold text-blue-700 hover:text-blue-800 transition-colors"
+              >
+                Read the full article &rarr;
+              </a>
+            </div>
+          )}
 
           {/* Tags */}
           <div className="flex items-center flex-wrap gap-2 pb-6 border-b border-gray-200 mb-6">

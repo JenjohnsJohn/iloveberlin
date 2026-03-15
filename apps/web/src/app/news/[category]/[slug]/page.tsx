@@ -22,6 +22,8 @@ interface Article {
   seo_title?: string | null;
   seo_description?: string | null;
   seo_keywords?: string | null;
+  source_url?: string | null;
+  source_name?: string | null;
 }
 
 async function getArticle(slug: string): Promise<Article | null> {
@@ -151,6 +153,8 @@ export default async function ArticleDetailPage({
           publishedAt: publishedDate,
           readTime: article.read_time_minutes,
           tags: article.tags.map((t) => t.name),
+          sourceUrl: article.source_url || null,
+          sourceName: article.source_name || null,
         }}
       />
     </>
