@@ -49,18 +49,21 @@ interface CuratedSections {
   classifieds: ResolvedHomepageItem[];
 }
 
-interface HeroSlide {
-  key: string;
-  label: string;
+interface HeroSlideItem {
   title: string;
-  excerpt: string;
   imageUrl: string | null;
   linkHref: string;
-  linkText: string;
+  categoryTag: string;
+  excerpt?: string;
+}
+
+interface HeroSlide {
+  key: string;
+  gradient: string;
+  label: string;
   secondaryHref: string;
   secondaryText: string;
-  gradient: string;
-  categoryTag: string;
+  items: HeroSlideItem[];
 }
 
 interface ClassifiedItem {
@@ -245,10 +248,11 @@ const CONTENT_TYPE_TO_HERO_KEY: Record<string, keyof typeof HERO_SLIDE_CONFIG> =
   product: 'store',
 };
 
-function curatedItemToHeroSlide(item: ResolvedHomepageItem): HeroSlide | null {
+type PooledHeroItem = HeroSlideItem & { _configKey: keyof typeof HERO_SLIDE_CONFIG };
+
+function curatedItemToPooledHeroItem(item: ResolvedHomepageItem): PooledHeroItem | null {
   const heroKey = CONTENT_TYPE_TO_HERO_KEY[item.content_type];
   if (!heroKey) return null;
-  const cfg = HERO_SLIDE_CONFIG[heroKey];
 
   let linkHref = '/';
   switch (item.content_type) {
@@ -279,17 +283,12 @@ function curatedItemToHeroSlide(item: ResolvedHomepageItem): HeroSlide | null {
   }
 
   return {
-    key: `curated-${item.content_type}-${item.content_id}`,
-    label: cfg.label,
     title: item.title,
-    excerpt: item.excerpt || '',
     imageUrl: item.image_url,
     linkHref,
-    linkText: cfg.linkText,
-    secondaryHref: cfg.secondaryHref,
-    secondaryText: cfg.secondaryText,
-    gradient: cfg.gradient,
     categoryTag: item.category_name || item.content_type,
+    excerpt: item.excerpt || '',
+    _configKey: heroKey,
   };
 }
 
@@ -456,6 +455,25 @@ const HERO_SLIDE_CONFIG = {
     secondaryHref: '/store',
   },
 } as const;
+
+const HERO_GRADIENTS = [
+  'from-primary-500 to-primary-700',
+  'from-rose-500 to-rose-700',
+  'from-emerald-500 to-emerald-700',
+  'from-sky-500 to-sky-700',
+  'from-violet-500 to-violet-700',
+  'from-amber-500 to-amber-700',
+  'from-slate-500 to-slate-700',
+  'from-fuchsia-500 to-fuchsia-700',
+];
+
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
 
 // ─── Homepage ──────────────────────────────────────────────
 
@@ -816,161 +834,102 @@ export default function HomePage() {
     fetchHomepageData().finally(() => setIsLoading(false));
   }, []);
 
-  // ─── Hero Slides ──────────────────────────────────────────
-  const heroSlides: HeroSlide[] = [];
+  // ─── Hero Slides (5 items per slide: 1 large + 4 tiles) ──
+  const heroSlides: HeroSlide[] = (() => {
+    let pooledItems: PooledHeroItem[] = [];
 
-  // If curated hero items exist, use them; otherwise fall back to first item from each section
-  if (curatedHero.length > 0) {
-    for (const item of curatedHero) {
-      const slide = curatedItemToHeroSlide(item);
-      if (slide) heroSlides.push(slide);
-    }
-  } else {
-    // Fallback: build hero from first item of each data section
-    if (trendingArticles.length > 0) {
-      const a = trendingArticles[0];
-      const cfg = HERO_SLIDE_CONFIG.news;
-      heroSlides.push({
-        key: 'news',
-        label: cfg.label,
-        title: a.title,
-        excerpt: a.excerpt,
-        imageUrl: a.featuredImage,
-        linkHref: buildArticleUrl(a.slug, a.categorySlug),
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: a.category || 'News',
-      });
-    }
-
-    if (featuredEvents.length > 0) {
-      const e = featuredEvents[0];
-      const cfg = HERO_SLIDE_CONFIG.events;
-      heroSlides.push({
-        key: 'events',
-        label: cfg.label,
-        title: e.title,
-        excerpt: e.excerpt || '',
-        imageUrl: e.featuredImage,
-        linkHref: buildEventUrl(e.slug, e.categorySlug),
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: e.category || 'Events',
-      });
-    }
-
-    if (diningHighlights.length > 0) {
-      const d = diningHighlights[0];
-      const cfg = HERO_SLIDE_CONFIG.dining;
-      heroSlides.push({
-        key: 'dining',
-        label: cfg.label,
-        title: d.name,
-        excerpt: d.description,
-        imageUrl: d.featuredImage,
-        linkHref: buildRestaurantUrl(d.slug, d.primaryCuisineSlug),
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: d.cuisines[0] || 'Dining',
-      });
-    }
-
-    if (guides.length > 0) {
-      const g = guides[0];
-      const cfg = HERO_SLIDE_CONFIG.guide;
-      heroSlides.push({
-        key: 'guide',
-        label: cfg.label,
-        title: g.title,
-        excerpt: g.excerpt,
-        imageUrl: null,
-        linkHref: buildGuideUrl(g.slug, g.topicSlug),
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: 'Guide',
-      });
+    if (curatedHero.length > 0) {
+      // Use curated hero items
+      for (const item of curatedHero) {
+        const pooled = curatedItemToPooledHeroItem(item);
+        if (pooled) pooledItems.push(pooled);
+      }
+    } else {
+      // Fallback: pool items from all sections
+      pooledItems.push(
+        ...trendingArticles.map((a): PooledHeroItem => ({
+          title: a.title,
+          imageUrl: a.featuredImage,
+          linkHref: buildArticleUrl(a.slug, a.categorySlug),
+          categoryTag: a.category || 'News',
+          excerpt: a.excerpt,
+          _configKey: 'news',
+        })),
+        ...featuredEvents.map((e): PooledHeroItem => ({
+          title: e.title,
+          imageUrl: e.featuredImage,
+          linkHref: buildEventUrl(e.slug, e.categorySlug),
+          categoryTag: e.category || 'Events',
+          excerpt: e.excerpt || '',
+          _configKey: 'events',
+        })),
+        ...diningHighlights.map((d): PooledHeroItem => ({
+          title: d.name,
+          imageUrl: d.featuredImage,
+          linkHref: buildRestaurantUrl(d.slug, d.primaryCuisineSlug),
+          categoryTag: d.cuisines[0] || 'Dining',
+          excerpt: d.description,
+          _configKey: 'dining',
+        })),
+        ...guides.map((g): PooledHeroItem => ({
+          title: g.title,
+          imageUrl: null,
+          linkHref: buildGuideUrl(g.slug, g.topicSlug),
+          categoryTag: 'Guide',
+          excerpt: g.excerpt,
+          _configKey: 'guide',
+        })),
+        ...latestVideos.map((v): PooledHeroItem => ({
+          title: v.title,
+          imageUrl: v.thumbnailUrl,
+          linkHref: buildVideoUrl(v.slug, v.seriesSlug),
+          categoryTag: v.seriesName || 'Video',
+          excerpt: v.seriesName ? `From the series: ${v.seriesName}` : '',
+          _configKey: 'videos',
+        })),
+        ...competitions.map((c): PooledHeroItem => ({
+          title: c.title,
+          imageUrl: c.featuredImage,
+          linkHref: buildCompetitionUrl(c.slug, c.categorySlug),
+          categoryTag: 'Competition',
+          excerpt: c.description,
+          _configKey: 'competitions',
+        })),
+        ...classifieds.map((cl): PooledHeroItem => ({
+          title: cl.title,
+          imageUrl: cl.imageUrl,
+          linkHref: `/classifieds/${cl.categorySlug}/${cl.slug}`,
+          categoryTag: cl.category || 'Classified',
+          excerpt: cl.location ? `Located in ${cl.location}` : cl.category,
+          _configKey: 'classifieds',
+        })),
+        ...storeProducts.map((p): PooledHeroItem => ({
+          title: p.name,
+          imageUrl: p.imageUrl,
+          linkHref: `/store/${p.categorySlug}/${p.slug}`,
+          categoryTag: p.category || 'Store',
+          excerpt: p.shortDescription,
+          _configKey: 'store',
+        })),
+      );
     }
 
-    if (latestVideos.length > 0) {
-      const v = latestVideos[0];
-      const cfg = HERO_SLIDE_CONFIG.videos;
-      heroSlides.push({
-        key: 'videos',
-        label: cfg.label,
-        title: v.title,
-        excerpt: v.seriesName ? `From the series: ${v.seriesName}` : 'Watch the latest Berlin video',
-        imageUrl: v.thumbnailUrl,
-        linkHref: buildVideoUrl(v.slug, v.seriesSlug),
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: v.seriesName || 'Video',
+    // Chunk into groups of 5 → one slide per chunk
+    const chunks = chunkArray(pooledItems, 5);
+    return chunks
+      .filter(chunk => chunk.length >= 2) // need at least large + 1 tile
+      .map((chunk, i) => {
+        const leadCfg = HERO_SLIDE_CONFIG[chunk[0]._configKey];
+        return {
+          key: `hero-slide-${i}`,
+          gradient: HERO_GRADIENTS[i % HERO_GRADIENTS.length],
+          label: leadCfg.label,
+          secondaryHref: leadCfg.secondaryHref,
+          secondaryText: leadCfg.secondaryText,
+          items: chunk.map(({ _configKey, ...item }) => item),
+        };
       });
-    }
-
-    if (competitions.length > 0) {
-      const c = competitions[0];
-      const cfg = HERO_SLIDE_CONFIG.competitions;
-      heroSlides.push({
-        key: 'competitions',
-        label: cfg.label,
-        title: c.title,
-        excerpt: c.description,
-        imageUrl: c.featuredImage,
-        linkHref: buildCompetitionUrl(c.slug, c.categorySlug),
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: 'Competition',
-      });
-    }
-
-    if (classifieds.length > 0) {
-      const cl = classifieds.find(c => c.featured) || classifieds[0];
-      const cfg = HERO_SLIDE_CONFIG.classifieds;
-      heroSlides.push({
-        key: 'classifieds',
-        label: cfg.label,
-        title: cl.title,
-        excerpt: cl.location ? `Located in ${cl.location}` : cl.category,
-        imageUrl: cl.imageUrl,
-        linkHref: `/classifieds/${cl.categorySlug}/${cl.slug}`,
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: cl.category || 'Classified',
-      });
-    }
-
-    if (storeProducts.length > 0) {
-      const p = storeProducts[0];
-      const cfg = HERO_SLIDE_CONFIG.store;
-      heroSlides.push({
-        key: 'store',
-        label: cfg.label,
-        title: p.name,
-        excerpt: p.shortDescription,
-        imageUrl: p.imageUrl,
-        linkHref: `/store/${p.categorySlug}/${p.slug}`,
-        linkText: cfg.linkText,
-        secondaryHref: cfg.secondaryHref,
-        secondaryText: cfg.secondaryText,
-        gradient: cfg.gradient,
-        categoryTag: p.category || 'Store',
-      });
-    }
-  }
+  })();
 
   // ─── Carousel Navigation ────────────────────────────────
   const goToSlide = useCallback((index: number) => {
@@ -1065,19 +1024,16 @@ export default function HomePage() {
         }}
       >
         {isLoading ? (
-          <div className="bg-gradient-to-br from-primary-500 to-primary-700 py-10 md:py-14">
+          <div className="bg-gradient-to-br from-primary-500 to-primary-700 py-6 md:py-8">
             <div className="container mx-auto px-4">
-              <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                <div>
-                  <div className="h-6 bg-white/20 rounded-full w-32 mb-4" />
-                  <div className="h-12 bg-white/20 rounded w-3/4 mb-4" />
-                  <div className="h-6 bg-white/10 rounded w-full mb-6" />
-                  <div className="flex gap-4">
-                    <div className="h-12 bg-white/20 rounded-lg w-32" />
-                    <div className="h-12 bg-white/10 rounded-lg w-36" />
-                  </div>
+              <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-2">
+                <div className="aspect-[16/9] lg:aspect-auto lg:h-[400px] bg-white/10 rounded-xl" />
+                <div className="grid grid-cols-2 grid-rows-2 gap-2">
+                  <div className="aspect-square bg-white/10 rounded-xl" />
+                  <div className="aspect-square bg-white/10 rounded-xl" />
+                  <div className="aspect-square bg-white/10 rounded-xl" />
+                  <div className="aspect-square bg-white/10 rounded-xl" />
                 </div>
-                <div className="aspect-[4/3] bg-white/10 rounded-xl" />
               </div>
             </div>
           </div>
@@ -1096,54 +1052,95 @@ export default function HomePage() {
                   }`}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`} />
-                  <div className="relative py-10 md:py-14">
+                  <div className="relative py-6 md:py-8">
                     <div className="container mx-auto px-4">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-                        <div>
-                          <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-sm font-medium mb-4">
-                            {slide.label}
-                          </span>
-                          <h1 className="text-3xl md:text-4xl font-bold mb-3">
-                            {slide.title}
-                          </h1>
-                          <p className="text-base text-white/80 mb-4 max-w-xl line-clamp-2">
-                            {slide.excerpt}
-                          </p>
-                          <div className="flex items-center gap-4 flex-wrap">
-                            <Link
-                              href={slide.linkHref}
-                              tabIndex={index === activeSlide ? 0 : -1}
-                              className="px-5 py-2.5 bg-white text-gray-900 rounded-lg font-semibold hover:bg-white/90 transition-colors text-sm"
-                            >
-                              {slide.linkText}
-                            </Link>
-                            <Link
-                              href={slide.secondaryHref}
-                              tabIndex={index === activeSlide ? 0 : -1}
-                              className="px-5 py-2.5 bg-white/20 text-white rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/30 text-sm"
-                            >
-                              {slide.secondaryText}
-                            </Link>
-                          </div>
-                        </div>
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-white/10">
-                          {slide.imageUrl ? (
-                            <img
-                              src={slide.imageUrl}
-                              alt={slide.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <svg className="w-24 h-24 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
+                      {/* Browse link */}
+                      <div className="flex justify-end mb-2">
+                        <Link
+                          href={slide.secondaryHref}
+                          tabIndex={index === activeSlide ? 0 : -1}
+                          className="text-xs font-medium text-white/70 hover:text-white transition-colors flex items-center gap-1"
+                        >
+                          {slide.secondaryText}
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                      </div>
+                      {/* 1 Large + up to 4 Tiles */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                        {/* Large featured item (left) */}
+                        {slide.items[0] && (
+                          <Link
+                            href={slide.items[0].linkHref}
+                            tabIndex={index === activeSlide ? 0 : -1}
+                            className="relative block rounded-xl overflow-hidden group aspect-[16/9] lg:aspect-auto lg:h-[400px] bg-white/10"
+                          >
+                            {slide.items[0].imageUrl ? (
+                              <img
+                                src={slide.items[0].imageUrl}
+                                alt={slide.items[0].title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg className="w-20 h-20 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 p-5">
+                              <span className="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold mb-2">
+                                {slide.items[0].categoryTag}
+                              </span>
+                              <h2 className="text-xl md:text-2xl font-bold line-clamp-2 mb-1">
+                                {slide.items[0].title}
+                              </h2>
+                              {slide.items[0].excerpt && (
+                                <p className="text-sm text-white/80 line-clamp-2 hidden md:block">
+                                  {slide.items[0].excerpt}
+                                </p>
+                              )}
                             </div>
-                          )}
-                          <span className="absolute top-4 left-4 px-3 py-1 bg-black/30 backdrop-blur-sm text-white text-sm font-semibold rounded-full">
-                            {slide.categoryTag}
-                          </span>
-                        </div>
+                          </Link>
+                        )}
+                        {/* 4 Tile items (right, 2x2 grid) */}
+                        {slide.items.length > 1 && (
+                          <div className="grid grid-cols-2 grid-rows-2 gap-2">
+                            {slide.items.slice(1, 5).map((item, i) => (
+                              <Link
+                                key={i}
+                                href={item.linkHref}
+                                tabIndex={index === activeSlide ? 0 : -1}
+                                className="relative block rounded-xl overflow-hidden group aspect-square bg-white/10"
+                              >
+                                {item.imageUrl ? (
+                                  <img
+                                    src={item.imageUrl}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <svg className="w-10 h-10 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 p-3">
+                                  <span className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-semibold mb-1">
+                                    {item.categoryTag}
+                                  </span>
+                                  <h3 className="text-sm font-bold line-clamp-2">
+                                    {item.title}
+                                  </h3>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1184,7 +1181,7 @@ export default function HomePage() {
                           ? 'w-6 bg-white'
                           : 'w-2 bg-white/50 hover:bg-white/70'
                       }`}
-                      aria-label={`Go to slide ${index + 1}: ${slide.label}`}
+                      aria-label={`Go to slide ${index + 1} of ${heroSlides.length}`}
                       aria-current={index === activeSlide ? 'true' : undefined}
                     />
                   ))}
