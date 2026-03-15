@@ -547,7 +547,7 @@ export default function HomePage() {
 
       if (needsTrending) {
         fallbackKeys.push('articles');
-        fallbackPromises.push(apiClient.get('/articles', { params: { limit: 6, sort: 'date', order: 'desc' } }));
+        fallbackPromises.push(apiClient.get('/articles', { params: { limit: 8, sort: 'date', order: 'desc' } }));
       }
       if (needsEvents) {
         fallbackKeys.push('events');
@@ -609,7 +609,7 @@ export default function HomePage() {
       // Trending articles fallback
       const articlesList = extractList('articles');
       if (articlesList) {
-        const trending = articlesList.slice(0, 6).map((a) => ({
+        const trending = articlesList.slice(0, 8).map((a) => ({
           slug: a.slug as string,
           title: a.title as string,
           excerpt: (a.excerpt || a.summary || '') as string,
