@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     kling_access_key: str = ""
     kling_secret_key: str = ""
 
+    # Google Places API (New)
+    google_places_api_key: str = ""
+
     # Logging
     log_level: str = "INFO"
 

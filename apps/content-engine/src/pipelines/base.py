@@ -307,8 +307,8 @@ class BasePipeline(ABC):
             media_id = None
             image_url = item.raw_data.get("_image_url")
 
+            # 1. Try source image URL
             if image_url:
-                # Source image exists — download and upload
                 result = await download_image(image_url)
                 if result:
                     image_bytes, content_type = result
@@ -317,8 +317,26 @@ class BasePipeline(ABC):
                     media_id = await upload_image(
                         self.api_client, image_bytes, filename, content_type
                     )
-            else:
-                # No source image — generate via Kling AI
+
+            # 2. Try Google Places photo (restaurants only)
+            if not media_id and item.content_type == "restaurant":
+                from src.sources.google_places import get_restaurant_photo
+
+                name = item.raw_data.get("name") or enriched.get("name", "")
+                lat = item.raw_data.get("latitude")
+                lon = item.raw_data.get("longitude")
+                if name:
+                    gp_result = await get_restaurant_photo(name, lat, lon)
+                    if gp_result:
+                        image_bytes, content_type = gp_result
+                        ext = content_type.split("/")[-1]
+                        filename = f"content-engine-{item.id}.{ext}"
+                        media_id = await upload_image(
+                            self.api_client, image_bytes, filename, content_type
+                        )
+
+            # 3. Fallback: Kling AI
+            if not media_id:
                 from src.ai.image_generator import generate_image
 
                 image_bytes = await generate_image(item.content_type, enriched)
