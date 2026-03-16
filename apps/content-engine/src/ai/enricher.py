@@ -107,31 +107,74 @@ async def enrich_article_from_rss(raw_data: dict) -> dict:
     return data
 
 
-async def summarize_article_from_rss(raw_data: dict) -> dict:
-    """Summarize an RSS article (150-200 words) with source attribution."""
+def _build_fallback_article(raw_data: dict) -> dict:
+    """Build an article directly from RSS data when AI is unavailable."""
     feed_name = raw_data.get("feed_name", "")
     title = raw_data.get("title", "")
     link = raw_data.get("link", "")
     content = raw_data.get("content", "")
     summary = raw_data.get("summary", "")
 
-    # Use full content when available (truncated to ~3000 chars to save tokens),
-    # fall back to summary
-    if content and len(content) > 100:
-        content_block = f"Full article text:\n{content[:3000]}"
-    else:
-        content_block = f"Summary: {summary}"
+    # Build body from best available text
+    text = content if content and len(content) > 100 else summary
+    # Wrap plain text paragraphs in <p> tags
+    paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
+    body = "".join(f"<p>{p}</p>" for p in paragraphs) if paragraphs else f"<p>{text}</p>"
 
-    user_prompt = prompts.ARTICLE_SUMMARY_USER.format(
-        feed_name=feed_name,
-        title=title,
-        content_block=content_block,
-    )
-    result = await ai_generate(
-        prompts.ARTICLE_SUMMARY_SYSTEM, user_prompt, max_tokens=1000
-    )
-    data = _parse_json_response(result)
-    body = sanitize_html(data.get("body", ""))
+    # Append source attribution
+    if link and link.startswith("http"):
+        body += (
+            "<hr>"
+            f'<p>Originally published by <strong>{feed_name or "the original source"}</strong>. '
+            f'<a href="{link}" target="_blank" rel="noopener noreferrer">'
+            f"Read the full article \u2192</a></p>"
+        )
+
+    # Build a short excerpt from the first ~200 chars of text
+    excerpt = text[:200].rsplit(" ", 1)[0] + "..." if len(text) > 200 else text
+
+    return {
+        "title": title,
+        "body": body,
+        "excerpt": excerpt,
+        "source_url": link if link and link.startswith("http") else None,
+        "source_name": feed_name or None,
+    }
+
+
+async def summarize_article_from_rss(raw_data: dict) -> dict:
+    """Summarize an RSS article (150-200 words) with source attribution.
+
+    Falls back to raw RSS content if AI is unavailable.
+    """
+    feed_name = raw_data.get("feed_name", "")
+    title = raw_data.get("title", "")
+    link = raw_data.get("link", "")
+    content = raw_data.get("content", "")
+    summary = raw_data.get("summary", "")
+
+    # Try AI summarization, fall back to raw content on any failure
+    try:
+        # Use full content when available (truncated to ~3000 chars to save tokens),
+        # fall back to summary
+        if content and len(content) > 100:
+            content_block = f"Full article text:\n{content[:3000]}"
+        else:
+            content_block = f"Summary: {summary}"
+
+        user_prompt = prompts.ARTICLE_SUMMARY_USER.format(
+            feed_name=feed_name,
+            title=title,
+            content_block=content_block,
+        )
+        result = await ai_generate(
+            prompts.ARTICLE_SUMMARY_SYSTEM, user_prompt, max_tokens=1000
+        )
+        data = _parse_json_response(result)
+        body = sanitize_html(data.get("body", ""))
+    except Exception as e:
+        log.warning("AI unavailable, using raw RSS content", error=str(e)[:200])
+        return _build_fallback_article(raw_data)
 
     # Append source attribution block if we have a valid link
     if link and link.startswith("http"):
