@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'I♥Berlin privacy policy - how we collect, use, and protect your personal data.',
+  description: 'ILOVEBERLIN privacy policy - how we collect, use, and protect your personal data.',
 };
 
 export default function PrivacyPolicyPage() {
@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Introduction</h2>
           <p className="text-gray-600 leading-relaxed">
-            Welcome to I♥Berlin (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We are committed to protecting
+            Welcome to ILOVEBERLIN (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We are committed to protecting
             your personal data and respecting your privacy. This Privacy Policy explains how we collect,
             use, disclose, and safeguard your information when you visit our website at iloveberlin.biz.
           </p>

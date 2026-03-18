@@ -14,8 +14,8 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: 'I♥Berlin - Your Digital Guide to Berlin Life',
-    template: '%s | I♥Berlin',
+    default: 'ILOVEBERLIN - Your Digital Guide to Berlin Life',
+    template: '%s | ILOVEBERLIN',
   },
   description:
     'Discover Berlin life - news, events, dining, guides, videos, and more. Your digital lifestyle hub for everything Berlin.',
@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://iloveberlin.biz',
-    siteName: 'I♥Berlin',
-    title: 'I♥Berlin - Your Digital Guide to Berlin Life',
+    siteName: 'ILOVEBERLIN',
+    title: 'ILOVEBERLIN - Your Digital Guide to Berlin Life',
     description: 'Discover Berlin life - news, events, dining, guides, videos, and more.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'I♥Berlin',
+    title: 'ILOVEBERLIN',
     description: 'Discover Berlin life - news, events, dining, guides, videos, and more.',
   },
   icons: {

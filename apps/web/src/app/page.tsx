@@ -802,7 +802,7 @@ export default function HomePage() {
             slug: g.slug as string,
             title: g.title as string,
             excerpt: (g.excerpt || g.description || g.summary || '') as string,
-            author: (author?.name || author?.username || g.author_name || 'I♥Berlin Team') as string,
+            author: (author?.name || author?.username || g.author_name || 'ILOVEBERLIN Team') as string,
             topicSlug: (topic?.slug || g.topic_slug || g.topicSlug || '') as string,
             lastReviewed: (g.last_reviewed || g.lastReviewed || g.updated_at || g.updatedAt || '') as string,
           };
@@ -971,7 +971,7 @@ export default function HomePage() {
     '@graph': [
       {
         '@type': 'Organization',
-        name: 'I♥Berlin',
+        name: 'ILOVEBERLIN',
         url: 'https://iloveberlin.biz',
         logo: 'https://iloveberlin.biz/logo.png',
         sameAs: [
@@ -982,7 +982,7 @@ export default function HomePage() {
       },
       {
         '@type': 'WebSite',
-        name: 'I♥Berlin',
+        name: 'ILOVEBERLIN',
         url: 'https://iloveberlin.biz',
         potentialAction: {
           '@type': 'SearchAction',
@@ -1201,7 +1201,7 @@ export default function HomePage() {
         ) : (
           <div className="bg-gradient-to-br from-primary-500 to-primary-700 py-10 md:py-14">
             <div className="container mx-auto px-4 text-center py-6">
-              <h1 className="text-3xl md:text-4xl font-bold mb-3">Welcome to I♥Berlin</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-3">Welcome to ILOVEBERLIN</h1>
               <p className="text-base text-white/80 mb-4 max-w-xl mx-auto">
                 Your digital guide to Berlin life — news, events, dining, guides, and more.
               </p>

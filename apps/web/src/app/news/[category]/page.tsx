@@ -49,10 +49,10 @@ export async function generateMetadata({
   if (!categoryName) return { title: 'Category Not Found' };
 
   return {
-    title: `${categoryName} News - I♥Berlin`,
+    title: `${categoryName} News - ILOVEBERLIN`,
     description: `The latest ${categoryName.toLowerCase()} news and stories from Berlin.`,
     openGraph: {
-      title: `${categoryName} News - I♥Berlin`,
+      title: `${categoryName} News - ILOVEBERLIN`,
       description: `The latest ${categoryName.toLowerCase()} news and stories from Berlin.`,
     },
   };

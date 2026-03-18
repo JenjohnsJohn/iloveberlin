@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Imprint (Impressum)',
-  description: 'I♥Berlin legal imprint - Impressum as required by German law.',
+  description: 'ILOVEBERLIN legal imprint - Impressum as required by German law.',
 };
 
 export default function ImprintPage() {
@@ -16,7 +16,7 @@ export default function ImprintPage() {
             Angaben gem. &sect; 5 TMG (Information according to &sect; 5 TMG)
           </h2>
           <div className="text-gray-600 leading-relaxed space-y-1">
-            <p>I♥Berlin GmbH</p>
+            <p>ILOVEBERLIN GmbH</p>
             <p>Musterstra&szlig;e 123</p>
             <p>10115 Berlin</p>
             <p>Germany</p>
@@ -66,7 +66,7 @@ export default function ImprintPage() {
           </h2>
           <div className="text-gray-600 leading-relaxed space-y-1">
             <p>Max Mustermann</p>
-            <p>I♥Berlin GmbH</p>
+            <p>ILOVEBERLIN GmbH</p>
             <p>Musterstra&szlig;e 123</p>
             <p>10115 Berlin</p>
           </div>

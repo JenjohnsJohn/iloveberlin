@@ -117,7 +117,7 @@ export default async function ArticleDetailPage({
     },
     publisher: {
       '@type': 'Organization',
-      name: 'I♥Berlin',
+      name: 'ILOVEBERLIN',
       url: 'https://iloveberlin.biz',
     },
     mainEntityOfPage: {

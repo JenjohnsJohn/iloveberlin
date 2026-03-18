@@ -40,7 +40,7 @@ export async function generateMetadata({
   const categoryName = await getCategoryName(slug);
 
   return {
-    title: `${categoryName} - Berlin Store - I♥Berlin`,
+    title: `${categoryName} - Berlin Store - ILOVEBERLIN`,
     description: `Shop ${categoryName.toLowerCase()} products from Berlin.`,
     openGraph: {
       title: `${categoryName} - Berlin Store`,

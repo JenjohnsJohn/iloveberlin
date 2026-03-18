@@ -71,7 +71,7 @@ export async function generateMetadata({
   const categorySlug = raw.category?.slug || null;
 
   return {
-    title: `${competition.title} - I♥Berlin Competition`,
+    title: `${competition.title} - ILOVEBERLIN Competition`,
     description: plainDesc,
     openGraph: {
       title: competition.title,
@@ -131,7 +131,7 @@ export default async function CompetitionDetailPage({
     },
     organizer: {
       '@type': 'Organization',
-      name: 'I♥Berlin',
+      name: 'ILOVEBERLIN',
       url: 'https://iloveberlin.biz',
     },
     ...(competition.featuredImage && {

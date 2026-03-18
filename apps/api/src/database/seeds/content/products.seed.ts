@@ -10,7 +10,7 @@ import {
 
 const NAME_TEMPLATES = [
   (sub: string, d: string) => `Berlin ${sub} - ${d} Edition`,
-  (sub: string) => `I ♥ Berlin ${sub}`,
+  (sub: string) => `ILOVEBERLIN ${sub}`,
   (sub: string, d: string) => `${d} Inspired ${sub}`,
   (sub: string, _d: string, l: string) => `${l} ${sub}`,
   (sub: string) => `Classic Berlin ${sub}`,

@@ -96,7 +96,7 @@ export default async function NewsPage() {
     url: 'https://iloveberlin.biz/news',
     isPartOf: {
       '@type': 'WebSite',
-      name: 'I♥Berlin',
+      name: 'ILOVEBERLIN',
       url: 'https://iloveberlin.biz',
     },
     breadcrumb: {
