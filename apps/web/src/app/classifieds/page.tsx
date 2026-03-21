@@ -119,16 +119,23 @@ export default async function ClassifiedsPage() {
     <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
       <section className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-100 rounded-full mb-4">
+          <svg className="w-7 h-7 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+          </svg>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
           Berlin Classifieds
         </h1>
+        <div className="w-12 h-1 bg-emerald-500 rounded-full mx-auto mb-3" />
         <p className="text-base text-gray-600 max-w-2xl mx-auto mb-6">
           Buy, sell, and discover goods and services in Berlin. From apartments
           to electronics, find what you need in your neighbourhood.
         </p>
         <Link
           href="/classifieds/create"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+          className="inline-flex items-center gap-2 px-8 py-3 bg-primary-600 text-white rounded-full hover:bg-primary-700 shadow-lg shadow-primary-600/25 hover:shadow-primary-600/40 transition-all font-semibold text-base"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

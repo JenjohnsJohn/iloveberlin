@@ -97,14 +97,14 @@ export function CategoryGrid({ categories, basePath, emptyMessage, slugTransform
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
       {categories.map((category) => {
         const href = `${basePath}/${slugTransform ? slugTransform(category.slug) : category.slug}`;
         return (
           <Link
             key={category.slug}
             href={href}
-            className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+            className="group inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-white border border-gray-200 text-gray-600 hover:border-primary-300 hover:text-primary-600 transition-all whitespace-nowrap"
           >
             <span className="text-gray-400 group-hover:text-primary-500 transition-colors">
               <CategoryIcon icon={category.icon} />

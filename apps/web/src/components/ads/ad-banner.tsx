@@ -65,16 +65,22 @@ export function AdBanner({ position, className = '' }: AdBannerProps) {
   const sizes = POSITION_SIZES[position];
 
   return (
-    <div
-      ref={bannerRef}
-      className={`${sizes.width} ${sizes.height} bg-gray-100 border border-gray-200 border-dashed rounded-lg flex flex-col items-center justify-center ${className}`}
-    >
-      <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">
-        Advertisement
-      </span>
-      <span className="text-xs text-gray-300 mt-1">
-        {POSITION_LABELS[position]}
-      </span>
+    <div className={`relative ${className}`}>
+      {/* Sponsored label */}
+      <div className="flex items-center justify-center mb-1.5">
+        <span className="text-[10px] text-gray-400 uppercase tracking-widest font-medium">
+          Sponsored
+        </span>
+      </div>
+      {/* Ad container */}
+      <div
+        ref={bannerRef}
+        className={`${sizes.width} ${sizes.height} bg-gray-50 border border-gray-100 rounded-xl flex flex-col items-center justify-center overflow-hidden transition-opacity duration-300`}
+      >
+        <span className="text-xs text-gray-300 mt-1">
+          {POSITION_LABELS[position]}
+        </span>
+      </div>
     </div>
   );
 }

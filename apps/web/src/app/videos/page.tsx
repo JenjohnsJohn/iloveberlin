@@ -98,9 +98,15 @@ export default async function VideosPage() {
     <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
       <section className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-rose-100 rounded-full mb-4">
+          <svg className="w-7 h-7 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+          </svg>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
           Berlin Videos
         </h1>
+        <div className="w-12 h-1 bg-rose-500 rounded-full mx-auto mb-3" />
         <p className="text-base text-gray-600 max-w-2xl mx-auto">
           Watch our video series exploring Berlin life, food, culture, and the people
           who make this city unique.

@@ -422,22 +422,6 @@ export function Header() {
         )}
       </div>
 
-      {/* Dropdown animation styles */}
-      <style jsx global>{`
-        @keyframes dropdown-in {
-          from {
-            opacity: 0;
-            transform: translateY(-4px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-dropdown-in {
-          animation: dropdown-in 150ms ease-out;
-        }
-      `}</style>
     </header>
   );
 }

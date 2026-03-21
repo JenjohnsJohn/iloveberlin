@@ -59,10 +59,13 @@ export function VideoCard({ video }: VideoCardProps) {
           </div>
         )}
 
+        {/* Bottom gradient overlay for duration readability */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
         {/* Play button overlay */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-14 h-14 bg-black/60 rounded-full flex items-center justify-center group-hover:bg-primary-600/90 transition-colors">
-            <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-14 h-14 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center ring-2 ring-white/30 group-hover:ring-primary-400/50 group-hover:bg-primary-600/80 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-black/20">
+            <svg className="w-6 h-6 text-white ml-1 drop-shadow" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
@@ -70,14 +73,14 @@ export function VideoCard({ video }: VideoCardProps) {
 
         {/* Duration overlay */}
         {video.durationSeconds && (
-          <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/75 text-white text-xs font-medium rounded">
+          <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-xs font-medium rounded-md font-mono tracking-wide">
             {formatDuration(video.durationSeconds)}
           </span>
         )}
 
         {/* Series badge */}
         {video.seriesName && (
-          <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">
+          <span className="absolute top-3 left-3 px-2.5 py-1 bg-violet-600 text-white text-xs font-semibold rounded-full shadow-sm">
             {video.seriesName}
           </span>
         )}

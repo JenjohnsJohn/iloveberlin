@@ -150,31 +150,39 @@ export default function ArticlesPage() {
         <h2 className="text-xl font-bold text-gray-900">Articles</h2>
         <Link
           href="/admin/articles/new"
-          className="px-3.5 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm hover:shadow-md transition-all text-sm font-semibold"
         >
-          + New Article
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          New Article
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-3">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search articles..."
-          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64"
-        />
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <div className="relative">
+          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search articles..."
+            className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm w-64 bg-white"
+          />
+        </div>
         <select
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value);
             setPage(1);
           }}
-          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
         >
           <option value="">All Statuses</option>
           <option value="draft">Draft</option>
@@ -188,7 +196,7 @@ export default function ArticlesPage() {
             setCategoryFilter(e.target.value);
             setPage(1);
           }}
-          className="px-2.5 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+          className="px-2.5 py-1.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-white"
         >
           <option value="">All Categories</option>
           {categories.map((cat) => (
@@ -223,50 +231,52 @@ export default function ArticlesPage() {
       ) : (
         <>
           {/* Articles Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
+                  <tr className="bg-gray-50/80 border-b border-gray-200">
+                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">
                       Title
                     </th>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
+                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">
                       Category
                     </th>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
+                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">
                       Status
                     </th>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
+                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">
                       Author
                     </th>
-                    <th className="text-left px-3 py-2 font-semibold text-gray-700">
+                    <th className="text-left px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">
                       Date
                     </th>
-                    <th className="text-right px-3 py-2 font-semibold text-gray-700">
+                    <th className="text-right px-4 py-2.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {articles.map((article) => (
+                  {articles.map((article, index) => (
                     <tr
                       key={article.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className={`border-b border-gray-100 hover:bg-primary-50/50 transition-colors ${
+                        index % 2 === 1 ? 'bg-gray-50/50' : ''
+                      }`}
                     >
-                      <td className="px-3 py-2">
+                      <td className="px-4 py-2.5">
                         <span className="font-medium text-gray-900 line-clamp-1">
                           {article.title}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-600">{article.category}</td>
-                      <td className="px-3 py-2">
+                      <td className="px-4 py-2.5 text-gray-600">{article.category}</td>
+                      <td className="px-4 py-2.5">
                         <select
                           value={article.status}
                           onChange={(e) =>
                             handleStatusChange(article.id, e.target.value as ArticleStatus)
                           }
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium border-0 cursor-pointer ${STATUS_STYLES[article.status]}`}
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold border-0 cursor-pointer ${STATUS_STYLES[article.status]}`}
                         >
                           {Object.entries(STATUS_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>
@@ -275,29 +285,42 @@ export default function ArticlesPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-3 py-2 text-gray-600">{article.author}</td>
-                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-gray-600">{article.author}</td>
+                      <td className="px-4 py-2.5 text-gray-500 whitespace-nowrap">
                         {article.date}
                       </td>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-4 py-2.5">
+                        <div className="flex items-center justify-end gap-1.5">
                           <Link
                             href={`/admin/articles/${article.slug}/edit`}
-                            className="px-2.5 py-1 text-xs font-medium text-primary-600 bg-primary-50 rounded hover:bg-primary-100 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-primary-700 bg-primary-50 rounded-md hover:bg-primary-100 transition-colors"
+                            title="Edit article"
                           >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                            </svg>
                             Edit
                           </Link>
                           <Link
                             href={buildArticleUrl(article.slug, article.categorySlug)}
-                            className="px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
                             target="_blank"
+                            title="View article"
                           >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
                             View
                           </Link>
                           <button
-                            className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded hover:bg-red-100 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
                             onClick={() => handleDelete(article.id)}
+                            title="Delete article"
                           >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                            </svg>
                             Delete
                           </button>
                         </div>
@@ -306,7 +329,10 @@ export default function ArticlesPage() {
                   ))}
                   {articles.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-500">
+                      <td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-500">
+                        <svg className="w-8 h-8 text-gray-300 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5" />
+                        </svg>
                         No articles found.
                       </td>
                     </tr>
@@ -318,24 +344,30 @@ export default function ArticlesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-gray-500">
-                Page {page} of {totalPages}
+                Page <span className="font-medium text-gray-700">{page}</span> of <span className="font-medium text-gray-700">{totalPages}</span>
               </p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                  </svg>
                   Previous
                 </button>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
                 </button>
               </div>
             </div>

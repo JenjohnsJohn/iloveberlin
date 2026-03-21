@@ -35,13 +35,13 @@ interface RestaurantContentProps {
   };
 }
 
-function priceRangeLabel(range: string): string {
+function priceRangeInfo(range: string): { symbol: string; label: string; gradient: string } {
   switch (range) {
-    case 'budget': return '$ Budget';
-    case 'moderate': return '$$ Moderate';
-    case 'upscale': return '$$$ Upscale';
-    case 'fine_dining': return '$$$$ Fine Dining';
-    default: return '$$ Moderate';
+    case 'budget': return { symbol: '\u20AC', label: 'Budget-Friendly', gradient: 'from-emerald-500 to-green-600' };
+    case 'moderate': return { symbol: '\u20AC\u20AC', label: 'Moderate', gradient: 'from-blue-500 to-indigo-600' };
+    case 'upscale': return { symbol: '\u20AC\u20AC\u20AC', label: 'Upscale', gradient: 'from-purple-500 to-violet-600' };
+    case 'fine_dining': return { symbol: '\u20AC\u20AC\u20AC\u20AC', label: 'Fine Dining', gradient: 'from-amber-500 to-orange-600' };
+    default: return { symbol: '\u20AC\u20AC', label: 'Moderate', gradient: 'from-blue-500 to-indigo-600' };
   }
 }
 
@@ -53,29 +53,31 @@ function renderStars(rating: number | null): React.ReactNode {
   const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
 
   return (
-    <div className="flex items-center gap-0.5" aria-label={`Rating: ${Number(rating).toFixed(1)} out of 5 stars`}>
-      {Array.from({ length: fullStars }).map((_, i) => (
-        <svg key={`full-${i}`} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-      {hasHalf && (
-        <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-          <defs>
-            <linearGradient id="halfStarDetail">
-              <stop offset="50%" stopColor="currentColor" />
-              <stop offset="50%" stopColor="#D1D5DB" />
-            </linearGradient>
-          </defs>
-          <path fill="url(#halfStarDetail)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      )}
-      {Array.from({ length: emptyStars }).map((_, i) => (
-        <svg key={`empty-${i}`} className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-      <span className="ml-1.5 text-base font-medium text-gray-700">{Number(rating).toFixed(1)}</span>
+    <div className="inline-flex items-center gap-1.5 bg-amber-50 rounded-lg px-3 py-1" aria-label={`Rating: ${Number(rating).toFixed(1)} out of 5 stars`}>
+      <span className="text-lg font-bold text-amber-700">{Number(rating).toFixed(1)}</span>
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: fullStars }).map((_, i) => (
+          <svg key={`full-${i}`} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+        {hasHalf && (
+          <svg className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <defs>
+              <linearGradient id="halfStarDetail">
+                <stop offset="50%" stopColor="currentColor" />
+                <stop offset="50%" stopColor="#D1D5DB" />
+              </linearGradient>
+            </defs>
+            <path fill="url(#halfStarDetail)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        )}
+        {Array.from({ length: emptyStars }).map((_, i) => (
+          <svg key={`empty-${i}`} className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
     </div>
   );
 }
@@ -92,7 +94,17 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
     <div>
       {/* Hero Image / Gallery */}
       <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-orange-100 to-orange-300">
-        {restaurant.featuredImage ? (
+        {(restaurant.images.length > 0 && restaurant.images[activeImageIndex]) ? (
+          <Image
+            key={activeImageIndex}
+            src={restaurant.images[activeImageIndex].url}
+            alt={restaurant.images[activeImageIndex].caption || restaurant.name}
+            fill
+            className="object-cover animate-fade-in"
+            sizes="100vw"
+            priority={activeImageIndex === 0}
+          />
+        ) : restaurant.featuredImage ? (
           <Image
             src={restaurant.featuredImage}
             alt={restaurant.name}
@@ -123,13 +135,15 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
       {/* Image Thumbnails (when gallery images exist) */}
       {restaurant.images.length > 0 && (
         <div className="container mx-auto px-4 -mt-8 relative z-10">
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex gap-2.5 overflow-x-auto pb-2">
             {restaurant.images.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveImageIndex(idx)}
-                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                  activeImageIndex === idx ? 'border-primary-500' : 'border-white'
+                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden transition-all duration-200 ease-in-out ${
+                  activeImageIndex === idx
+                    ? 'border-[3px] border-primary-500 ring-2 ring-primary-300 scale-110 shadow-lg'
+                    : 'border-2 border-white/80 hover:border-primary-300 hover:scale-105 shadow-md'
                 }`}
               >
                 <Image
@@ -137,7 +151,9 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                   alt={img.caption || `Photo ${idx + 1}`}
                   width={80}
                   height={80}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover transition-opacity duration-200 ${
+                    activeImageIndex === idx ? 'opacity-100' : 'opacity-80 hover:opacity-100'
+                  }`}
                 />
               </button>
             ))}
@@ -166,7 +182,7 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
               {restaurant.cuisines.map((cuisine) => (
                 <span
                   key={cuisine}
-                  className="inline-block px-3 py-1 bg-orange-50 text-orange-700 text-sm font-semibold rounded-full border border-orange-200"
+                  className="inline-block px-4 py-1.5 bg-orange-50 text-orange-700 text-sm font-semibold rounded-full border border-orange-200 hover:bg-orange-100 transition-colors cursor-default"
                 >
                   {cuisine}
                 </span>
@@ -178,11 +194,17 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
             </h1>
 
             {/* Rating & Price */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-3 mb-6">
               {renderStars(restaurant.rating)}
-              <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full">
-                {priceRangeLabel(restaurant.priceRange)}
-              </span>
+              {(() => {
+                const price = priceRangeInfo(restaurant.priceRange);
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r ${price.gradient} text-white text-sm font-bold rounded-full shadow-sm`}>
+                    <span>{price.symbol}</span>
+                    <span className="text-white/90 font-medium">{price.label}</span>
+                  </span>
+                );
+              })()}
             </div>
 
             {/* Info Grid */}
@@ -213,8 +235,14 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Phone</p>
-                    <a href={`tel:${restaurant.phone}`} className="text-sm text-primary-600 hover:text-primary-700">
+                    <p className="text-sm font-semibold text-gray-900 mb-1.5">Phone</p>
+                    <a
+                      href={`tel:${restaurant.phone}`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 text-sm font-medium rounded-full border border-primary-200 hover:bg-primary-100 hover:border-primary-300 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                      </svg>
                       {restaurant.phone}
                     </a>
                   </div>
@@ -230,13 +258,16 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Website</p>
+                    <p className="text-sm font-semibold text-gray-900 mb-1.5">Website</p>
                     <a
                       href={restaurant.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-primary-600 hover:text-primary-700"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary-50 text-primary-700 text-sm font-medium rounded-full border border-primary-200 hover:bg-primary-100 hover:border-primary-300 transition-colors"
                     >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582" />
+                      </svg>
                       Visit Website
                     </a>
                   </div>
@@ -267,25 +298,31 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                     {Object.entries(restaurant.openingHours).map(([day, hours]) => {
                       const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
                       const isToday = day === today;
+                      const isClosed = hours === 'Closed';
                       return (
                         <tr
                           key={day}
-                          className={`border-b border-gray-100 last:border-0 ${
-                            isToday ? 'bg-primary-50' : ''
+                          className={`border-b border-gray-200 last:border-0 ${
+                            isToday ? 'bg-primary-50 font-semibold' : ''
                           }`}
                         >
-                          <td className={`px-6 py-3 text-sm font-medium ${isToday ? 'text-primary-700' : 'text-gray-900'}`}>
-                            {day}
-                            {isToday && (
-                              <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
-                                Today
-                              </span>
-                            )}
+                          <td className={`px-6 py-3.5 text-sm font-medium ${isToday ? 'text-primary-700' : 'text-gray-900'}`}>
+                            <div className="flex items-center gap-2">
+                              {day}
+                              {isToday && (
+                                <>
+                                  <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">
+                                    Today
+                                  </span>
+                                  <span className={`inline-block w-2 h-2 rounded-full ${isClosed ? 'bg-red-500' : 'bg-green-500'} ring-2 ${isClosed ? 'ring-red-200' : 'ring-green-200'}`} aria-label={isClosed ? 'Closed now' : 'Open now'} />
+                                </>
+                              )}
+                            </div>
                           </td>
-                          <td className={`px-6 py-3 text-sm text-right ${
-                            hours === 'Closed'
+                          <td className={`px-6 py-3.5 text-sm text-right ${
+                            isClosed
                               ? 'text-red-500 font-medium'
-                              : isToday ? 'text-primary-600' : 'text-gray-600'
+                              : isToday ? 'text-primary-600 font-semibold' : 'text-gray-600'
                           }`}>
                             {hours}
                           </td>
@@ -315,9 +352,11 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                 {restaurant.offers.map((offer) => (
                   <div
                     key={offer.id}
-                    className="p-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200"
+                    className="relative p-6 bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 rounded-xl border-2 border-orange-200 shadow-sm overflow-hidden"
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    {/* Decorative accent stripe */}
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-orange-400 to-amber-500 rounded-l-xl" />
+                    <div className="flex items-start justify-between gap-4 pl-3">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
                           {offer.title}
@@ -325,14 +364,23 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                         {offer.description && (
                           <p className="text-sm text-gray-600 mb-3">{offer.description}</p>
                         )}
-                        <p className="text-xs text-gray-500">
-                          Valid: {new Date(offer.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          {' \u2013 '}
-                          {new Date(offer.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/70 rounded-md border border-orange-100">
+                          <svg className="w-3.5 h-3.5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                          </svg>
+                          <span className="text-xs font-medium text-orange-700">
+                            {new Date(offer.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {' \u2013 '}
+                            {new Date(offer.end_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex-shrink-0">
-                        <span className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full">
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold rounded-full shadow-sm">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" />
+                          </svg>
                           OFFER
                         </span>
                       </div>
@@ -344,14 +392,24 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
           )}
 
           {/* Map Placeholder */}
-          <section className="mb-8 rounded-xl overflow-hidden border border-gray-200">
-            <div className="bg-gray-100 h-64 flex items-center justify-center">
-              <div className="text-center">
-                <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                <p className="text-gray-500 font-medium">Map view coming soon</p>
-                <p className="text-sm text-gray-400 mt-1">{restaurant.address}</p>
+          <section className="mb-8 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 h-64 flex items-center justify-center relative">
+              {/* Subtle grid pattern overlay */}
+              <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+              <div className="text-center relative z-10">
+                <div className="w-16 h-16 mx-auto mb-3 bg-white/80 rounded-2xl flex items-center justify-center shadow-sm">
+                  <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                </div>
+                <p className="text-lg font-semibold text-gray-700 mb-1">Map view coming soon</p>
+                <p className="text-sm text-gray-500 flex items-center justify-center gap-1.5">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {restaurant.address}
+                </p>
               </div>
             </div>
           </section>

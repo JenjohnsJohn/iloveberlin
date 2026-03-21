@@ -12,6 +12,7 @@ interface BookmarkButtonProps {
 
 export function BookmarkButton({ articleId, className = '' }: BookmarkButtonProps) {
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { accessToken } = useAuthStore();
   const router = useRouter();
 
@@ -32,6 +33,8 @@ export function BookmarkButton({ articleId, className = '' }: BookmarkButtonProp
       router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 300);
     try {
       const { data } = await apiClient.post(`/bookmarks/article/${articleId}`);
       setIsBookmarked(!!data.bookmarked || !!data.isBookmarked || !isBookmarked);
@@ -44,16 +47,20 @@ export function BookmarkButton({ articleId, className = '' }: BookmarkButtonProp
   return (
     <button
       onClick={handleToggle}
-      className={`inline-flex items-center justify-center p-2 rounded-full transition-colors ${
+      className={`inline-flex items-center justify-center p-2 rounded-full transition-all duration-200 ease-in-out ${
+        isAnimating ? 'scale-125' : 'scale-100'
+      } ${
         isBookmarked
           ? 'text-accent-600 bg-accent-50 hover:bg-accent-100'
           : 'text-gray-400 bg-gray-100 hover:bg-gray-200 hover:text-gray-600'
-      } ${className}`}
+      } active:scale-95 ${className}`}
       aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
       title={isBookmarked ? 'Remove bookmark' : 'Bookmark this article'}
     >
       <svg
-        className="w-5 h-5"
+        className={`w-5 h-5 transition-transform duration-300 ease-in-out ${
+          isBookmarked ? 'scale-100' : 'scale-90'
+        }`}
         fill={isBookmarked ? 'currentColor' : 'none'}
         viewBox="0 0 24 24"
         stroke="currentColor"

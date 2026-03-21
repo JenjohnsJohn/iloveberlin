@@ -30,7 +30,11 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
   return (
     <Link
       href={buildCompetitionUrl(competition.slug, competition.categorySlug)}
-      className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300"
+      className={`group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ${
+        !isEnded
+          ? 'hover:shadow-[0_4px_20px_-2px_rgba(245,158,11,0.25)]'
+          : 'hover:shadow-primary-glow'
+      }`}
     >
       {/* Image */}
       <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
@@ -133,8 +137,11 @@ export function CompetitionCard({ competition }: CompetitionCardProps) {
             {competition.entryCount === 1 ? 'entry' : 'entries'}
           </span>
           {!isEnded && (
-            <span className="inline-block px-3 py-1 btn-gradient text-xs rounded-full">
+            <span className="inline-flex items-center gap-1 px-4 py-1.5 btn-gradient text-xs font-semibold rounded-full shadow-sm group-hover:shadow-md transition-shadow">
               Enter Now
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
             </span>
           )}
         </div>

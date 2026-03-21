@@ -55,6 +55,8 @@ export function ArticleCard({ article }: ArticleCardProps) {
             </svg>
           </div>
         )}
+        {/* Bottom gradient overlay for badge readability */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
         {/* Category Badge */}
         {article.category && (
           <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">
@@ -65,7 +67,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
 
       {/* Content */}
       <div className="p-3">
-        <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
+        <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-200 line-clamp-2 mb-1">
           {article.title}
         </h3>
         <p className="text-sm text-gray-600 line-clamp-2 mb-3">
@@ -76,7 +78,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
         <div className="flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-2">
             {/* Author Avatar */}
-            <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold overflow-hidden flex-shrink-0">
+            <div className="w-6 h-6 rounded-full bg-primary-100 ring-1 ring-white flex items-center justify-center text-primary-700 text-xs font-bold overflow-hidden flex-shrink-0">
               {article.author.avatarUrl ? (
                 <Image
                   src={article.author.avatarUrl}

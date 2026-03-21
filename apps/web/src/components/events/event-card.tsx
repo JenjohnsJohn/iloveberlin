@@ -73,10 +73,12 @@ export function EventCard({ event }: EventCardProps) {
           </div>
         )}
         {/* Date overlay */}
-        <div className="absolute top-3 left-3 bg-white rounded-lg px-2.5 py-1.5 text-center shadow-sm min-w-[48px]">
-          <div className="text-lg font-bold text-gray-900 leading-tight">{day}</div>
-          <div className="text-[10px] font-semibold text-primary-600 uppercase leading-tight">{month}</div>
+        <div className="absolute top-3 left-3 bg-white rounded-lg px-2.5 py-1.5 text-center shadow-md min-w-[48px]">
+          <div className="text-lg font-extrabold text-gray-900 leading-tight">{day}</div>
+          <div className="text-[10px] font-semibold text-primary-600 uppercase leading-tight tracking-wide">{month}</div>
         </div>
+        {/* Bottom gradient overlay for venue text readability */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
         {/* Category badge */}
         <span className="absolute top-3 right-3 px-2.5 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">
           {event.category}
@@ -116,12 +118,21 @@ export function EventCard({ event }: EventCardProps) {
         {/* Price */}
         <div className="flex items-center justify-between">
           <span
-            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
               event.isFree
                 ? 'bg-green-100 text-green-700'
                 : 'bg-blue-100 text-blue-700'
             }`}
           >
+            {event.isFree ? (
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+              </svg>
+            )}
             {priceText}
           </span>
         </div>

@@ -87,11 +87,17 @@ export default async function GuideLandingPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
-      <section className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+      <section className="text-center mb-10 py-8 bg-gradient-to-b from-primary-50/60 to-transparent rounded-2xl">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-100 text-primary-700 text-sm font-medium mb-4">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+          Your Berlin Resource
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
           Berlin Guide
         </h1>
-        <p className="text-base text-gray-600 max-w-2xl mx-auto">
+        <p className="text-base text-gray-600 max-w-2xl mx-auto leading-relaxed">
           Your comprehensive resource for living, working, and exploring
           Berlin. From practical tips to cultural insights, we have got you
           covered.
@@ -100,6 +106,7 @@ export default async function GuideLandingPage() {
 
       {/* Topics Grid */}
       <section>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Browse by Topic</h2>
         <CategoryGrid
           categories={topics}
           basePath="/guide"

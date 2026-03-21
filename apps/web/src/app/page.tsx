@@ -310,11 +310,11 @@ function SectionHeader({
       <h2 className="text-xl md:text-2xl font-bold text-gray-900">{title}</h2>
       <Link
         href={href}
-        className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-all flex items-center gap-1 group/link"
+        className="group text-sm font-semibold text-primary-600 hover:text-primary-700 transition-all flex items-center gap-1 px-3 py-1.5 -mr-3 rounded-lg hover:bg-primary-50 hover:underline underline-offset-4 decoration-primary-300"
       >
         {linkText}
         <svg
-          className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5"
+          className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -334,6 +334,8 @@ const SECTIONS = [
     title: 'News',
     desc: 'Latest Berlin stories',
     href: '/news',
+    hoverColor: 'group-hover:text-orange-500',
+    hoverBg: 'group-hover:bg-orange-100',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
@@ -344,6 +346,8 @@ const SECTIONS = [
     title: 'Events',
     desc: "What's happening in Berlin",
     href: '/events',
+    hoverColor: 'group-hover:text-rose-500',
+    hoverBg: 'group-hover:bg-rose-100',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -354,6 +358,8 @@ const SECTIONS = [
     title: 'Dining',
     desc: 'Best restaurants & cafes',
     href: '/dining',
+    hoverColor: 'group-hover:text-emerald-500',
+    hoverBg: 'group-hover:bg-emerald-100',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -364,6 +370,8 @@ const SECTIONS = [
     title: 'Guide',
     desc: 'Essential Berlin knowledge',
     href: '/guide',
+    hoverColor: 'group-hover:text-sky-500',
+    hoverBg: 'group-hover:bg-sky-100',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -374,6 +382,8 @@ const SECTIONS = [
     title: 'Videos',
     desc: 'Berlin video stories',
     href: '/videos',
+    hoverColor: 'group-hover:text-violet-500',
+    hoverBg: 'group-hover:bg-violet-100',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -384,6 +394,8 @@ const SECTIONS = [
     title: 'Competitions',
     desc: 'Win amazing prizes',
     href: '/competitions',
+    hoverColor: 'group-hover:text-amber-500',
+    hoverBg: 'group-hover:bg-amber-100',
     icon: (
       <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -1218,13 +1230,16 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* Visual separator between hero and stats */}
+      <div className="h-2 bg-gradient-to-r from-primary-200/0 via-primary-200/60 to-primary-200/0" />
+
       {/* Stats Strip */}
       <section className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {STATS.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-2xl md:text-3xl font-bold text-primary-600">{stat.value}</div>
+              <div key={stat.label} className="text-center p-3 rounded-xl hover:bg-primary-50/50 hover:scale-105 transition-all duration-300 cursor-default">
+                <div className="text-2xl md:text-3xl font-bold gradient-text">{stat.value}</div>
                 <div className="text-sm text-gray-500">{stat.label}</div>
               </div>
             ))}
@@ -1239,9 +1254,9 @@ export default function HomePage() {
             <Link
               key={section.title}
               href={section.href}
-              className="flex flex-col items-center p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:scale-[1.02] hover:shadow-primary-glow transition-all duration-300 text-center group"
+              className="flex flex-col items-center p-4 bg-white rounded-xl border border-gray-200 hover:border-primary-300 hover:scale-[1.04] hover:shadow-primary-glow transition-all duration-300 text-center group"
             >
-              <div className="text-gray-400 group-hover:text-primary-600 transition-colors mb-2">
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-2 text-gray-400 ${section.hoverColor} ${section.hoverBg} transition-all duration-300 group-hover:scale-110`}>
                 {section.icon}
               </div>
               <h2 className="text-sm font-semibold text-gray-900 mb-0.5">
@@ -1255,7 +1270,7 @@ export default function HomePage() {
 
       {/* Trending in Berlin */}
       {trendingArticles.length > 0 && (
-        <section className="bg-primary-50/40 py-6">
+        <section className="bg-primary-50/50 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Trending in Berlin" href="/news" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1286,7 +1301,7 @@ export default function HomePage() {
 
       {/* This Weekend in Berlin */}
       {weekendPicks.length > 0 && (
-        <section className="bg-primary-50/40 py-6">
+        <section className="bg-primary-50/50 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="This Weekend in Berlin" href="/events" linkText="See all weekend events" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1312,7 +1327,7 @@ export default function HomePage() {
 
       {/* Dining Deals */}
       {diningOffers.length > 0 && (
-        <section className="bg-primary-50/40 py-6">
+        <section className="bg-primary-50/50 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Dining Deals" href="/dining/offers" linkText="See all deals" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1320,34 +1335,38 @@ export default function HomePage() {
                 <Link
                   key={offer.id}
                   href={buildRestaurantUrl(offer.restaurant.slug, offer.restaurant.primaryCuisineSlug)}
-                  className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:-translate-y-1 transition-all duration-300"
+                  className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:-translate-y-1 transition-all duration-300 border-t-4 border-t-emerald-400"
                 >
                   <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
                     {offer.restaurant.featuredImage ? (
                       <img
                         src={offer.restaurant.featuredImage}
                         alt={offer.restaurant.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-green-100 to-green-200">
-                        <svg className="w-12 h-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
+                        <svg className="w-12 h-12 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
                         </svg>
                       </div>
                     )}
-                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                    <span className="absolute top-3 left-3 px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
                       Deal
                     </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
+                    <h3 className="text-base font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors mb-1">
                       {offer.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{offer.description}</p>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{offer.description}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>{offer.restaurant.name}</span>
-                      {offer.endDate && <span>Ends {formatDate(offer.endDate)}</span>}
+                      <span className="font-medium text-gray-700">{offer.restaurant.name}</span>
+                      {offer.endDate && (
+                        <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full font-medium">
+                          Ends {formatDate(offer.endDate)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </Link>
@@ -1390,7 +1409,7 @@ export default function HomePage() {
 
       {/* Latest Videos */}
       {latestVideos.length > 0 && (
-        <section className="bg-primary-50/40 py-6">
+        <section className="bg-primary-50/50 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Latest Videos" href="/videos" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1403,10 +1422,12 @@ export default function HomePage() {
       )}
 
       {/* Newsletter CTA */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-800 py-10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Stay in the Loop</h2>
-          <p className="text-white/80 mb-6 max-w-md mx-auto">
+      <section className="relative bg-gradient-to-br from-primary-500 via-primary-700 to-rose-700 py-12 overflow-hidden">
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23ffffff\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E")', backgroundSize: '40px 40px' }} />
+        <div className="relative container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 text-balance">Stay in the Loop with Berlin</h2>
+          <p className="text-white/80 mb-6 max-w-md mx-auto text-balance">
             Get the best of Berlin delivered to your inbox — events, deals, guides, and more.
           </p>
           {newsletterStatus === 'success' ? (
@@ -1419,12 +1440,12 @@ export default function HomePage() {
                 onChange={(e) => setNewsletterEmail(e.target.value)}
                 placeholder="Enter your email"
                 required
-                className="flex-1 px-4 py-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="flex-1 px-4 py-3 rounded-lg bg-white/90 backdrop-blur-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white transition-colors"
               />
               <button
                 type="submit"
                 disabled={newsletterStatus === 'loading'}
-                className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors disabled:opacity-60"
+                className="px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-60 shadow-lg"
               >
                 {newsletterStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
               </button>
@@ -1450,7 +1471,7 @@ export default function HomePage() {
 
       {/* Featured Classifieds */}
       {classifieds.length > 0 && (
-        <section className="bg-primary-50/40 py-6">
+        <section className="bg-primary-50/50 py-6">
           <div className="container mx-auto px-4">
             <SectionHeader title="Featured Classifieds" href="/classifieds" linkText="Browse all classifieds" />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

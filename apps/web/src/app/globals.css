@@ -9,16 +9,50 @@
 
   body {
     @apply bg-[#fffbf5] text-gray-900 antialiased;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-bold;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  /* Selection color — brand primary */
+  ::selection {
+    background-color: rgba(249, 115, 22, 0.15);
+    color: #1f2937;
+  }
+
+  /* Smooth focus ring for all interactive elements */
+  *:focus-visible {
+    outline: 2px solid #f97316;
+    outline-offset: 2px;
+    border-radius: 4px;
+    transition: outline-offset 0.1s ease;
   }
 }
 
 @layer components {
   .btn-gradient {
     @apply bg-gradient-to-r from-primary-500 to-primary-600 text-white font-semibold hover:from-primary-600 hover:to-primary-700 transition-all duration-300 shadow-md hover:shadow-lg;
+    @apply hover:scale-105 active:scale-95;
   }
 }
 
@@ -34,4 +68,156 @@
   .card-accent {
     @apply border-t-4 border-primary-500;
   }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #f97316, #e11d48);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .animate-slide-up-bottom {
+    animation: slideUpBottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Smooth page transition feel for route changes */
+  .page-transition {
+    animation: pageEnter 0.3s ease-out;
+  }
+
+  .animate-dropdown-in {
+    animation: dropdownIn 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-backdrop-in {
+    animation: backdropIn 200ms ease-out forwards;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUpBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.animate-shimmer { animation: shimmer 1.5s ease-in-out infinite; }
+
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+/* Countdown seconds subtle pulse */
+.animate-pulse-subtle {
+  animation: pulseSubtle 1s ease-in-out infinite;
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+  50% { box-shadow: 0 0 8px 2px rgba(249, 115, 22, 0.25); }
+}
+
+/* Prize section shimmer glow */
+.prize-shimmer {
+  position: relative;
+}
+.prize-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(251, 191, 36, 0.12),
+    transparent
+  );
+  animation: prizeShimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes prizeShimmer {
+  0% { left: -50%; }
+  100% { left: 150%; }
 }

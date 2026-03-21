@@ -84,7 +84,7 @@ export function LatestClassifiedList({ initialListings, initialTotal }: LatestCl
           <Link
             key={listing.slug}
             href={`/classifieds/${listing.categorySlug}/${listing.slug}`}
-            className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+            className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300"
           >
             <div className="relative aspect-[16/10] bg-gray-100 overflow-hidden">
               {listing.imageUrl ? (

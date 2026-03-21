@@ -119,8 +119,11 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
       <div className="flex flex-col lg:flex-row gap-10">
         {/* Sidebar Table of Contents */}
         <aside className="lg:w-72 flex-shrink-0 order-2 lg:order-1">
-          <div className="lg:sticky lg:top-24">
-            <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+          <div className="lg:sticky lg:top-24 bg-gray-50/80 rounded-lg p-4">
+            <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <svg className="w-4 h-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
               Table of Contents
             </h2>
             <nav aria-label="Table of contents" className="border-l-2 border-gray-200">
@@ -128,11 +131,19 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
                 <a
                   key={entry.id}
                   href={`#${entry.id}`}
-                  className={`block text-sm py-1.5 transition-colors border-l-2 -ml-0.5 ${
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const el = document.getElementById(entry.id);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      history.replaceState(null, '', `#${entry.id}`);
+                    }
+                  }}
+                  className={`block text-sm py-1.5 transition-all duration-200 border-l-2 -ml-0.5 ${
                     entry.level === 3 ? 'pl-6' : 'pl-4'
                   } ${
                     activeId === entry.id
-                      ? 'border-primary-600 text-primary-700 font-medium'
+                      ? 'border-primary-600 text-primary-700 font-medium bg-primary-50/60 rounded-r-md'
                       : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-400'
                   }`}
                 >
@@ -180,11 +191,11 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-sm">
                 {guide.lastReviewed && (
-                  <span className="flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-700 font-medium text-xs">
                     <svg
-                      className="w-4 h-4"
+                      className="w-4 h-4 text-green-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -197,7 +208,7 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
                         d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Reviewed {guide.lastReviewed}
+                    Last updated {guide.lastReviewed}
                   </span>
                 )}
               </div>
@@ -211,9 +222,9 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
           />
 
           {/* Author Card */}
-          <div className="bg-gray-50 rounded-lg p-6 mb-10 border border-gray-200">
+          <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-6 mb-10 border border-gray-200 shadow-sm">
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0 overflow-hidden">
+              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0 overflow-hidden ring-2 ring-primary-200 ring-offset-2">
                 {guide.author.avatarUrl ? (
                   <Image
                     src={guide.author.avatarUrl}
@@ -227,14 +238,18 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
                 )}
               </div>
               <div>
+                <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-0.5">About the Author</p>
                 <h3 className="font-semibold text-gray-900 mb-1">
-                  Written by {guide.author.name}
+                  {guide.author.name}
                 </h3>
                 {guide.author.bio && (
-                  <p className="text-sm text-gray-600">{guide.author.bio}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{guide.author.bio}</p>
                 )}
                 {guide.lastReviewed && (
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="flex items-center gap-1.5 text-xs text-green-600 mt-3 font-medium">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                     Last reviewed: {guide.lastReviewed}
                   </p>
                 )}
@@ -253,14 +268,20 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
                   <Link
                     key={related.slug}
                     href={buildGuideUrl(related.slug, topicSlug)}
-                    className="group bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md hover:border-primary-300 transition-all"
+                    className="group bg-white rounded-lg border border-gray-200 border-l-4 border-l-primary-500 p-5 hover:shadow-primary-glow hover:scale-[1.01] hover:-translate-y-0.5 transition-all duration-300"
                   >
                     <h3 className="font-semibold text-gray-900 mb-2 text-sm group-hover:text-primary-700 transition-colors">
                       {related.title}
                     </h3>
-                    <p className="text-xs text-gray-500 leading-relaxed">
+                    <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
                       {related.excerpt}
                     </p>
+                    <span className="inline-flex items-center text-xs font-medium text-primary-600 group-hover:text-primary-700 transition-colors">
+                      Read guide
+                      <svg className="w-3.5 h-3.5 ml-1 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </span>
                   </Link>
                 ))}
               </div>

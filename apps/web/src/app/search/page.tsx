@@ -3,20 +3,21 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import apiClient from '@/lib/api-client';
 
 const CONTENT_TYPES = [
-  'All',
-  'Articles',
-  'Events',
-  'Restaurants',
-  'Guides',
-  'Videos',
-  'Classifieds',
-  'Products',
+  { key: 'All', label: 'All', icon: null },
+  { key: 'Articles', label: 'News', icon: 'newspaper' },
+  { key: 'Events', label: 'Events', icon: 'calendar' },
+  { key: 'Restaurants', label: 'Dining', icon: 'dining' },
+  { key: 'Guides', label: 'Guide', icon: 'guide' },
+  { key: 'Videos', label: 'Videos', icon: 'video' },
+  { key: 'Classifieds', label: 'Classifieds', icon: 'tag' },
+  { key: 'Products', label: 'Store', icon: 'store' },
 ] as const;
 
-type ContentType = (typeof CONTENT_TYPES)[number];
+type ContentType = (typeof CONTENT_TYPES)[number]['key'];
 
 interface SearchResult {
   id: string;
@@ -63,57 +64,220 @@ function getTypeLabel(type: string): string {
 
 function getTypeColor(type: string): string {
   const colors: Record<string, string> = {
-    articles: 'bg-blue-100 text-blue-800',
-    events: 'bg-purple-100 text-purple-800',
-    restaurants: 'bg-orange-100 text-orange-800',
-    guides: 'bg-green-100 text-green-800',
-    videos: 'bg-red-100 text-red-800',
-    classifieds: 'bg-yellow-100 text-yellow-800',
-    products: 'bg-pink-100 text-pink-800',
+    articles: 'bg-blue-100 text-blue-800 border border-blue-200',
+    events: 'bg-purple-100 text-purple-800 border border-purple-200',
+    restaurants: 'bg-orange-100 text-orange-800 border border-orange-200',
+    guides: 'bg-green-100 text-green-800 border border-green-200',
+    videos: 'bg-red-100 text-red-800 border border-red-200',
+    classifieds: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
+    products: 'bg-pink-100 text-pink-800 border border-pink-200',
   };
-  return colors[type] || 'bg-gray-100 text-gray-800';
+  return colors[type] || 'bg-gray-100 text-gray-800 border border-gray-200';
 }
 
-function ResultCard({ result }: { result: SearchResult }) {
+function getTypePlaceholderColor(type: string): string {
+  const colors: Record<string, string> = {
+    articles: 'from-blue-100 to-blue-50',
+    events: 'from-purple-100 to-purple-50',
+    restaurants: 'from-orange-100 to-orange-50',
+    guides: 'from-green-100 to-green-50',
+    videos: 'from-red-100 to-red-50',
+    classifieds: 'from-yellow-100 to-yellow-50',
+    products: 'from-pink-100 to-pink-50',
+  };
+  return colors[type] || 'from-gray-100 to-gray-50';
+}
+
+/** Inline type icon for result cards */
+function ResultTypeIcon({ type, className = 'w-4 h-4' }: { type: string; className?: string }) {
+  switch (type) {
+    case 'articles':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+        </svg>
+      );
+    case 'events':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      );
+    case 'restaurants':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6M3 7a4 4 0 014-4h10a4 4 0 014 4v.5M7 3v4m10-4v4M5 14h14M8 21h8" />
+        </svg>
+      );
+    case 'guides':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+        </svg>
+      );
+    case 'videos':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      );
+    case 'classifieds':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+      );
+    case 'products':
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+      );
+    default:
+      return (
+        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      );
+  }
+}
+
+/** Filter pill icon (smaller, used in filter buttons) */
+function FilterIcon({ icon }: { icon: string | null }) {
+  if (!icon) return null;
+  const cls = 'w-3.5 h-3.5 flex-shrink-0';
+  switch (icon) {
+    case 'newspaper':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" /></svg>
+      );
+    case 'calendar':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+      );
+    case 'dining':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6M3 7a4 4 0 014-4h10a4 4 0 014 4v.5M7 3v4m10-4v4M5 14h14M8 21h8" /></svg>
+      );
+    case 'guide':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+      );
+    case 'video':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+      );
+    case 'tag':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
+      );
+    case 'store':
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+      );
+    default:
+      return null;
+  }
+}
+
+/** Highlight matched terms in text by bolding them */
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+
+  // Split query into words and escape for regex
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 1)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+  if (words.length === 0) return <>{text}</>;
+
+  const pattern = new RegExp(`(${words.join('|')})`, 'gi');
+  const parts = text.split(pattern);
+
+  return (
+    <>
+      {parts.map((part, i) =>
+        pattern.test(part) ? (
+          <mark key={i} className="bg-primary-100 text-primary-900 rounded-sm px-0.5 font-semibold">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
+function ResultCard({ result, query }: { result: SearchResult; query: string }) {
   const detailHref = `${getTypeSlug(result.type)}/${result.slug}`;
 
   return (
     <Link
       href={detailHref}
-      className="block bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md hover:border-primary-300 transition-all"
+      className="group block bg-white border border-gray-200 rounded-xl p-0 overflow-hidden hover:shadow-lg hover:border-primary-300 transition-all duration-300 hover:-translate-y-0.5"
     >
-      <div className="flex items-start gap-4">
-        {/* Thumbnail placeholder */}
-        <div className="hidden sm:flex w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 items-center justify-center">
-          <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+      <div className="flex">
+        {/* Thumbnail */}
+        <div className="hidden sm:block w-40 md:w-48 flex-shrink-0 relative">
+          {result.imageUrl ? (
+            <Image
+              src={result.imageUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 160px, 192px"
+            />
+          ) : (
+            <div className={`w-full h-full bg-gradient-to-br ${getTypePlaceholderColor(result.type)} flex items-center justify-center min-h-[8rem]`}>
+              <ResultTypeIcon type={result.type} className="w-10 h-10 text-gray-300" />
+            </div>
+          )}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getTypeColor(result.type)}`}>
+        {/* Content */}
+        <div className="flex-1 min-w-0 p-5">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${getTypeColor(result.type)}`}>
+              <ResultTypeIcon type={result.type} className="w-3 h-3" />
               {getTypeLabel(result.type)}
             </span>
             {result.category && (
-              <span className="text-xs text-gray-500">{result.category}</span>
+              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{result.category}</span>
             )}
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
-            {result.title}
+          <h3 className="text-lg font-semibold text-gray-900 mb-1.5 line-clamp-1 group-hover:text-primary-700 transition-colors">
+            <HighlightText text={result.title} query={query} />
           </h3>
-          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-            {result.description}
+          <p className="text-sm text-gray-600 mb-3 line-clamp-2 leading-relaxed">
+            <HighlightText text={result.description} query={query} />
           </p>
 
           {/* Type-specific metadata */}
           <div className="flex items-center gap-3 text-xs text-gray-500">
             {result.type === 'articles' && (
               <>
-                {result.author && <span>By {result.author}</span>}
-                {result.date && <span>{result.date}</span>}
-                {result.readTime && <span>{result.readTime} min read</span>}
+                {result.author && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    {result.author}
+                  </span>
+                )}
+                {result.date && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {result.date}
+                  </span>
+                )}
+                {result.readTime && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    {result.readTime} min read
+                  </span>
+                )}
               </>
             )}
             {result.type === 'events' && (
@@ -139,7 +303,12 @@ function ResultCard({ result }: { result: SearchResult }) {
             )}
             {result.type === 'restaurants' && (
               <>
-                {result.cuisine && <span>{result.cuisine}</span>}
+                {result.cuisine && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                    {result.cuisine}
+                  </span>
+                )}
                 {result.rating && (
                   <span className="flex items-center gap-1">
                     <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
@@ -148,27 +317,52 @@ function ResultCard({ result }: { result: SearchResult }) {
                     {result.rating}
                   </span>
                 )}
+                {result.price && (
+                  <span className="font-medium text-gray-700">{result.price}</span>
+                )}
               </>
             )}
             {result.type === 'guides' && (
               <>
-                {result.author && <span>By {result.author}</span>}
-                {result.readTime && <span>{result.readTime} min read</span>}
+                {result.author && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    {result.author}
+                  </span>
+                )}
+                {result.readTime && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    {result.readTime} min read
+                  </span>
+                )}
               </>
             )}
             {result.type === 'videos' && (
               <>
-                {result.date && <span>{result.date}</span>}
+                {result.date && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {result.date}
+                  </span>
+                )}
               </>
             )}
             {(result.type === 'classifieds' || result.type === 'products') && (
               <>
                 {result.price && (
-                  <span className="font-medium text-gray-900">{result.price}</span>
+                  <span className="font-semibold text-gray-900 text-sm">{result.price}</span>
                 )}
               </>
             )}
           </div>
+        </div>
+
+        {/* Hover arrow */}
+        <div className="hidden md:flex items-center pr-4 text-gray-300 group-hover:text-primary-500 transition-colors">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </div>
       </div>
     </Link>
@@ -238,8 +432,23 @@ function SearchResults() {
 
   const totalPages = Math.max(1, Math.ceil(total / 20));
 
+  // Generate visible page numbers with ellipsis logic
+  const getVisiblePages = (): (number | 'ellipsis')[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | 'ellipsis')[] = [1];
+    if (page > 3) pages.push('ellipsis');
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      pages.push(i);
+    }
+    if (page < totalPages - 2) pages.push('ellipsis');
+    pages.push(totalPages);
+    return pages;
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 page-transition">
       {/* Header */}
       <section className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
@@ -253,20 +462,25 @@ function SearchResults() {
         )}
       </section>
 
-      {/* Type Filter Tabs */}
-      <section className="mb-6">
+      {/* Type Filter Pills */}
+      <section className="mb-8">
         <div className="flex flex-wrap gap-2">
-          {CONTENT_TYPES.map((type) => (
+          {CONTENT_TYPES.map(({ key, label, icon }) => (
             <button
-              key={type}
-              onClick={() => setActiveType(type)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                activeType === type
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              key={key}
+              onClick={() => setActiveType(key)}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+                activeType === key
+                  ? 'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-200'
+                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm'
               }`}
             >
-              {type}
+              {icon && (
+                <span className={activeType === key ? 'text-white/80' : 'text-gray-400'}>
+                  <FilterIcon icon={icon} />
+                </span>
+              )}
+              {label}
             </button>
           ))}
         </div>
@@ -274,7 +488,10 @@ function SearchResults() {
 
       {/* Error State */}
       {searchError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-3">
+          <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           {searchError}
         </div>
       )}
@@ -282,8 +499,25 @@ function SearchResults() {
       {/* Loading State */}
       {isLoading ? (
         <section className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-gray-100 rounded-lg animate-pulse" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden flex animate-pulse">
+              <div className="hidden sm:block w-40 md:w-48 bg-gray-100 flex-shrink-0" />
+              <div className="flex-1 p-5 space-y-3">
+                <div className="flex gap-2">
+                  <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                  <div className="h-5 w-20 bg-gray-100 rounded-full" />
+                </div>
+                <div className="h-5 bg-gray-200 rounded w-3/4" />
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-100 rounded w-full" />
+                  <div className="h-4 bg-gray-100 rounded w-2/3" />
+                </div>
+                <div className="flex gap-3">
+                  <div className="h-3 bg-gray-100 rounded w-20" />
+                  <div className="h-3 bg-gray-100 rounded w-24" />
+                </div>
+              </div>
+            </div>
           ))}
         </section>
       ) : (
@@ -294,44 +528,71 @@ function SearchResults() {
               <>
                 <p className="text-sm text-gray-500 mb-4">
                   {total} result{total !== 1 ? 's' : ''} found
+                  {activeType !== 'All' && (
+                    <span> in <span className="font-medium text-gray-700">{CONTENT_TYPES.find(t => t.key === activeType)?.label}</span></span>
+                  )}
                 </p>
                 <div className="space-y-4">
                   {results.map((result) => (
-                    <ResultCard key={`${result.type}-${result.id}`} result={result} />
+                    <ResultCard key={`${result.type}-${result.id}`} result={result} query={query} />
                   ))}
                 </div>
               </>
             ) : (
-              <div className="text-center py-16">
-                <svg
-                  className="mx-auto w-16 h-16 text-gray-300 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  No results found
+              /* Enhanced empty state */
+              <div className="text-center py-20">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gray-100 mb-6">
+                  <svg
+                    className="w-10 h-10 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                  {query ? 'No results found' : 'Start searching'}
                 </h2>
-                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                <p className="text-gray-500 mb-8 max-w-md mx-auto leading-relaxed">
                   {query
-                    ? `We couldn't find anything matching "${query}". Try different keywords or browse our content.`
-                    : 'Enter a search term to find articles, events, restaurants, and more.'}
+                    ? `We couldn't find anything matching "${query}". Try adjusting your search or explore our suggestions below.`
+                    : 'Enter a search term to find articles, events, restaurants, and more across Berlin.'}
                 </p>
+
+                {query && (
+                  <div className="max-w-sm mx-auto mb-8 text-left bg-white border border-gray-200 rounded-xl p-5">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Search tips</h3>
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-start gap-2">
+                        <svg className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Try broader or different keywords
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <svg className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Check your spelling
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <svg className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        Use fewer, more general words
+                      </li>
+                    </ul>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap justify-center gap-2">
-                  <span className="text-sm text-gray-500">Try searching for:</span>
-                  {['Berlin events', 'restaurants', 'street food', 'museums'].map(
+                  <span className="text-sm text-gray-400 mr-1">Popular searches:</span>
+                  {['Berlin events', 'restaurants', 'street food', 'museums', 'nightlife', 'weekend guide'].map(
                     (suggestion) => (
                       <Link
                         key={suggestion}
                         href={`/search?q=${encodeURIComponent(suggestion)}`}
-                        className="text-sm text-primary-600 hover:text-primary-700 underline"
+                        className="text-sm text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-full transition-colors font-medium"
                       >
                         {suggestion}
                       </Link>
@@ -344,37 +605,55 @@ function SearchResults() {
 
           {/* Pagination */}
           {results.length > 0 && totalPages > 1 && (
-            <section className="flex justify-center items-center gap-2 mt-10">
+            <nav className="flex justify-center items-center gap-1.5 mt-12" aria-label="Search results pagination">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-colors"
+                aria-label="Previous page"
               >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
                 Previous
               </button>
-              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(
-                (p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg ${
-                      p === page
-                        ? 'text-white bg-primary-600'
-                        : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ),
-              )}
+
+              <div className="flex items-center gap-1">
+                {getVisiblePages().map((p, i) =>
+                  p === 'ellipsis' ? (
+                    <span key={`ellipsis-${i}`} className="px-2 py-2 text-sm text-gray-400">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      aria-label={`Page ${p}`}
+                      aria-current={p === page ? 'page' : undefined}
+                      className={`min-w-[2.5rem] px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                        p === page
+                          ? 'text-white bg-primary-600 shadow-md shadow-primary-200'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ),
+                )}
+              </div>
+
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-300 transition-colors"
+                aria-label="Next page"
               >
                 Next
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
-            </section>
+            </nav>
           )}
         </>
       )}
@@ -390,14 +669,24 @@ export default function SearchPage() {
           <div className="animate-pulse">
             <div className="h-10 bg-gray-200 rounded w-64 mb-4" />
             <div className="h-6 bg-gray-200 rounded w-96 mb-8" />
-            <div className="flex gap-2 mb-6">
-              {[1, 2, 3, 4, 5].map((i) => (
+            <div className="flex gap-2 mb-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="h-10 bg-gray-200 rounded-full w-24" />
               ))}
             </div>
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-lg" />
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden flex">
+                  <div className="hidden sm:block w-40 md:w-48 bg-gray-100 flex-shrink-0" style={{ minHeight: '8rem' }} />
+                  <div className="flex-1 p-5 space-y-3">
+                    <div className="flex gap-2">
+                      <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                    </div>
+                    <div className="h-5 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-100 rounded w-full" />
+                    <div className="h-4 bg-gray-100 rounded w-2/3" />
+                  </div>
+                </div>
               ))}
             </div>
           </div>

@@ -363,13 +363,15 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         <aside
           className={`${
             sidebarOpen ? 'w-56' : 'w-14'
-          } bg-gradient-to-b from-gray-900 to-gray-950 text-white transition-all duration-300 flex-shrink-0`}
+          } bg-white border-r border-gray-200 shadow-sm transition-all duration-300 flex-shrink-0`}
         >
-          <div className="h-12 px-4 flex items-center justify-between border-b border-gray-800">
-            {sidebarOpen && <span className="text-base font-bold text-primary-500">Admin</span>}
+          <div className="h-12 px-4 flex items-center justify-between border-b border-gray-100">
+            {sidebarOpen && (
+              <span className="text-base font-bold text-primary-600 tracking-tight">Admin</span>
+            )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
+              className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors"
               aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             >
               {sidebarOpen ? (
@@ -383,46 +385,45 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
               )}
             </button>
           </div>
-          <nav className="px-1.5 py-1.5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 48px)' }}>
+          <nav className="px-2 py-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 48px)' }}>
             {adminNavGroups.map((group, gi) => (
-              <div key={gi} className={gi > 0 ? 'mt-3' : ''}>
+              <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
                 {group.title ? (
                   sidebarOpen ? (
-                    <div className="px-3 mb-0.5">
-                      <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-500">
+                    <div className="px-3 mb-1 pt-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
                         {group.title}
                       </span>
                     </div>
                   ) : (
-                    <div className="mx-2 mb-0.5 border-t border-gray-800" />
+                    <div className="mx-2 mb-1 border-t border-gray-100" />
                   )
                 ) : null}
-                {group.items.map((item) => {
-                  const isActive = item.exactMatch
-                    ? fullPath === item.href
-                    : pathname === item.href ||
-                      (item.href !== '/admin' && pathname.startsWith(item.href));
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      title={!sidebarOpen ? item.label : undefined}
-                      className={`relative flex items-center rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
-                        sidebarOpen ? '' : 'justify-center'
-                      } ${
-                        isActive
-                          ? 'bg-primary-600/15 text-primary-400'
-                          : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
-                      }`}
-                    >
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-primary-500 rounded-r-full" />
-                      )}
-                      {item.icon(`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary-400' : ''}`)}
-                      {sidebarOpen && <span className="ml-2.5">{item.label}</span>}
-                    </Link>
-                  );
-                })}
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const isActive = item.exactMatch
+                      ? fullPath === item.href
+                      : pathname === item.href ||
+                        (item.href !== '/admin' && pathname.startsWith(item.href));
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        title={!sidebarOpen ? item.label : undefined}
+                        className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all duration-150 ${
+                          sidebarOpen ? '' : 'justify-center'
+                        } ${
+                          isActive
+                            ? 'bg-primary-600 text-white shadow-sm'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        }`}
+                      >
+                        {item.icon(`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-gray-400'}`)}
+                        {sidebarOpen && <span className="ml-2.5">{item.label}</span>}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             ))}
           </nav>
@@ -430,27 +431,27 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col">
-          <header className="bg-white shadow-sm border-b border-gray-200 px-5 h-11 flex items-center">
+          <header className="bg-white shadow-sm border-b border-gray-200 px-6 h-14 flex items-center">
             <div className="flex items-center justify-between w-full">
               <div>
-                <h1 className="text-base font-semibold text-gray-900">{pageTitle}</h1>
-                <p className="text-xs text-gray-500 -mt-0.5">{pageSubtitle}</p>
+                <h1 className="text-lg font-semibold text-gray-900">{pageTitle}</h1>
+                <p className="text-xs text-gray-400 -mt-0.5">{pageSubtitle}</p>
               </div>
               <div className="flex items-center gap-4">
                 <Link
                   href="/"
-                  className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 hover:text-primary-600 transition-colors"
                 >
-                  <span>View Site</span>
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                   </svg>
+                  <span>View Site</span>
                 </Link>
                 {user && (
                   <>
-                    <div className="w-px h-6 bg-gray-200" />
+                    <div className="w-px h-7 bg-gray-200" />
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-sm font-bold overflow-hidden">
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-sm font-bold overflow-hidden ring-2 ring-primary-50">
                         {user.avatar_url ? (
                           <img
                             src={user.avatar_url}
@@ -462,8 +463,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                         )}
                       </div>
                       <div className="hidden sm:block">
-                        <p className="text-sm font-medium text-gray-700 leading-tight">{user.display_name}</p>
-                        <span className="text-[10px] font-medium uppercase tracking-wide text-primary-600">
+                        <p className="text-sm font-medium text-gray-800 leading-tight">{user.display_name}</p>
+                        <span className="text-[10px] font-semibold uppercase tracking-wide text-primary-600">
                           {user.role.replace('_', ' ')}
                         </span>
                       </div>

@@ -86,9 +86,15 @@ export default async function DiningPage() {
     <div className="container mx-auto px-4 py-6">
       {/* Hero Section */}
       <section className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-orange-100 rounded-full mb-4">
+          <svg className="w-7 h-7 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5m-6 1.5v-1.5m12 9.75l-1.5.75a3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0 3.354 3.354 0 00-3 0 3.354 3.354 0 01-3 0L3 16.5m15-3.379a48.474 48.474 0 00-6-.371c-2.032 0-4.034.126-6 .371m12 0c.39.049.777.102 1.163.16 1.07.16 1.837 1.094 1.837 2.175v5.169c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 013 20.625v-5.17c0-1.08.768-2.014 1.837-2.174A47.78 47.78 0 016 13.12M12.265 3.11a.375.375 0 11-.53 0L12 2.845l.265.265z" />
+          </svg>
+        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
           Berlin Dining
         </h1>
+        <div className="w-12 h-1 bg-orange-500 rounded-full mx-auto mb-3" />
         <p className="text-base text-gray-600 max-w-2xl mx-auto">
           Discover the best restaurants, cafes, and eateries Berlin has to
           offer. From street food to fine dining, explore the city&apos;s vibrant

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore, CartProduct, CartVariant } from '@/store/cart-store';
@@ -39,6 +39,8 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
   const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [imageKey, setImageKey] = useState(0);
+  const [detailsOpen, setDetailsOpen] = useState<'description' | 'details' | null>('description');
 
   const addItem = useCartStore((s) => s.addItem);
 
@@ -51,6 +53,16 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
 
   const thumbnailCount = product.images.length > 0 ? product.images.length : 4;
   const thumbnails = Array.from({ length: thumbnailCount }, (_, i) => i);
+
+  // Calculate savings percentage
+  const savingsPercent = product.compareAtPrice
+    ? Math.round(((product.compareAtPrice - displayPrice) / product.compareAtPrice) * 100)
+    : null;
+
+  // Trigger fade-in animation on image change
+  useEffect(() => {
+    setImageKey((k) => k + 1);
+  }, [selectedImageIndex]);
 
   const handleAddToCart = () => {
     const cartProduct: CartProduct = {
@@ -79,16 +91,20 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500 mb-8">
-        <Link href="/" className="hover:text-primary-600 transition-colors">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-gray-500 mb-8">
+        <Link href="/" className="hover:text-primary-600 transition-colors font-medium">
           Home
         </Link>
-        <span>/</span>
-        <Link href="/store" className="hover:text-primary-600 transition-colors">
+        <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        <Link href="/store" className="hover:text-primary-600 transition-colors font-medium">
           Store
         </Link>
-        <span>/</span>
-        <span className="text-gray-900 font-medium">{product.name}</span>
+        <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        <span className="text-gray-900 font-semibold truncate">{product.name}</span>
       </nav>
 
       {/* Product Detail */}
@@ -96,13 +112,14 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
         {/* Image Gallery */}
         <div>
           {/* Main Image */}
-          <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4 flex items-center justify-center text-gray-300">
+          <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden mb-4 flex items-center justify-center text-gray-300 cursor-zoom-in">
             {product.images[selectedImageIndex]?.url ? (
               <Image
+                key={imageKey}
                 src={product.images[selectedImageIndex].url!}
                 alt={product.images[selectedImageIndex]?.alt || product.name}
                 fill
-                className="object-cover"
+                className="object-cover animate-fade-in"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />
@@ -130,10 +147,10 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
                 key={i}
                 onClick={() => setSelectedImageIndex(i)}
                 aria-label={`View image ${i + 1}`}
-                className={`aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center text-gray-300 border-2 transition-colors ${
+                className={`aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center text-gray-300 border-2 transition-all duration-200 ${
                   selectedImageIndex === i
-                    ? 'border-primary-600'
-                    : 'border-transparent hover:border-gray-300'
+                    ? 'border-primary-600 shadow-primary-glow scale-105'
+                    : 'border-transparent hover:border-gray-300 hover:scale-105 hover:shadow-md'
                 }`}
               >
                 {product.images[i]?.url ? (
@@ -172,18 +189,21 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
 
           {/* Price */}
-          <div className="flex items-center gap-3 mb-6">
-            <span className="text-3xl font-bold text-gray-900">
+          <div className="flex items-center gap-3 mb-6 flex-wrap">
+            <span className="text-3xl font-bold gradient-text">
               {'\u20AC'}{displayPrice.toFixed(2)}
             </span>
             {product.compareAtPrice && (
-              <span className="text-lg text-gray-400 line-through">
+              <span className="text-lg text-red-400 line-through font-medium">
                 {'\u20AC'}{product.compareAtPrice.toFixed(2)}
               </span>
             )}
-            {product.compareAtPrice && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                Sale
+            {savingsPercent && savingsPercent > 0 && (
+              <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-full border border-red-100">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+                Save {savingsPercent}%
               </span>
             )}
           </div>
@@ -197,46 +217,34 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
               <div key={type} className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   {type}
+                  {selectedVariant && currentVariant?.type === type && (
+                    <span className="ml-2 font-normal text-gray-500">
+                      — {currentVariant.name}
+                    </span>
+                  )}
                 </label>
-                {type === 'Color' ? (
-                  <div className="flex gap-2" role="radiogroup" aria-label={`Select ${type}`}>
-                    {typeVariants.map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => setSelectedVariant(v.id)}
-                        role="radio"
-                        aria-checked={selectedVariant === v.id}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                          selectedVariant === v.id
-                            ? 'border-primary-600 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                        }`}
-                      >
-                        {v.name}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    <label htmlFor={`variant-${type}`} className="sr-only">Select {type}</label>
-                    <select
-                      id={`variant-${type}`}
-                      value={selectedVariant || ''}
-                      onChange={(e) => setSelectedVariant(e.target.value || null)}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={`Select ${type}`}>
+                  {typeVariants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariant(v.id)}
+                      role="radio"
+                      aria-checked={selectedVariant === v.id}
+                      className={`px-4 py-2.5 rounded-full text-sm font-medium border-2 transition-all duration-200 ${
+                        selectedVariant === v.id
+                          ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
+                          : 'border-gray-200 text-gray-700 hover:border-primary-300 hover:bg-primary-50/50'
+                      }`}
                     >
-                      <option value="">Select {type}</option>
-                      {typeVariants.map((v) => (
-                        <option key={v.id} value={v.id}>
-                          {v.name}
-                          {v.price !== product.basePrice
-                            ? ` (+\u20AC${(v.price - product.basePrice).toFixed(2)})`
-                            : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                )}
+                      {v.name}
+                      {v.price !== product.basePrice && (
+                        <span className="ml-1 text-xs opacity-70">
+                          +{'\u20AC'}{(v.price - product.basePrice).toFixed(2)}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             );
           })}
@@ -246,24 +254,34 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Quantity
             </label>
-            <div className="inline-flex items-center border border-gray-200 rounded-lg">
-              <button
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                aria-label="Decrease quantity"
-                className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-l-lg"
-              >
-                -
-              </button>
-              <span className="px-6 py-3 text-gray-900 font-medium border-x border-gray-200 min-w-[60px] text-center" aria-live="polite">
-                {quantity}
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center border-2 border-gray-200 rounded-full overflow-hidden">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  aria-label="Decrease quantity"
+                  className="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200 font-bold text-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                  </svg>
+                </button>
+                <span className="w-12 h-11 flex items-center justify-center text-gray-900 font-semibold border-x-2 border-gray-200 text-center" aria-live="polite">
+                  {quantity}
+                </span>
+                <button
+                  onClick={() => setQuantity((q) => q + 1)}
+                  aria-label="Increase quantity"
+                  className="w-11 h-11 flex items-center justify-center text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200 font-bold text-lg"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                In Stock
               </span>
-              <button
-                onClick={() => setQuantity((q) => q + 1)}
-                aria-label="Increase quantity"
-                className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors rounded-r-lg"
-              >
-                +
-              </button>
             </div>
           </div>
 
@@ -271,39 +289,104 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
           <button
             onClick={handleAddToCart}
             disabled={product.variants.length > 0 && !selectedVariant}
-            className={`w-full py-4 rounded-lg text-lg font-semibold transition-colors mb-4 ${
+            className={`w-full py-4 rounded-xl text-lg font-semibold transition-all duration-300 mb-4 flex items-center justify-center gap-2.5 ${
               addedToCart
-                ? 'bg-green-600 text-white'
+                ? 'bg-green-500 text-white scale-105 shadow-lg'
                 : product.variants.length > 0 && !selectedVariant
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-primary-600 text-white hover:bg-primary-700'
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'btn-gradient rounded-xl py-4 text-lg'
             }`}
           >
-            {addedToCart
-              ? 'Added to Cart!'
-              : product.variants.length > 0 && !selectedVariant
-                ? `Select ${variantTypes[0]} to Continue`
-                : 'Add to Cart'}
+            {addedToCart ? (
+              <>
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Added to Cart!
+              </>
+            ) : product.variants.length > 0 && !selectedVariant ? (
+              `Select ${variantTypes[0]} to Continue`
+            ) : (
+              <>
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-5.98.414M15.75 14.25a3 3 0 00-5.98.414m-2.52-7.414h13.5a1.5 1.5 0 011.454 1.886l-1.846 7.384A1.5 1.5 0 0118.904 18H8.846a1.5 1.5 0 01-1.454-1.126L5.25 8.25" />
+                </svg>
+                Add to Cart
+              </>
+            )}
           </button>
 
           <Link
             href="/store/cart"
-            className="block w-full text-center py-3 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            className="block w-full text-center py-3 rounded-xl border-2 border-gray-200 text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
           >
             View Cart
           </Link>
 
-          {/* SKU */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              <span className="font-medium text-gray-700">SKU:</span> {product.sku}
-            </p>
-          </div>
+          {/* SKU & Description Accordion */}
+          <div className="mt-8 border border-gray-200 rounded-xl overflow-hidden divide-y divide-gray-200">
+            {/* Description Panel */}
+            <div>
+              <button
+                onClick={() => setDetailsOpen(detailsOpen === 'description' ? null : 'description')}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Description</span>
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${detailsOpen === 'description' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {detailsOpen === 'description' && (
+                <div className="px-5 pb-5 animate-fade-in">
+                  <p className="text-gray-600 leading-relaxed">{product.description}</p>
+                </div>
+              )}
+            </div>
 
-          {/* Description */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Description</h2>
-            <p className="text-gray-600 leading-relaxed">{product.description}</p>
+            {/* Product Details Panel */}
+            <div>
+              <button
+                onClick={() => setDetailsOpen(detailsOpen === 'details' ? null : 'details')}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+              >
+                <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Product Details</span>
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${detailsOpen === 'details' ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {detailsOpen === 'details' && (
+                <div className="px-5 pb-5 animate-fade-in">
+                  <dl className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">SKU</dt>
+                      <dd className="text-gray-900 font-medium">{product.sku}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-gray-500">Category</dt>
+                      <dd className="text-gray-900 font-medium">{product.category}</dd>
+                    </div>
+                    {product.variants.length > 0 && (
+                      <div className="flex justify-between">
+                        <dt className="text-gray-500">Variants</dt>
+                        <dd className="text-gray-900 font-medium">{product.variants.length} options</dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -311,15 +394,32 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            You May Also Like
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              You May Also Like
+            </h2>
+            <Link
+              href="/store"
+              className="group text-sm font-semibold text-primary-600 hover:text-primary-700 transition-all flex items-center gap-1 px-3 py-1.5 -mr-3 rounded-lg hover:bg-primary-50 hover:underline underline-offset-4 decoration-primary-300"
+            >
+              View all
+              <svg
+                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map((rp) => (
               <Link
                 key={rp.slug}
                 href={`/store/${rp.slug}`}
-                className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                className="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-primary-glow hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="relative aspect-square bg-gray-100 flex items-center justify-center text-gray-300 overflow-hidden">
                   {rp.imageUrl ? (
@@ -339,6 +439,11 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
                       />
                     </svg>
                   )}
+                  {rp.compareAtPrice && (
+                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      Sale
+                    </div>
+                  )}
                 </div>
                 <div className="p-4">
                   <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
@@ -348,11 +453,11 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
                     {rp.name}
                   </h3>
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className="text-lg font-bold gradient-text">
                       {'\u20AC'}{rp.basePrice.toFixed(2)}
                     </span>
                     {rp.compareAtPrice && (
-                      <span className="text-sm text-gray-400 line-through">
+                      <span className="text-sm text-red-400 line-through">
                         {'\u20AC'}{rp.compareAtPrice.toFixed(2)}
                       </span>
                     )}
