@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CategoryGrid } from '@/components/ui/category-grid';
 import type { CategoryCardData } from '@/components/ui/category-grid';
 import { LatestClassifiedList } from './latest-classified-list';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 export interface ClassifiedListingData {
   slug: string;
@@ -34,11 +35,9 @@ export const metadata: Metadata = {
     title: 'Berlin Classifieds',
   },
   alternates: {
-    canonical: 'https://iloveberlin.biz/classifieds',
+    canonical: `${SITE_URL}/classifieds`,
   },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface ApiCategory {
   name: string;

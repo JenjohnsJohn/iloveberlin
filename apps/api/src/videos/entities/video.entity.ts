@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
   ManyToOne,
   ManyToMany,
   JoinColumn,
@@ -51,6 +52,7 @@ export class Video {
   })
   video_provider!: VideoProvider;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   thumbnail_id!: string | null;
 
@@ -69,6 +71,7 @@ export class Video {
   @JoinColumn({ name: 'series_id' })
   series!: VideoSeries | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   category_id!: string | null;
 

@@ -4,14 +4,16 @@ import type { CategoryCardData } from '@/components/ui/category-grid';
 import { toDiningCuisineSeoSlug } from '@/lib/dining-seo-utils';
 import { LatestRestaurantList } from './latest-restaurant-list';
 import type { RestaurantCardData } from '@/components/dining/restaurant-card';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Berlin Dining',
   description:
     'Discover the best restaurants, cafes, and eateries Berlin has to offer. From street food to fine dining, explore the city\'s vibrant culinary scene.',
+  alternates: {
+    canonical: `${SITE_URL}/dining`,
+  },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function getCuisines(): Promise<CategoryCardData[]> {
   try {

@@ -21,6 +21,8 @@ import { buildRestaurantUrl } from '@/lib/dining-seo-utils';
 import { buildEventUrl } from '@/lib/events-seo-utils';
 import { buildVideoUrl } from '@/lib/videos-seo-utils';
 import { buildCompetitionUrl } from '@/lib/competitions-seo-utils';
+import { safeJsonLdStringify } from '@/lib/json-ld';
+import { SITE_URL } from '@/lib/constants';
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -972,8 +974,8 @@ export default function HomePage() {
       {
         '@type': 'Organization',
         name: 'ILOVEBERLIN',
-        url: 'https://iloveberlin.biz',
-        logo: 'https://iloveberlin.biz/logo.png',
+        url: SITE_URL,
+        logo: `${SITE_URL}/logo.png`,
         sameAs: [
           'https://www.facebook.com/iloveberlin',
           'https://www.instagram.com/iloveberlin',
@@ -983,10 +985,10 @@ export default function HomePage() {
       {
         '@type': 'WebSite',
         name: 'ILOVEBERLIN',
-        url: 'https://iloveberlin.biz',
+        url: SITE_URL,
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'https://iloveberlin.biz/search?q={search_term_string}',
+          target: `${SITE_URL}/search?q={search_term_string}`,
           'query-input': 'required name=search_term_string',
         },
       },
@@ -998,7 +1000,7 @@ export default function HomePage() {
               itemListElement: trendingArticles.map((article, i) => ({
                 '@type': 'ListItem',
                 position: i + 1,
-                url: `https://iloveberlin.biz${buildArticleUrl(article.slug, article.categorySlug)}`,
+                url: `${SITE_URL}${buildArticleUrl(article.slug, article.categorySlug)}`,
                 name: article.title,
               })),
             },
@@ -1575,7 +1577,7 @@ export default function HomePage() {
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
 
       {/* Hero Carousel Progress Animation */}

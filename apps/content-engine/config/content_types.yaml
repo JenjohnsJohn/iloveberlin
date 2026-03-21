@@ -6,27 +6,36 @@ articles:
     rss:
       max_items_per_feed: 5
       feeds:
-        # Berlin-focused news
+        # Berlin-focused news (skip Berlin filter)
         - url: "https://www.iheartberlin.de/feed/"
           name: "iHeartBerlin"
+          berlin_only: true
         - url: "https://www.exberliner.com/feed/"
           name: "Exberliner"
+          berlin_only: true
         - url: "https://www.tip-berlin.de/feed/"
           name: "Tip Berlin"
-        # Lifestyle & Culture
+          berlin_only: true
+        # Lifestyle & Culture (skip Berlin filter)
         - url: "https://slowtravelberlin.com/feed/"
           name: "Slow Travel Berlin"
+          berlin_only: true
         - url: "https://thebritishberliner.com/feed/"
           name: "The British Berliner"
+          berlin_only: true
         - url: "https://www.berlinartlink.com/feed/"
           name: "Berlin Art Link"
+          berlin_only: true
         - url: "https://ceecee.cc/feed/"
           name: "Cee Cee Berlin"
-        # Food
+          berlin_only: true
+        # Food (skip Berlin filter)
         - url: "https://berlinfoodstories.com/feed/"
           name: "Berlin Food Stories"
+          berlin_only: true
         - url: "https://masha-sedgwick.com/feed/"
           name: "Masha Sedgwick"
+          berlin_only: true
     ai:
       daily_count: 15
       topics:

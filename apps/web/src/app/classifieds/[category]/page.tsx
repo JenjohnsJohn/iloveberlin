@@ -3,8 +3,7 @@ import { notFound } from 'next/navigation';
 import { CategoryContent } from './category-content';
 import type { ClassifiedListingData } from '../page';
 import type { CategoryFieldDefinition } from '@/types/category-fields';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 const CATEGORY_INFO: Record<string, { name: string; description: string }> = {
   vehicles: { name: 'Vehicles', description: 'Cars, motorcycles, bicycles and other vehicles for sale in Berlin.' },
@@ -140,7 +139,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${info.name} Classifieds in Berlin`,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz/classifieds/${category}`,
+      canonical: `${SITE_URL}/classifieds/${category}`,
     },
   };
 }

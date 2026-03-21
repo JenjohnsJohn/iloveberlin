@@ -3,14 +3,13 @@ import { CategoryGrid } from '@/components/ui/category-grid';
 import type { CategoryCardData } from '@/components/ui/category-grid';
 import { LatestProductList } from './latest-product-list';
 import type { ProductListingData } from './latest-product-list';
+import { API_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Berlin Store',
   description:
     'Discover unique Berlin-inspired products, from apparel and art to artisan food and gifts. Take a piece of Berlin home with you.',
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface ApiCategory {
   name: string;

@@ -27,6 +27,7 @@ import { CategoryFieldDefinition } from './interfaces/category-field.interface';
 import { validateCategoryFields } from './validators/category-fields.validator';
 import { generateSlug } from '../common/utils/slug.util';
 import { sanitize } from '../common/utils/sanitize.util';
+import { getPaginationParams } from '../common/utils/pagination.util';
 
 @Injectable()
 export class ClassifiedsService {
@@ -123,8 +124,7 @@ export class ClassifiedsService {
     page: number;
     limit: number;
   }> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const { skip, take, page, limit } = getPaginationParams(query.page, query.limit);
 
     const qb = this.classifiedRepository
       .createQueryBuilder('classified')
@@ -209,7 +209,7 @@ export class ClassifiedsService {
 
     this.applySorting(qb, query.sort, query.order);
 
-    qb.skip((page - 1) * limit).take(limit);
+    qb.skip(skip).take(take);
 
     const [data, total] = await qb.getManyAndCount();
 
@@ -708,8 +708,7 @@ export class ClassifiedsService {
     page: number;
     limit: number;
   }> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const { skip, take, page, limit } = getPaginationParams(query.page, query.limit);
 
     const qb = this.classifiedRepository
       .createQueryBuilder('classified')
@@ -731,7 +730,7 @@ export class ClassifiedsService {
 
     this.applySorting(qb, query.sort, query.order);
 
-    qb.skip((page - 1) * limit).take(limit);
+    qb.skip(skip).take(take);
 
     const [data, total] = await qb.getManyAndCount();
 

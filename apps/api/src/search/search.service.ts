@@ -211,7 +211,10 @@ export class SearchService implements OnModuleInit {
         processingTimeMs,
       };
     } catch (error) {
-      this.logger.error(`Search failed for query "${query}": ${error}`);
+      this.logger.error(
+        `Search failed for query "${query}" (type=${type || 'all'}, page=${page}, limit=${limit})`,
+        error instanceof Error ? error.stack : String(error),
+      );
       return {
         hits: [],
         total: 0,
@@ -253,7 +256,10 @@ export class SearchService implements OnModuleInit {
         query,
       };
     } catch (error) {
-      this.logger.error(`Suggest failed for query "${query}": ${error}`);
+      this.logger.error(
+        `Suggest failed for query "${query}"`,
+        error instanceof Error ? error.stack : String(error),
+      );
       return {
         suggestions: [],
         query,

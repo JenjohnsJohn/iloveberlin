@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Error({
@@ -9,6 +10,12 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Root error boundary caught:', error);
+    }
+  }, [error]);
+
   return (
     <div className="container mx-auto px-4 py-16 md:py-24">
       <div className="max-w-lg mx-auto text-center">
@@ -35,7 +42,7 @@ export default function Error({
           Something Went Wrong
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          {error.message || 'An unexpected error occurred. Please try again or return to the homepage.'}
+          An unexpected error occurred. Please try again or return to the homepage.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

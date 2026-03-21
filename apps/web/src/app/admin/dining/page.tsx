@@ -106,14 +106,14 @@ function mapRestaurant(raw: Record<string, unknown>): Restaurant {
     name: String(raw.name || ''),
     slug: String(raw.slug || ''),
     district: (raw.district || null) as string | null,
-    priceRange: String(raw.priceRange || raw.price_range || 'moderate'),
+    priceRange: String(raw.price_range || raw.priceRange || 'moderate'),
     rating: raw.rating != null ? Number(raw.rating) : null,
     status: String(raw.status || 'draft'),
     cuisines: cuisineNames,
     primaryCuisineSlug: Array.isArray(cuisineRel) && cuisineRel.length > 0
       ? String((cuisineRel[0] as Record<string, unknown>)?.slug || '')
       : null,
-    createdAt: String(raw.createdAt || raw.created_at || ''),
+    createdAt: String(raw.created_at || raw.createdAt || ''),
   };
 }
 

@@ -32,6 +32,14 @@ async def get_int_setting(key: str, default: int = 0) -> int:
         return default
 
 
+async def get_float_setting(key: str, default: float = 0.0) -> float:
+    val = await get_setting(key, str(default))
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return default
+
+
 async def get_json_setting(key: str, default: list | dict | None = None) -> list | dict:
     val = await get_setting(key, "")
     if not val:

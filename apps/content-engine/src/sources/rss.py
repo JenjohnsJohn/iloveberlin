@@ -47,7 +47,7 @@ class RSSSource(Source):
                         count=len(feed_items),
                     )
                 except Exception as e:
-                    log.error("RSS feed failed", feed=feed_cfg["name"], error=str(e))
+                    log.error("RSS feed failed", feed=feed_cfg["name"], url=feed_cfg["url"], error=str(e))
         return items
 
     async def _fetch_feed(
@@ -114,6 +114,7 @@ class RSSSource(Source):
                     image_url=image_url,
                     data={
                         "feed_name": feed_cfg["name"],
+                        "berlin_only": feed_cfg.get("berlin_only", False),
                         "title": entry.get("title", ""),
                         "link": entry.get("link", ""),
                         "summary": strip_html(entry.get("summary", "")),

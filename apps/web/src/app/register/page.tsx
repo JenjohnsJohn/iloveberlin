@@ -29,6 +29,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
 
   const passwordStrength = getPasswordStrength(password);
+  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +58,7 @@ export default function RegisterPage() {
       <div className="min-h-[80vh] flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
@@ -84,9 +85,13 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-2">Join the ILOVEBERLIN community</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            <div
+              id="form-error"
+              className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600"
+              role="alert"
+            >
               {error}
             </div>
           )}
@@ -103,6 +108,8 @@ export default function RegisterPage() {
               onChange={(e) => setDisplayName(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               placeholder="Your name"
+              aria-invalid={error ? 'true' : undefined}
+              aria-describedby={error ? 'form-error' : undefined}
             />
           </div>
 
@@ -118,6 +125,8 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               placeholder="you@example.com"
+              aria-invalid={error ? 'true' : undefined}
+              aria-describedby={error ? 'form-error' : undefined}
             />
           </div>
 
@@ -133,11 +142,17 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               placeholder="Create a password"
+              aria-invalid={error ? 'true' : undefined}
+              aria-describedby={
+                [error ? 'form-error' : '', password ? 'password-strength' : '']
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
             />
             {password && (
-              <div className="mt-2">
+              <div className="mt-2" id="password-strength">
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden" role="meter" aria-label="Password strength" aria-valuenow={passwordStrength.score} aria-valuemin={0} aria-valuemax={5}>
                     <div
                       className={`h-full ${passwordStrength.color} transition-all`}
                       style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
@@ -161,9 +176,15 @@ export default function RegisterPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               placeholder="Confirm your password"
+              aria-invalid={passwordsMismatch ? 'true' : undefined}
+              aria-describedby={
+                [passwordsMismatch ? 'confirm-password-error' : '', error ? 'form-error' : '']
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
             />
-            {confirmPassword && password !== confirmPassword && (
-              <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+            {passwordsMismatch && (
+              <p id="confirm-password-error" className="text-xs text-red-500 mt-1" role="alert">Passwords do not match</p>
             )}
           </div>
 

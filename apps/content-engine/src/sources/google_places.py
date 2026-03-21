@@ -1,5 +1,6 @@
 """Google Places API — full restaurant source + photo helper."""
 
+import asyncio
 import hashlib
 
 import httpx
@@ -16,18 +17,20 @@ MEDIA_URL = "https://places.googleapis.com/v1"
 
 # Shared connection-pooled client
 _http_client: httpx.AsyncClient | None = None
+_http_client_lock = asyncio.Lock()
 
 
-def _get_http_client() -> httpx.AsyncClient:
-    """Get or create a shared httpx client with connection pooling."""
+async def _get_http_client() -> httpx.AsyncClient:
+    """Get or create a shared httpx client with connection pooling (thread-safe)."""
     global _http_client
-    if _http_client is None or _http_client.is_closed:
-        _http_client = httpx.AsyncClient(
-            timeout=15.0,
-            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
-            follow_redirects=True,
-        )
-    return _http_client
+    async with _http_client_lock:
+        if _http_client is None or _http_client.is_closed:
+            _http_client = httpx.AsyncClient(
+                timeout=15.0,
+                limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+                follow_redirects=True,
+            )
+        return _http_client
 
 FIELD_MASK = ",".join([
     "places.id",
@@ -91,7 +94,7 @@ class GooglePlacesSource(Source):
             "pageSize": self.batch_size,
         }
 
-        client = _get_http_client()
+        client = await _get_http_client()
         resp = await client.post(
             SEARCH_URL,
             json=body,
@@ -171,7 +174,7 @@ class GooglePlacesSource(Source):
 async def _fetch_photo_bytes(photo_name: str) -> tuple[bytes, str] | None:
     """Fetch the actual photo bytes from a Google Places photo resource."""
     url = f"{MEDIA_URL}/{photo_name}/media"
-    client = _get_http_client()
+    client = await _get_http_client()
     resp = await client.get(
         url,
         params={"maxWidthPx": 1200, "key": settings.google_places_api_key},

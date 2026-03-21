@@ -2,7 +2,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from config.settings import settings
 
-engine = create_async_engine(settings.engine_database_url, echo=False, pool_size=5, max_overflow=5)
+engine = create_async_engine(
+    settings.engine_database_url,
+    echo=False,
+    pool_size=5,
+    max_overflow=5,
+    connect_args={"timeout": 10},  # Prevent hanging indefinitely on slow/unavailable DB
+    pool_pre_ping=True,  # Verify connections are alive before using them
+)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 

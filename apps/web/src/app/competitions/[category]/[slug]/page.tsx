@@ -3,8 +3,8 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { CompetitionContent } from './competition-content';
 import type { CompetitionDetail } from './competition-content';
 import { buildCompetitionUrl, toCompetitionCategorySeoSlug } from '@/lib/competitions-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 interface ApiCompetition {
   id: string;
@@ -87,7 +87,7 @@ export async function generateMetadata({
       description: plainDesc,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildCompetitionUrl(slug, categorySlug)}`,
+      canonical: `${SITE_URL}${buildCompetitionUrl(slug, categorySlug)}`,
     },
   };
 }
@@ -127,12 +127,12 @@ export default async function CompetitionDetailPage({
     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
     location: {
       '@type': 'VirtualLocation',
-      url: `https://iloveberlin.biz${buildCompetitionUrl(competition.slug, actualCategorySlug)}`,
+      url: `${SITE_URL}${buildCompetitionUrl(competition.slug, actualCategorySlug)}`,
     },
     organizer: {
       '@type': 'Organization',
       name: 'ILOVEBERLIN',
-      url: 'https://iloveberlin.biz',
+      url: SITE_URL,
     },
     ...(competition.featuredImage && {
       image: competition.featuredImage,
@@ -154,7 +154,7 @@ export default async function CompetitionDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <CompetitionContent competition={competition} />
     </>

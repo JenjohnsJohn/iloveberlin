@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { ClassifiedDetailContent } from './classified-detail-content';
 import type { ClassifiedDetailData } from './classified-detail-content';
 import type { CategoryFieldDefinition } from '@/types/category-fields';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 const CATEGORY_INFO: Record<string, string> = {
   vehicles: 'Vehicles',
@@ -112,7 +112,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: plainDesc,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz/classifieds/${category}/${slug}`,
+      canonical: `${SITE_URL}/classifieds/${category}/${slug}`,
     },
   };
 }
@@ -157,7 +157,7 @@ export default async function ClassifiedDetailPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <ClassifiedDetailContent
         listing={listing}

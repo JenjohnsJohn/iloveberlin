@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { VideoContent } from './video-content';
 import { buildVideoUrl, toVideoCategorySeoSlug } from '@/lib/videos-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 interface VideoData {
   id: string;
@@ -83,7 +83,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildVideoUrl(slug, categorySlug)}`,
+      canonical: `${SITE_URL}${buildVideoUrl(slug, categorySlug)}`,
     },
   };
 }
@@ -122,7 +122,7 @@ export default async function VideoDetailPage({
     publisher: {
       '@type': 'Organization',
       name: 'ILOVEBERLIN',
-      url: 'https://iloveberlin.biz',
+      url: SITE_URL,
     },
     ...(video.view_count > 0
       ? {
@@ -139,7 +139,7 @@ export default async function VideoDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <VideoContent
         video={{

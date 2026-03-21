@@ -173,8 +173,10 @@ async def summarize_article_from_rss(raw_data: dict) -> dict:
         data = _parse_json_response(result)
         body = sanitize_html(data.get("body", ""))
     except Exception as e:
-        log.warning("AI unavailable, using raw RSS content", error=str(e)[:200])
-        return _build_fallback_article(raw_data)
+        log.warning("AI unavailable, using raw RSS content fallback", error=str(e)[:200])
+        fallback_data = _build_fallback_article(raw_data)
+        fallback_data["_enrichment_method"] = "fallback"
+        return fallback_data
 
     # Append source attribution block if we have a valid link
     if link and link.startswith("http"):
@@ -187,6 +189,7 @@ async def summarize_article_from_rss(raw_data: dict) -> dict:
         body = body + attribution
 
     data["body"] = body
+    data["_enrichment_method"] = "ai"
     # Keep original RSS title instead of AI-rewritten
     data["title"] = title
     # Pass through source fields for the API

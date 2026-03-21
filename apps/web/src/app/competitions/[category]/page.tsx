@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { CompetitionCategoryContent } from './competition-category-content';
 import { fromCompetitionCategorySeoSlug, buildCompetitionUrl } from '@/lib/competitions-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL } from '@/lib/constants';
 
 async function getCategoryName(slug: string): Promise<string | null> {
   try {

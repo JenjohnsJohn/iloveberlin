@@ -16,6 +16,7 @@ import { CreateVideoSeriesDto } from './dto/create-video-series.dto';
 import { UpdateVideoSeriesDto } from './dto/update-video-series.dto';
 import { VideoQueryDto, VideoSortField, SortOrder } from './dto/video-query.dto';
 import { generateSlug } from '../common/utils/slug.util';
+import { getPaginationParams } from '../common/utils/pagination.util';
 
 @Injectable()
 export class VideosService {
@@ -114,8 +115,7 @@ export class VideosService {
     query: VideoQueryDto,
     isPublicOnly = true,
   ): Promise<{ data: Video[]; total: number; page: number; limit: number }> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const { skip, take, page, limit } = getPaginationParams(query.page, query.limit);
 
     const qb = this.videoRepository
       .createQueryBuilder('video')
@@ -156,7 +156,7 @@ export class VideosService {
 
     this.applySorting(qb, query.sort, query.order);
 
-    qb.skip((page - 1) * limit).take(limit);
+    qb.skip(skip).take(take);
 
     const [data, total] = await qb.getManyAndCount();
 

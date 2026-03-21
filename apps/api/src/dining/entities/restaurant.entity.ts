@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
   ManyToOne,
   ManyToMany,
   OneToMany,
@@ -80,6 +81,7 @@ export class Restaurant {
   @Column({ type: 'jsonb', default: '{}' })
   opening_hours!: Record<string, unknown>;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   featured_image_id!: string | null;
 

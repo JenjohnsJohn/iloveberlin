@@ -1,7 +1,5 @@
 """Tests for admin authentication (Phase 1.1)."""
 
-import hashlib
-
 import pytest
 
 from src.admin.auth import (
@@ -24,12 +22,12 @@ class TestAuth:
     def test_empty_token_fails(self):
         assert verify_session_token("") is False
 
-    def test_sha256_password_check(self):
-        """Test sha256: prefix password checking."""
+    def test_bcrypt_password_check(self):
+        """Test bcrypt password checking."""
+        import bcrypt
         password = "test-password"
-        hashed = "sha256:" + hashlib.sha256(password.encode()).hexdigest()
+        hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
-        # Monkeypatch settings
         import src.admin.auth as auth_module
         original = auth_module.settings.admin_password_hash
         auth_module.settings.admin_password_hash = hashed
@@ -37,6 +35,21 @@ class TestAuth:
         try:
             assert _check_password("test-password") is True
             assert _check_password("wrong-password") is False
+        finally:
+            auth_module.settings.admin_password_hash = original
+
+    def test_sha256_hash_rejected(self):
+        """SHA256 hashes should no longer be accepted (bcrypt only)."""
+        import hashlib
+        password = "test-password"
+        hashed = "sha256:" + hashlib.sha256(password.encode()).hexdigest()
+
+        import src.admin.auth as auth_module
+        original = auth_module.settings.admin_password_hash
+        auth_module.settings.admin_password_hash = hashed
+
+        try:
+            assert _check_password(password) is False
         finally:
             auth_module.settings.admin_password_hash = original
 

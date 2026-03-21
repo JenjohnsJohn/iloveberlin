@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Berlin Store - ILOVEBERLIN',
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     title: 'Berlin Store',
   },
   alternates: {
-    canonical: 'https://iloveberlin.biz/store',
+    canonical: `${SITE_URL}/store`,
   },
 };
 

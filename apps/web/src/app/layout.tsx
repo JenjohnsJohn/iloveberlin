@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { MainLayout } from '@/components/layout/main-layout';
 import { CookieConsent } from '@/components/cookie-consent';
+import { SITE_URL } from '@/lib/constants';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const poppins = Poppins({
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://iloveberlin.biz',
+    url: SITE_URL,
     siteName: 'ILOVEBERLIN',
     title: 'ILOVEBERLIN - Your Digital Guide to Berlin Life',
     description: 'Discover Berlin life - news, events, dining, guides, videos, and more.',

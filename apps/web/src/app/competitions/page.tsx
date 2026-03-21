@@ -5,6 +5,7 @@ import type { CategoryCardData } from '@/components/ui/category-grid';
 import { toCompetitionCategorySeoSlug } from '@/lib/competitions-seo-utils';
 import { LatestCompetitionList } from './latest-competition-list';
 import type { CompetitionCardData } from '@/components/competitions/competition-card';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Competitions - Win Amazing Prizes in Berlin',
@@ -21,11 +22,9 @@ export const metadata: Metadata = {
     title: 'Competitions - Win Amazing Prizes in Berlin',
   },
   alternates: {
-    canonical: 'https://iloveberlin.biz/competitions',
+    canonical: `${SITE_URL}/competitions`,
   },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function getCategories(): Promise<CategoryCardData[]> {
   try {

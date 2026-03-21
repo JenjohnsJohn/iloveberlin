@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -15,6 +16,7 @@ export class OrderItem {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   order_id!: string;
 
@@ -25,6 +27,7 @@ export class OrderItem {
   @JoinColumn({ name: 'order_id' })
   order!: Order;
 
+  @Index()
   @Column({ type: 'uuid' })
   product_id!: string;
 
@@ -32,6 +35,7 @@ export class OrderItem {
   @JoinColumn({ name: 'product_id' })
   product!: Product;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   variant_id!: string | null;
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCartStore, CartProduct, CartVariant } from '@/store/cart-store';
 
 export interface ProductDetailData {
@@ -95,12 +96,15 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
         {/* Image Gallery */}
         <div>
           {/* Main Image */}
-          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4 flex items-center justify-center text-gray-300">
+          <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4 flex items-center justify-center text-gray-300">
             {product.images[selectedImageIndex]?.url ? (
-              <img
+              <Image
                 src={product.images[selectedImageIndex].url!}
                 alt={product.images[selectedImageIndex]?.alt || product.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
               />
             ) : (
               <svg
@@ -133,9 +137,11 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
                 }`}
               >
                 {product.images[i]?.url ? (
-                  <img
+                  <Image
                     src={product.images[i].url!}
                     alt={product.images[i]?.alt || `${product.name} thumbnail ${i + 1}`}
+                    width={120}
+                    height={120}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -315,9 +321,9 @@ export function ProductDetailContent({ product, relatedProducts }: ProductDetail
                 href={`/store/${rp.slug}`}
                 className="group bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
               >
-                <div className="aspect-square bg-gray-100 flex items-center justify-center text-gray-300 overflow-hidden">
+                <div className="relative aspect-square bg-gray-100 flex items-center justify-center text-gray-300 overflow-hidden">
                   {rp.imageUrl ? (
-                    <img src={rp.imageUrl} alt={rp.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image src={rp.imageUrl} alt={rp.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" />
                   ) : (
                     <svg
                       className="w-16 h-16"

@@ -4,14 +4,17 @@ import type { CategoryCardData } from '@/components/ui/category-grid';
 import { toCategorySeoSlug } from '@/lib/news-seo-utils';
 import { LatestArticleList } from './latest-article-list';
 import type { ArticleCardData } from '@/components/articles/article-card';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 export const metadata: Metadata = {
   title: 'Berlin News',
   description:
     'Stay informed with the latest stories, events, and happenings from Germany\'s vibrant capital.',
+  alternates: {
+    canonical: `${SITE_URL}/news`,
+  },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function getCategories(): Promise<CategoryCardData[]> {
   try {
@@ -93,16 +96,16 @@ export default async function NewsPage() {
     '@type': 'CollectionPage',
     name: 'Berlin News',
     description: 'Stay informed with the latest stories, events, and happenings from Berlin.',
-    url: 'https://iloveberlin.biz/news',
+    url: `${SITE_URL}/news`,
     isPartOf: {
       '@type': 'WebSite',
       name: 'ILOVEBERLIN',
-      url: 'https://iloveberlin.biz',
+      url: SITE_URL,
     },
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://iloveberlin.biz' },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
         { '@type': 'ListItem', position: 2, name: 'News' },
       ],
     },
@@ -112,7 +115,7 @@ export default async function NewsPage() {
     <div className="container mx-auto px-4 py-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       {/* Hero Section */}
       <section className="text-center mb-8">

@@ -20,12 +20,14 @@ import { EmailModule } from '../email/email.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
-        if (!secret || secret === 'dev-jwt-secret-change-in-production') {
-          const nodeEnv = configService.get<string>('NODE_ENV');
-          if (nodeEnv === 'production') {
-            throw new Error('JWT_SECRET must be set in production');
-          }
+        const nodeEnv = configService.get<string>('NODE_ENV');
+
+        if (!secret && nodeEnv === 'production') {
+          throw new Error(
+            'JWT_SECRET environment variable must be set in production',
+          );
         }
+
         return {
           secret: secret || 'dev-jwt-secret-change-in-production',
           signOptions: {

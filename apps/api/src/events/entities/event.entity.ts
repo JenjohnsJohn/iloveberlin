@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -39,6 +40,7 @@ export class Event {
   @Column({ type: 'text', nullable: true })
   excerpt!: string | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   venue_id!: string | null;
 
@@ -50,6 +52,7 @@ export class Event {
   @JoinColumn({ name: 'venue_id' })
   venue!: Venue | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   category_id!: string | null;
 
@@ -87,6 +90,7 @@ export class Event {
   @Column({ type: 'varchar', length: 500, nullable: true })
   ticket_url!: string | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   featured_image_id!: string | null;
 
@@ -101,6 +105,7 @@ export class Event {
   })
   status!: EventStatus;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   submitted_by!: string | null;
 
@@ -108,6 +113,7 @@ export class Event {
   @JoinColumn({ name: 'submitted_by' })
   submitter!: User | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   approved_by!: string | null;
 

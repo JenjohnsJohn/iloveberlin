@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ProductDetailContent } from './product-detail-content';
 import type { ProductDetailData, RelatedProductData } from './product-detail-content';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 interface ApiProduct {
   slug: string;
@@ -126,7 +126,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: plainDesc,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz/store/${slug}`,
+      canonical: `${SITE_URL}/store/${slug}`,
     },
   };
 }
@@ -166,7 +166,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <ProductDetailContent
         product={product}

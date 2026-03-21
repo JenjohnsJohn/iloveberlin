@@ -17,6 +17,72 @@ from src.scheduler.jobs import setup_scheduler
 from src.utils.logging import get_logger, setup_logging
 from src.utils.metrics import get_metrics_response
 
+CONTENT_TYPES_CONFIG = "config/content_types.yaml"
+
+# Required top-level keys in the YAML config; each must have at least 'enabled' and 'sources'
+_REQUIRED_CONTENT_KEYS = {"articles", "events"}
+_REQUIRED_SECTION_FIELDS = {"enabled", "sources"}
+
+
+def _validate_content_types_config(log):
+    """Validate the YAML content-types config at startup.
+
+    Checks:
+      1. File exists and is readable
+      2. Valid YAML syntax
+      3. Required top-level content-type keys are present
+      4. Each section has expected fields (enabled, sources)
+    """
+    import os
+
+    import yaml
+
+    if not os.path.isfile(CONTENT_TYPES_CONFIG):
+        log.error(
+            "Content-types config not found: %s — pipelines will fail",
+            CONTENT_TYPES_CONFIG,
+        )
+        return
+
+    try:
+        with open(CONTENT_TYPES_CONFIG) as f:
+            data = yaml.safe_load(f)
+    except yaml.YAMLError as exc:
+        log.error("Invalid YAML in %s: %s", CONTENT_TYPES_CONFIG, exc)
+        return
+
+    if not isinstance(data, dict):
+        log.error(
+            "Content-types config is not a YAML mapping (got %s)",
+            type(data).__name__,
+        )
+        return
+
+    log.info("Loaded content-types config with sections: %s", ", ".join(data.keys()))
+
+    # Warn on missing required top-level keys
+    for key in sorted(_REQUIRED_CONTENT_KEYS):
+        if key not in data:
+            log.warning(
+                "Required content-type section '%s' missing from %s",
+                key,
+                CONTENT_TYPES_CONFIG,
+            )
+
+    # Validate each section has expected fields
+    for section_name, section in data.items():
+        if not isinstance(section, dict):
+            log.warning("Content-type section '%s' is not a mapping", section_name)
+            continue
+        for field in sorted(_REQUIRED_SECTION_FIELDS):
+            if field not in section:
+                log.warning(
+                    "Content-type section '%s' is missing required field '%s'",
+                    section_name,
+                    field,
+                )
+
+
 # Root FastAPI app — mounts admin under /admin
 app = FastAPI(title="I\u2665Berlin Content Engine")
 app.mount("/admin", admin_app)
@@ -77,8 +143,14 @@ async def main():
     from config.settings import validate_settings
     validate_settings()
 
+    # Validate YAML content-type config at startup (fail-fast instead of per-pipeline)
+    _validate_content_types_config(log)
+
     # Initialize staging database tables
     log.info("Initializing database")
+    # NOTE: For production schema changes, use Alembic migrations (alembic upgrade head)
+    # instead of create_all(). Alembic is configured in alembic.ini and alembic/env.py.
+    # create_all() is kept here as a safety net for initial bootstrapping only.
     await init_db()
 
     # Seed default settings
@@ -124,7 +196,7 @@ async def main():
         # AI settings
         ("ai.model", "kimi-k2.5", "AI model name for content generation"),
         # Source config (JSON)
-        ("source.rss_feeds", '[{"url":"https://www.iheartberlin.de/feed/","name":"iHeartBerlin"},{"url":"https://rss.dw.com/xml/rss-en-all","name":"DW Germany"},{"url":"https://www.berliner-zeitung.de/feed.xml","name":"Berliner Zeitung"},{"url":"https://www.tip-berlin.de/feed/","name":"Tip Berlin"},{"url":"https://www.exberliner.com/feed/","name":"Exberliner"},{"url":"https://slowtravelberlin.com/feed/","name":"Slow Travel Berlin"},{"url":"https://thebritishberliner.com/feed/","name":"The British Berliner"},{"url":"https://www.berlinartlink.com/feed/","name":"Berlin Art Link"},{"url":"https://ceecee.cc/feed/","name":"Cee Cee Berlin"},{"url":"https://berlinfoodstories.com/feed/","name":"Berlin Food Stories"},{"url":"https://masha-sedgwick.com/feed/","name":"Masha Sedgwick"}]', "RSS feed sources (JSON array of {url, name})"),
+        ("source.rss_feeds", '[{"url":"https://www.iheartberlin.de/feed/","name":"iHeartBerlin","berlin_only":true},{"url":"https://rss.dw.com/xml/rss-en-all","name":"DW Germany","berlin_only":false},{"url":"https://www.berliner-zeitung.de/feed.xml","name":"Berliner Zeitung","berlin_only":false},{"url":"https://www.tip-berlin.de/feed/","name":"Tip Berlin","berlin_only":true},{"url":"https://www.exberliner.com/feed/","name":"Exberliner","berlin_only":true},{"url":"https://slowtravelberlin.com/feed/","name":"Slow Travel Berlin","berlin_only":true},{"url":"https://thebritishberliner.com/feed/","name":"The British Berliner","berlin_only":true},{"url":"https://www.berlinartlink.com/feed/","name":"Berlin Art Link","berlin_only":true},{"url":"https://ceecee.cc/feed/","name":"Cee Cee Berlin","berlin_only":true},{"url":"https://berlinfoodstories.com/feed/","name":"Berlin Food Stories","berlin_only":true},{"url":"https://masha-sedgwick.com/feed/","name":"Masha Sedgwick","berlin_only":true}]', "RSS feed sources (JSON array of {url, name, berlin_only})"),
         ("source.youtube_queries", '["Berlin travel vlog","Berlin food tour","Berlin nightlife","Berlin street art","Berlin history documentary","Berlin apartment tour","Berlin day in my life","Berlin hidden gems"]', "YouTube search queries (JSON array of strings)"),
         # Phase 4.1: housekeeping retention periods
         ("housekeeping.dedup_retention_days", "90", "Days to retain dedup log entries"),
@@ -150,7 +222,7 @@ async def main():
     api_client = APIClient()
 
     # Setup and start scheduler
-    scheduler = setup_scheduler(api_client)
+    scheduler = await setup_scheduler(api_client)
     scheduler.start()
     _scheduler_ref = scheduler
 

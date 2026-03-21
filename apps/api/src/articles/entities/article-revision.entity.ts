@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -14,6 +15,7 @@ export class ArticleRevision {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   article_id!: string;
 
@@ -29,6 +31,7 @@ export class ArticleRevision {
   @Column({ type: 'text' })
   body!: string;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   edited_by!: string | null;
 

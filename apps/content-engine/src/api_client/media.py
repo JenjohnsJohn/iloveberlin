@@ -1,5 +1,4 @@
-import os
-import tempfile
+import io
 
 import httpx
 from PIL import Image
@@ -11,16 +10,31 @@ from src.utils.retry import retry_with_backoff
 
 log = get_logger("api_client.media")
 
+# Shared connection-pooled client for image downloads
+_download_client: httpx.AsyncClient | None = None
+
+
+def _get_download_client() -> httpx.AsyncClient:
+    """Get or create a shared httpx client with connection pooling for downloads."""
+    global _download_client
+    if _download_client is None or _download_client.is_closed:
+        _download_client = httpx.AsyncClient(
+            timeout=15.0,
+            limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+            follow_redirects=True,
+        )
+    return _download_client
+
 
 async def _download_image_once(url: str) -> tuple[bytes, str] | None:
     """Single attempt to download an image."""
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-        resp = await client.get(url)
-        resp.raise_for_status()
-        content_type = resp.headers.get("content-type", "image/jpeg").split(";")[0]
-        if not content_type.startswith("image/"):
-            return None
-        return resp.content, content_type
+    client = _get_download_client()
+    resp = await client.get(url)
+    resp.raise_for_status()
+    content_type = resp.headers.get("content-type", "image/jpeg").split(";")[0]
+    if not content_type.startswith("image/"):
+        return None
+    return resp.content, content_type
 
 
 async def download_image(url: str) -> tuple[bytes, str] | None:
@@ -34,14 +48,8 @@ async def download_image(url: str) -> tuple[bytes, str] | None:
 
 def get_image_dimensions(image_bytes: bytes) -> tuple[int, int]:
     """Get width and height of an image from bytes."""
-    with tempfile.NamedTemporaryFile(suffix=".img", delete=False) as tmp:
-        tmp.write(image_bytes)
-        tmp.flush()
-        try:
-            with Image.open(tmp.name) as img:
-                return img.size
-        finally:
-            os.unlink(tmp.name)
+    with Image.open(io.BytesIO(image_bytes)) as img:
+        return img.size
 
 
 async def _upload_image_once(

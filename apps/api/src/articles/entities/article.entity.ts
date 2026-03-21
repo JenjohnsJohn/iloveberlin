@@ -47,6 +47,7 @@ export class Article {
   @Column({ type: 'text', nullable: true })
   excerpt!: string | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   featured_image_id!: string | null;
 
@@ -62,6 +63,7 @@ export class Article {
   @JoinColumn({ name: 'category_id' })
   category!: Category | null;
 
+  @Index()
   @Column({ type: 'uuid' })
   author_id!: string;
 

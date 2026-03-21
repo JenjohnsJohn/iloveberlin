@@ -1,7 +1,9 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, In, DataSource } from 'typeorm';
@@ -14,10 +16,15 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto, ArticleSortField, SortOrder } from './dto/article-query.dto';
 import { generateSlug } from '../common/utils/slug.util';
 import { sanitize } from '../common/utils/sanitize.util';
+import { getPaginationParams } from '../common/utils/pagination.util';
+import { RedisService } from '../common/services/redis.service';
 
 @Injectable()
 export class ArticlesService {
-  private readonly recentViews = new Map<string, number>();
+  private readonly logger = new Logger(ArticlesService.name);
+
+  /** View dedup TTL in seconds (5 minutes) */
+  private static readonly VIEW_DEDUP_TTL = 5 * 60;
 
   constructor(
     @InjectRepository(Article)
@@ -29,6 +36,7 @@ export class ArticlesService {
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
     private readonly dataSource: DataSource,
+    private readonly redisService: RedisService,
   ) {}
 
   async create(dto: CreateArticleDto, authorId: string): Promise<Article> {
@@ -105,60 +113,67 @@ export class ArticlesService {
     query: ArticleQueryDto,
     isPublicOnly = true,
   ): Promise<{ data: Article[]; total: number; page: number; limit: number }> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const { skip, take, page, limit } = getPaginationParams(query.page, query.limit);
 
-    const qb = this.articleRepository
-      .createQueryBuilder('article')
-      .leftJoinAndSelect('article.category', 'category')
-      .leftJoinAndSelect('article.tags', 'tags')
-      .leftJoinAndSelect('article.featured_image', 'featured_image');
+    try {
+      const qb = this.articleRepository
+        .createQueryBuilder('article')
+        .leftJoinAndSelect('article.category', 'category')
+        .leftJoinAndSelect('article.tags', 'tags')
+        .leftJoinAndSelect('article.featured_image', 'featured_image');
 
-    if (isPublicOnly) {
-      // Public: only select safe author fields
-      qb.leftJoin('article.author', 'author')
-        .addSelect(['author.id', 'author.display_name', 'author.avatar_url', 'author.bio']);
-    } else {
-      qb.leftJoinAndSelect('article.author', 'author');
-    }
-
-    if (isPublicOnly) {
-      qb.andWhere('article.status = :status', { status: ArticleStatus.PUBLISHED });
-    } else if (query.status) {
-      qb.andWhere('article.status = :status', { status: query.status });
-    }
-
-    if (query.category) {
-      const categoryIds = await this.getCategoryAndDescendantIds(query.category);
-      if (categoryIds.length > 0) {
-        qb.andWhere('article.category_id IN (:...categoryIds)', { categoryIds });
+      if (isPublicOnly) {
+        // Public: only select safe author fields
+        qb.leftJoin('article.author', 'author')
+          .addSelect(['author.id', 'author.display_name', 'author.avatar_url', 'author.bio']);
       } else {
-        qb.andWhere('1 = 0');
+        qb.leftJoinAndSelect('article.author', 'author');
       }
-    }
 
-    if (query.tag) {
-      qb.andWhere('tags.slug = :tagSlug', { tagSlug: query.tag });
-    }
+      if (isPublicOnly) {
+        qb.andWhere('article.status = :status', { status: ArticleStatus.PUBLISHED });
+      } else if (query.status) {
+        qb.andWhere('article.status = :status', { status: query.status });
+      }
 
-    if (query.author_id) {
-      qb.andWhere('article.author_id = :authorId', { authorId: query.author_id });
-    }
+      if (query.category) {
+        const categoryIds = await this.getCategoryAndDescendantIds(query.category);
+        if (categoryIds.length > 0) {
+          qb.andWhere('article.category_id IN (:...categoryIds)', { categoryIds });
+        } else {
+          qb.andWhere('1 = 0');
+        }
+      }
 
-    if (query.search) {
-      qb.andWhere(
-        '(article.title ILIKE :search OR article.body ILIKE :search OR article.excerpt ILIKE :search)',
-        { search: `%${query.search}%` },
+      if (query.tag) {
+        qb.andWhere('tags.slug = :tagSlug', { tagSlug: query.tag });
+      }
+
+      if (query.author_id) {
+        qb.andWhere('article.author_id = :authorId', { authorId: query.author_id });
+      }
+
+      if (query.search) {
+        qb.andWhere(
+          '(article.title ILIKE :search OR article.body ILIKE :search OR article.excerpt ILIKE :search)',
+          { search: `%${query.search}%` },
+        );
+      }
+
+      this.applySorting(qb, query.sort, query.order);
+
+      qb.skip(skip).take(take);
+
+      const [data, total] = await qb.getManyAndCount();
+
+      return { data, total, page, limit };
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch articles (page=${page}, limit=${limit})`,
+        error instanceof Error ? error.stack : String(error),
       );
+      throw new InternalServerErrorException('Failed to retrieve articles');
     }
-
-    this.applySorting(qb, query.sort, query.order);
-
-    qb.skip((page - 1) * limit).take(limit);
-
-    const [data, total] = await qb.getManyAndCount();
-
-    return { data, total, page, limit };
   }
 
   async findBySlug(slug: string, publicOnly = true): Promise<Article> {
@@ -223,26 +238,38 @@ export class ArticlesService {
     if (dto.source_name !== undefined) article.source_name = dto.source_name || null;
     if (dto.scheduled_at !== undefined) article.scheduled_at = dto.scheduled_at ? new Date(dto.scheduled_at) : null;
 
-    // Sync tags
-    if (dto.tag_ids !== undefined) {
-      if (dto.tag_ids.length > 0) {
-        article.tags = await this.tagRepository.findBy({ id: In(dto.tag_ids) });
-      } else {
-        article.tags = [];
+    try {
+      // Sync tags
+      if (dto.tag_ids !== undefined) {
+        if (dto.tag_ids.length > 0) {
+          article.tags = await this.tagRepository.findBy({ id: In(dto.tag_ids) });
+        } else {
+          article.tags = [];
+        }
       }
+
+      await this.articleRepository.save(article);
+
+      // Save revision
+      await this.saveRevision(
+        article.id,
+        article.title,
+        article.body,
+        userId,
+      );
+
+      return this.findById(article.id);
+    } catch (error) {
+      // Re-throw NestJS HTTP exceptions (e.g. NotFoundException from findById)
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(
+        `Failed to update article "${id}"`,
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw new InternalServerErrorException('Failed to update article');
     }
-
-    await this.articleRepository.save(article);
-
-    // Save revision
-    await this.saveRevision(
-      article.id,
-      article.title,
-      article.body,
-      userId,
-    );
-
-    return this.findById(article.id);
   }
 
   async updateStatus(id: string, newStatus: ArticleStatus): Promise<Article> {
@@ -261,21 +288,16 @@ export class ArticlesService {
   }
 
   async incrementViewCount(id: string, clientIp?: string): Promise<void> {
-    // Deduplicate: max 1 view per IP per article per 5 minutes
+    // Deduplicate: max 1 view per IP per article per 5 minutes.
+    // Uses Redis when available, falls back to in-memory automatically.
     if (clientIp) {
-      const key = `${id}:${clientIp}`;
-      const lastView = this.recentViews.get(key);
-      const now = Date.now();
-      if (lastView && now - lastView < 5 * 60 * 1000) {
-        return; // Skip duplicate view
-      }
-      this.recentViews.set(key, now);
-      // Clean old entries periodically (keep map from growing unbounded)
-      if (this.recentViews.size > 10000) {
-        const cutoff = now - 5 * 60 * 1000;
-        for (const [k, v] of this.recentViews) {
-          if (v < cutoff) this.recentViews.delete(k);
-        }
+      const key = `view:${id}:${clientIp}`;
+      const isNew = await this.redisService.setIfAbsent(
+        key,
+        ArticlesService.VIEW_DEDUP_TTL,
+      );
+      if (!isNew) {
+        return; // Duplicate view within TTL window
       }
     }
     await this.articleRepository.increment({ id }, 'view_count', 1);

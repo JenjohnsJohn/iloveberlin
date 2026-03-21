@@ -4,6 +4,7 @@ import type { CategoryCardData } from '@/components/ui/category-grid';
 import { toVideoCategorySeoSlug } from '@/lib/videos-seo-utils';
 import { LatestVideoList } from './latest-video-list';
 import type { VideoCardData } from '@/components/videos/video-card';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Berlin Videos',
@@ -20,11 +21,9 @@ export const metadata: Metadata = {
     title: 'Berlin Videos',
   },
   alternates: {
-    canonical: 'https://iloveberlin.biz/videos',
+    canonical: `${SITE_URL}/videos`,
   },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function getCategories(): Promise<CategoryCardData[]> {
   try {

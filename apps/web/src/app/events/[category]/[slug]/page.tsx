@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { EventContent } from './event-content';
 import { buildEventUrl, fromEventCategorySeoSlug, toEventCategorySeoSlug } from '@/lib/events-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 interface EventData {
   id: string;
@@ -68,7 +68,7 @@ export async function generateMetadata({
       description: event.excerpt || undefined,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildEventUrl(slug, categorySlug)}`,
+      canonical: `${SITE_URL}${buildEventUrl(slug, categorySlug)}`,
     },
   };
 }
@@ -141,7 +141,7 @@ export default async function EventDetailPage({
     organizer: {
       '@type': 'Organization',
       name: 'ILOVEBERLIN',
-      url: 'https://iloveberlin.biz',
+      url: SITE_URL,
     },
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     eventStatus: 'https://schema.org/EventScheduled',
@@ -151,7 +151,7 @@ export default async function EventDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <EventContent
         event={{

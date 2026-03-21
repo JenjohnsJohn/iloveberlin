@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { CategoryArticleList } from './category-article-list';
 import { fromCategorySeoSlug, buildArticleUrl } from '@/lib/news-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 async function getCategoryName(slug: string): Promise<string | null> {
   try {
@@ -51,6 +50,9 @@ export async function generateMetadata({
   return {
     title: `${categoryName} News - ILOVEBERLIN`,
     description: `The latest ${categoryName.toLowerCase()} news and stories from Berlin.`,
+    alternates: {
+      canonical: `${SITE_URL}/news/${category}`,
+    },
     openGraph: {
       title: `${categoryName} News - ILOVEBERLIN`,
       description: `The latest ${categoryName.toLowerCase()} news and stories from Berlin.`,

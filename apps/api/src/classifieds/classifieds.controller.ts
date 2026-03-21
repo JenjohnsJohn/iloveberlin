@@ -21,13 +21,14 @@ import { UpdateClassifiedCategoryDto } from './dto/update-classified-category.dt
 import { ClassifiedQueryDto } from './dto/classified-query.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { CreateReportDto } from './dto/create-report.dto';
+import { UpdateCategorySchemaDto } from './dto/update-category-schema.dto';
+import { ReorderCategoriesDto } from './dto/reorder-categories.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '../users/entities/user.entity';
 import { ClassifiedReportStatus } from './entities/classified-report.entity';
-import { CategoryFieldDefinition } from './interfaces/category-field.interface';
 
 @Controller('classifieds')
 export class ClassifiedsController {
@@ -115,8 +116,8 @@ export class ClassifiedsController {
   @Patch('admin/categories/reorder')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  reorderCategories(@Body() body: { items: { id: string; sort_order: number }[] }) {
-    return this.classifiedsService.reorderCategories(body.items);
+  reorderCategories(@Body() dto: ReorderCategoriesDto) {
+    return this.classifiedsService.reorderCategories(dto.items);
   }
 
   @Patch('admin/categories/:id')
@@ -156,9 +157,9 @@ export class ClassifiedsController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   updateCategorySchema(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { schema: CategoryFieldDefinition[] },
+    @Body() dto: UpdateCategorySchemaDto,
   ) {
-    return this.classifiedsService.updateCategorySchema(id, body.schema);
+    return this.classifiedsService.updateCategorySchema(id, dto.schema);
   }
 
   @Put('admin/reports/:id')

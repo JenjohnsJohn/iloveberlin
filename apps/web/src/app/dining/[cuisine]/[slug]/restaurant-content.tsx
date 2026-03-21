@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { BookmarkButton } from '@/components/ui/bookmark-button';
 import { sanitizeHtml } from '@/lib/sanitize';
@@ -92,10 +93,13 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
       {/* Hero Image / Gallery */}
       <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-orange-100 to-orange-300">
         {restaurant.featuredImage ? (
-          <img
+          <Image
             src={restaurant.featuredImage}
             alt={restaurant.name}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -128,9 +132,11 @@ export function RestaurantContent({ restaurant }: RestaurantContentProps) {
                   activeImageIndex === idx ? 'border-primary-500' : 'border-white'
                 }`}
               >
-                <img
+                <Image
                   src={img.url}
                   alt={img.caption || `Photo ${idx + 1}`}
+                  width={80}
+                  height={80}
                   className="w-full h-full object-cover"
                 />
               </button>

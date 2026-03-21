@@ -82,7 +82,11 @@ async def ingest_content(request: Request, x_api_key: str | None = Header(defaul
     image_url = body.get("image_url")
     enriched_data = body.get("enriched_data")
 
-    fingerprint = hashlib.sha256(f"webhook:{source_id}".encode()).hexdigest()
+    # Dedup via SHA-256 fingerprint + SELECT-first for fast duplicate response.
+    # Related: BasePipeline._dedup_and_store (src.pipelines.base) uses a purely
+    # atomic ON CONFLICT approach with raw source_id as fingerprint, optimised
+    # for bulk pipeline ingestion rather than single-item webhooks.
+    fingerprint: str = hashlib.sha256(f"webhook:{source_id}".encode()).hexdigest()
 
     async with async_session() as session:
         # Check dedup
@@ -179,7 +183,8 @@ async def ingest_batch(request: Request, x_api_key: str | None = Header(default=
             results.append({"source_id": source_id, "status": "rejected", "reason": "empty data"})
             continue
 
-        fingerprint = hashlib.sha256(f"webhook:{source_id}".encode()).hexdigest()
+        # Same fingerprinting as the single-item endpoint above; see note there.
+        fingerprint: str = hashlib.sha256(f"webhook:{source_id}".encode()).hexdigest()
 
         async with async_session() as session:
             exists = await session.execute(

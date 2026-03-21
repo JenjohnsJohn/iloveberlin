@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { BookmarkButton } from '@/components/ui/bookmark-button';
 import { EventCard } from '@/components/events/event-card';
@@ -10,6 +11,7 @@ import { sanitizeHtml } from '@/lib/sanitize';
 import apiClient from '@/lib/api-client';
 import { buildEventUrl, buildEventCategoryUrl } from '@/lib/events-seo-utils';
 import { formatDateLong, formatTime } from '@/lib/format-date';
+import { SITE_URL } from '@/lib/constants';
 
 interface EventContentProps {
   event: {
@@ -66,7 +68,7 @@ function generateIcsContent(event: EventContentProps['event']): string {
     `SUMMARY:${event.title.replace(/[,;\\]/g, '')}`,
     `LOCATION:${event.venue.name}, ${event.venue.address}`.replace(/[,;\\]/g, ''),
     `DESCRIPTION:${(event.excerpt || '').replace(/[,;\\]/g, '')}`,
-    `URL:https://iloveberlin.biz${buildEventUrl(event.slug, event.categorySlug)}`,
+    `URL:${SITE_URL}${buildEventUrl(event.slug, event.categorySlug)}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n');
@@ -132,10 +134,13 @@ export function EventContent({ event }: EventContentProps) {
       {/* Hero Image */}
       <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-primary-100 to-primary-300">
         {event.featuredImage ? (
-          <img
+          <Image
             src={event.featuredImage}
             alt={event.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

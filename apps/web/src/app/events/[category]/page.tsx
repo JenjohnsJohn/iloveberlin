@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { EventCategoryContent } from './event-category-content';
 import { fromEventCategorySeoSlug, buildEventUrl } from '@/lib/events-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 async function getCategoryName(slug: string): Promise<string | null> {
   try {
@@ -51,6 +50,9 @@ export async function generateMetadata({
   return {
     title: `${categoryName} Events in Berlin - ILOVEBERLIN`,
     description: `Discover the best ${categoryName.toLowerCase()} events happening in Berlin.`,
+    alternates: {
+      canonical: `${SITE_URL}/events/${category}`,
+    },
     openGraph: {
       title: `${categoryName} Events in Berlin`,
       description: `Discover the best ${categoryName.toLowerCase()} events happening in Berlin.`,

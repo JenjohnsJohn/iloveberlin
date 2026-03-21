@@ -32,17 +32,17 @@ export class NotificationsController {
     return this.notificationsService.updatePreferences(userId, dto);
   }
 
-  @Post('newsletter/subscribe')
+  @Post('notifications/newsletter/subscribe')
   subscribeNewsletter(@Body() dto: SubscribeNewsletterDto) {
     return this.notificationsService.subscribeNewsletter(dto.email);
   }
 
-  @Get('newsletter/confirm/:token')
+  @Get('notifications/newsletter/confirm/:token')
   confirmNewsletter(@Param('token') token: string) {
     return this.notificationsService.confirmNewsletter(token);
   }
 
-  @Get('newsletter/unsubscribe/:email')
+  @Get('notifications/newsletter/unsubscribe/:email')
   unsubscribe(@Param('email') email: string) {
     return this.notificationsService.unsubscribe(email);
   }

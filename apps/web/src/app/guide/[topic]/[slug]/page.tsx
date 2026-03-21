@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { GuideContent } from './guide-content';
 import { buildGuideUrl, fromGuideTopicSeoSlug, toGuideTopicSeoSlug } from '@/lib/guide-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 const TOPIC_NAMES: Record<string, string> = {
   'living-in-berlin': 'Living in Berlin',
@@ -108,7 +108,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildGuideUrl(slug, topicSlug)}`,
+      canonical: `${SITE_URL}${buildGuideUrl(slug, topicSlug)}`,
     },
   };
 }
@@ -151,11 +151,11 @@ export default async function GuideDetailPage({
     publisher: {
       '@type': 'Organization',
       name: 'ILOVEBERLIN',
-      url: 'https://iloveberlin.biz',
+      url: SITE_URL,
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://iloveberlin.biz${buildGuideUrl(slug, topicSlug)}`,
+      '@id': `${SITE_URL}${buildGuideUrl(slug, topicSlug)}`,
     },
   };
 
@@ -163,7 +163,7 @@ export default async function GuideDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <GuideContent
         guide={{

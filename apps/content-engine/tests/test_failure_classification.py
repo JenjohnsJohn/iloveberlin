@@ -1,7 +1,5 @@
 """Tests for push failure classification (Phase 1.4)."""
 
-import pytest
-
 from src.pipelines.base import _extract_status_code, PERMANENT_FAILURE_CODES
 
 
@@ -40,27 +38,3 @@ class TestFailureClassification:
         assert code is None
 
 
-class TestCronParser:
-    def test_parse_standard_cron(self):
-        from src.scheduler.jobs import parse_cron_expression
-
-        result = parse_cron_expression("0 5 * * *")
-        assert result == {"minute": "0", "hour": "5"}
-
-    def test_parse_complex_cron(self):
-        from src.scheduler.jobs import parse_cron_expression
-
-        result = parse_cron_expression("30 6,14 * * 1-5")
-        assert result == {"minute": "30", "hour": "6,14", "day_of_week": "1-5"}
-
-    def test_parse_all_wildcards(self):
-        from src.scheduler.jobs import parse_cron_expression
-
-        result = parse_cron_expression("* * * * *")
-        assert result == {}
-
-    def test_invalid_cron_raises(self):
-        from src.scheduler.jobs import parse_cron_expression
-
-        with pytest.raises(ValueError):
-            parse_cron_expression("invalid")

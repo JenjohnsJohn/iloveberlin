@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
   ManyToOne,
   OneToMany,
   JoinColumn,
@@ -38,6 +39,7 @@ export class Competition {
   @Column({ type: 'text', nullable: true })
   prize_description!: string | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   featured_image_id!: string | null;
 

@@ -4,8 +4,7 @@ import { notFound } from 'next/navigation';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { fromGuideTopicSeoSlug, buildGuideUrl, buildGuideTopicUrl } from '@/lib/guide-seo-utils';
 import { formatDate } from '@/lib/format-date';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 const TOPIC_NAMES: Record<string, string> = {
   'living-in-berlin': 'Living in Berlin',
@@ -94,7 +93,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildGuideTopicUrl(topicSlug)}`,
+      canonical: `${SITE_URL}${buildGuideTopicUrl(topicSlug)}`,
     },
   };
 }

@@ -19,6 +19,7 @@ import {
   DateFilter,
 } from './dto/event-query.dto';
 import { generateSlug } from '../common/utils/slug.util';
+import { getPaginationParams } from '../common/utils/pagination.util';
 
 @Injectable()
 export class EventsService {
@@ -93,8 +94,7 @@ export class EventsService {
     query: EventQueryDto,
     isPublicOnly = true,
   ): Promise<{ data: Event[]; total: number; page: number; limit: number }> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
+    const { skip, take, page, limit } = getPaginationParams(query.page, query.limit);
 
     const qb = this.eventRepository
       .createQueryBuilder('event')
@@ -171,7 +171,7 @@ export class EventsService {
 
     this.applySorting(qb, query.sort, query.order);
 
-    qb.skip((page - 1) * limit).take(limit);
+    qb.skip(skip).take(take);
 
     const [data, total] = await qb.getManyAndCount();
 

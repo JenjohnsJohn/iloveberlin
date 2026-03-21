@@ -2,8 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { CuisineContent } from './cuisine-content';
 import { fromDiningCuisineSeoSlug, buildRestaurantUrl } from '@/lib/dining-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 async function getCuisineName(slug: string): Promise<string | null> {
   try {
@@ -58,6 +57,9 @@ export async function generateMetadata({
   return {
     title: `${cuisineName} Restaurants in Berlin - ILOVEBERLIN`,
     description: `Discover the best ${cuisineName.toLowerCase()} restaurants and eateries in Berlin.`,
+    alternates: {
+      canonical: `${SITE_URL}/dining/${cuisine}`,
+    },
     openGraph: {
       title: `${cuisineName} Restaurants in Berlin`,
       description: `Discover the best ${cuisineName.toLowerCase()} restaurants and eateries in Berlin.`,

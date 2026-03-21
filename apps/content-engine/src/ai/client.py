@@ -3,14 +3,25 @@ from datetime import datetime, timezone
 from openai import AsyncOpenAI
 
 from config.settings import settings
-from src.db.settings import get_setting, set_setting
+from src.db.settings import get_float_setting, get_setting, set_setting
 from src.utils.logging import get_logger
 from src.utils.rate_limiter import TokenBucketRateLimiter
 
 log = get_logger("ai.client")
 
-# Rate limit: ~2 requests/second to be safe with Kimi API
-_rate_limiter = TokenBucketRateLimiter(rate=2.0, burst=3)
+# Rate limiter — lazily initialised so the rate can be read from DB settings.
+_rate_limiter: TokenBucketRateLimiter | None = None
+_DEFAULT_RATE_LIMIT = 2.0
+
+
+async def _get_rate_limiter() -> TokenBucketRateLimiter:
+    """Return (and lazily create) the rate limiter using DB-configurable rate."""
+    global _rate_limiter
+    if _rate_limiter is None:
+        rate = await get_float_setting("ai.rate_limit", _DEFAULT_RATE_LIMIT)
+        _rate_limiter = TokenBucketRateLimiter(rate=rate, burst=max(1, int(rate) + 1))
+        log.info("AI rate limiter initialised", rate=rate)
+    return _rate_limiter
 
 
 def get_ai_client() -> AsyncOpenAI:
@@ -47,7 +58,8 @@ async def ai_generate(
     max_tokens: int = 4000,
 ) -> str:
     """Generate text using Kimi K2.5 via OpenAI-compatible API."""
-    await _rate_limiter.acquire()
+    limiter = await _get_rate_limiter()
+    await limiter.acquire()
     client = get_ai_client()
 
     # Phase 3.4: read model from DB setting, fall back to env var

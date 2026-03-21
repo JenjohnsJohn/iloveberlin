@@ -58,6 +58,7 @@ export function SearchBar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+  const listboxId = 'search-suggestions-listbox';
 
   // Debounced search for suggestions
   const fetchSuggestions = useCallback((searchQuery: string) => {
@@ -181,6 +182,9 @@ export function SearchBar() {
     groupedSuggestions[suggestion.type].push(suggestion);
   }
 
+  // Generate a stable option id for aria-activedescendant
+  const getOptionId = (index: number) => `search-option-${index}`;
+
   if (!isOpen) {
     return (
       <button
@@ -191,7 +195,7 @@ export function SearchBar() {
         className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
         aria-label="Open search"
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <span className="hidden sm:inline">Search</span>
@@ -211,6 +215,7 @@ export function SearchBar() {
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               strokeLinecap="round"
@@ -227,9 +232,12 @@ export function SearchBar() {
             onKeyDown={handleKeyDown}
             placeholder="Search Berlin..."
             className="w-48 sm:w-64 pl-9 pr-8 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            role="combobox"
             aria-label="Search"
             aria-autocomplete="list"
             aria-expanded={suggestions.length > 0}
+            aria-controls={suggestions.length > 0 ? listboxId : undefined}
+            aria-activedescendant={selectedIndex >= 0 ? getOptionId(selectedIndex) : undefined}
           />
           {query && (
             <button
@@ -241,7 +249,7 @@ export function SearchBar() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               aria-label="Clear search"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -259,12 +267,26 @@ export function SearchBar() {
         </button>
       </div>
 
+      {/* Live region to announce result count */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {suggestions.length > 0
+          ? `${suggestions.length} suggestion${suggestions.length === 1 ? '' : 's'} available`
+          : query.length >= 2
+            ? 'No suggestions available'
+            : ''}
+      </div>
+
       {/* Autocomplete Dropdown */}
       {suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Search suggestions"
+          className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
+        >
           {Object.entries(groupedSuggestions).map(([type, items]) => (
-            <div key={type}>
-              <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50">
+            <div key={type} role="group" aria-label={`${getTypeLabel(type)}s`}>
+              <div className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50" aria-hidden="true">
                 {getTypeLabel(type)}s
               </div>
               {items.map((suggestion, idx) => {
@@ -272,6 +294,9 @@ export function SearchBar() {
                 return (
                   <button
                     key={`${type}-${idx}`}
+                    id={getOptionId(flatIndex)}
+                    role="option"
+                    aria-selected={flatIndex === selectedIndex}
                     onClick={() => handleSuggestionClick(suggestion)}
                     onMouseEnter={() => setSelectedIndex(flatIndex)}
                     className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${

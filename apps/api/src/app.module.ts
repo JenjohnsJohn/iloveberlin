@@ -3,6 +3,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ClassSerializerInterceptor } from '@nestjs/common';
 import * as Joi from 'joi';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
@@ -51,6 +52,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
         JWT_EXPIRES_IN: Joi.string().default('7d'),
         MEILISEARCH_HOST: Joi.string().default('http://localhost:7700'),
         MEILISEARCH_API_KEY: Joi.string().default('iloveberlin-dev-key'),
+        REDIS_URL: Joi.string().optional().allow(''),
       }),
     }),
     TypeOrmModule.forRootAsync({
@@ -73,6 +75,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
       ttl: 60000,
       limit: 60,
     }]),
+    ScheduleModule.forRoot(),
     HealthModule,
     AuthModule,
     UsersModule,

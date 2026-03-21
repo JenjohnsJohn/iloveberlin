@@ -2,6 +2,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -13,6 +14,7 @@ export class RestaurantImage {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   restaurant_id!: string;
 
@@ -22,6 +24,7 @@ export class RestaurantImage {
   @JoinColumn({ name: 'restaurant_id' })
   restaurant!: Restaurant;
 
+  @Index()
   @Column({ type: 'uuid' })
   media_id!: string;
 

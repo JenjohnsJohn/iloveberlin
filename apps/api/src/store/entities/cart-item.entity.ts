@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -16,6 +17,7 @@ export class CartItem {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Index()
   @Column({ type: 'uuid' })
   cart_id!: string;
 
@@ -26,6 +28,7 @@ export class CartItem {
   @JoinColumn({ name: 'cart_id' })
   cart!: Cart;
 
+  @Index()
   @Column({ type: 'uuid' })
   product_id!: string;
 
@@ -33,6 +36,7 @@ export class CartItem {
   @JoinColumn({ name: 'product_id' })
   product!: Product;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   variant_id!: string | null;
 

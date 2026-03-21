@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { sanitizeHtml } from '@/lib/sanitize';
 import apiClient from '@/lib/api-client';
@@ -91,11 +92,14 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
     <div className="container mx-auto px-4 py-8">
       {/* Featured Image */}
       {guide.featuredImage && (
-        <div className="mb-8 rounded-xl overflow-hidden max-h-96">
-          <img
+        <div className="relative mb-8 rounded-xl overflow-hidden h-96">
+          <Image
             src={guide.featuredImage}
             alt={guide.title}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+            priority
           />
         </div>
       )}
@@ -156,10 +160,12 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold overflow-hidden">
                   {guide.author.avatarUrl ? (
-                    <img
+                    <Image
                       src={guide.author.avatarUrl}
                       alt={guide.author.name}
-                      className="w-full h-full object-cover"
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover rounded-full"
                     />
                   ) : (
                     guide.author.name.charAt(0).toUpperCase()
@@ -209,10 +215,12 @@ export function GuideContent({ guide, topicName, topicSlug }: GuideContentProps)
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0 overflow-hidden">
                 {guide.author.avatarUrl ? (
-                  <img
+                  <Image
                     src={guide.author.avatarUrl}
                     alt={guide.author.name}
-                    className="w-full h-full object-cover"
+                    width={56}
+                    height={56}
+                    className="w-full h-full object-cover rounded-full"
                   />
                 ) : (
                   guide.author.name.charAt(0).toUpperCase()

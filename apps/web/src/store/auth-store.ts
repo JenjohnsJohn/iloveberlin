@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import axios from 'axios';
 import apiClient from '@/lib/api-client';
 
 interface User {
@@ -35,6 +36,24 @@ interface AuthState {
   fetchProfile: () => Promise<void>;
 }
 
+/** Type guard for axios-shaped errors with a response body */
+function isAxiosLikeError(err: unknown): err is { response: { data: { message?: string } } } {
+  if (!axios.isAxiosError(err)) return false;
+  return (
+    typeof err.response === 'object' &&
+    err.response !== null &&
+    typeof err.response.data === 'object' &&
+    err.response.data !== null
+  );
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (isAxiosLikeError(err) && typeof err.response.data.message === 'string') {
+    return err.response.data.message;
+  }
+  return fallback;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -61,9 +80,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
         } catch (err: unknown) {
-          const axiosError = err as { response?: { data?: { message?: string } } };
           set({
-            error: axiosError.response?.data?.message || 'Login failed',
+            error: getErrorMessage(err, 'Login failed'),
             isLoading: false,
           });
           throw err;
@@ -76,9 +94,8 @@ export const useAuthStore = create<AuthState>()(
           await apiClient.post('/auth/register', { email, password, display_name });
           set({ isLoading: false });
         } catch (err: unknown) {
-          const axiosError = err as { response?: { data?: { message?: string } } };
           set({
-            error: axiosError.response?.data?.message || 'Registration failed',
+            error: getErrorMessage(err, 'Registration failed'),
             isLoading: false,
           });
           throw err;
@@ -91,8 +108,10 @@ export const useAuthStore = create<AuthState>()(
           if (refreshToken) {
             await apiClient.post('/auth/logout', { refresh_token: refreshToken });
           }
-        } catch {
-          // Ignore logout errors
+        } catch (err: unknown) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[auth-store] logout failed:', err);
+          }
         }
         set({ user: null, accessToken: null, refreshToken: null });
       },
@@ -117,8 +136,12 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await apiClient.get('/users/me');
           set({ user: data });
-        } catch {
-          // Ignore profile fetch errors
+        } catch (err: unknown) {
+          const message = getErrorMessage(err, 'Failed to fetch profile');
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[auth-store] fetchProfile failed:', err);
+          }
+          set({ error: message });
         }
       },
     }),

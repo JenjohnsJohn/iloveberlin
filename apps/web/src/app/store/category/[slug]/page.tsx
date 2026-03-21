@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { StoreCategoryContent } from './store-category-content';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL } from '@/lib/constants';
 
 interface ApiCategory {
   name: string;

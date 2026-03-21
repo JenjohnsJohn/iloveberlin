@@ -9,6 +9,11 @@ import { CartItem } from './entities/cart-item.entity';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { DiscountCode } from './entities/discount-code.entity';
+import { StoreCategoriesService } from './services/store-categories.service';
+import { StoreProductsService } from './services/store-products.service';
+import { StoreCartService } from './services/store-cart.service';
+import { StoreOrdersService } from './services/store-orders.service';
+import { StoreDiscountsService } from './services/store-discounts.service';
 import { StoreService } from './store.service';
 import { StoreController } from './store.controller';
 
@@ -26,7 +31,14 @@ import { StoreController } from './store.controller';
       DiscountCode,
     ]),
   ],
-  providers: [StoreService],
+  providers: [
+    StoreCategoriesService,
+    StoreProductsService,
+    StoreCartService,
+    StoreOrdersService,
+    StoreDiscountsService,
+    StoreService,
+  ],
   controllers: [StoreController],
   exports: [StoreService],
 })

@@ -6,11 +6,13 @@ import { Tag } from '../tags/entities/tag.entity';
 import { Category } from '../categories/entities/category.entity';
 import { ArticlesService } from './articles.service';
 import { ArticlesController } from './articles.controller';
+import { ArticlePublisherTask } from './article-publisher.task';
+import { RedisService } from '../common/services/redis.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Article, ArticleRevision, Tag, Category])],
-  providers: [ArticlesService],
+  providers: [ArticlesService, ArticlePublisherTask, RedisService],
   controllers: [ArticlesController],
-  exports: [ArticlesService],
+  exports: [ArticlesService, RedisService],
 })
 export class ArticlesModule {}

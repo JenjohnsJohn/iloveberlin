@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { RestaurantContent } from './restaurant-content';
 import { buildRestaurantUrl, toDiningCuisineSeoSlug } from '@/lib/dining-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 interface RestaurantData {
   id: string;
@@ -81,7 +81,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildRestaurantUrl(slug, primaryCuisineSlug)}`,
+      canonical: `${SITE_URL}${buildRestaurantUrl(slug, primaryCuisineSlug)}`,
     },
   };
 }
@@ -113,19 +113,19 @@ export default async function RestaurantDetailPage({
         '@type': 'ListItem',
         position: 1,
         name: 'Home',
-        item: 'https://iloveberlin.biz',
+        item: SITE_URL,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Dining',
-        item: 'https://iloveberlin.biz/dining',
+        item: `${SITE_URL}/dining`,
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: restaurant.cuisines[0]?.name || 'Restaurants',
-        item: `https://iloveberlin.biz/dining/${cuisine}`,
+        item: `${SITE_URL}/dining/${cuisine}`,
       },
       {
         '@type': 'ListItem',
@@ -157,7 +157,7 @@ export default async function RestaurantDetailPage({
         }
       : {}),
     telephone: restaurant.phone || undefined,
-    url: restaurant.website || `https://iloveberlin.biz${buildRestaurantUrl(slug, primaryCuisineSlug)}`,
+    url: restaurant.website || `${SITE_URL}${buildRestaurantUrl(slug, primaryCuisineSlug)}`,
     servesCuisine: restaurant.cuisines.map((c) => c.name),
     priceRange: priceRangeDisplay(restaurant.price_range),
     ...(restaurant.rating
@@ -190,11 +190,11 @@ export default async function RestaurantDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(breadcrumbLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <RestaurantContent
         restaurant={{

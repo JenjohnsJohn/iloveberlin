@@ -3,8 +3,7 @@ import Link from 'next/link';
 import type { CompetitionCardData } from '@/components/competitions/competition-card';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { ArchiveGrid } from './archive-grid';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 interface ApiCompetition {
   slug: string;
@@ -62,7 +61,7 @@ export const metadata: Metadata = {
     title: 'Past Competitions - ILOVEBERLIN',
   },
   alternates: {
-    canonical: 'https://iloveberlin.biz/competitions/archive',
+    canonical: `${SITE_URL}/competitions/archive`,
   },
 };
 

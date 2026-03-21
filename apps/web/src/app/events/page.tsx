@@ -4,14 +4,16 @@ import type { CategoryCardData } from '@/components/ui/category-grid';
 import { toEventCategorySeoSlug } from '@/lib/events-seo-utils';
 import { LatestEventList } from './latest-event-list';
 import type { EventCardData } from '@/components/events/event-card';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Berlin Events',
   description:
     'Discover the best events happening in Berlin. From art exhibitions to nightlife, find your next experience.',
+  alternates: {
+    canonical: `${SITE_URL}/events`,
+  },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function getCategories(): Promise<CategoryCardData[]> {
   try {

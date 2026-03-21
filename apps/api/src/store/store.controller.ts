@@ -15,7 +15,11 @@ import {
   Req,
   Headers,
 } from '@nestjs/common';
-import { StoreService } from './store.service';
+import { StoreCategoriesService } from './services/store-categories.service';
+import { StoreProductsService } from './services/store-products.service';
+import { StoreCartService } from './services/store-cart.service';
+import { StoreOrdersService } from './services/store-orders.service';
+import { StoreDiscountsService } from './services/store-discounts.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
@@ -23,6 +27,9 @@ import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { CreateDiscountDto, ValidateDiscountDto } from './dto/create-discount.dto';
+import { CreateStoreCategoryDto } from './dto/create-store-category.dto';
+import { UpdateStoreCategoryDto } from './dto/update-store-category.dto';
+import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -30,18 +37,24 @@ import { UserRole } from '../users/entities/user.entity';
 
 @Controller('store')
 export class StoreController {
-  constructor(private readonly storeService: StoreService) {}
+  constructor(
+    private readonly categoriesService: StoreCategoriesService,
+    private readonly productsService: StoreProductsService,
+    private readonly cartService: StoreCartService,
+    private readonly ordersService: StoreOrdersService,
+    private readonly discountsService: StoreDiscountsService,
+  ) {}
 
   // ─── Public category endpoints ────────────────────────────
 
   @Get('categories/tree')
   findCategoryTree() {
-    return this.storeService.findCategoryTree();
+    return this.categoriesService.findCategoryTree();
   }
 
   @Get('categories')
   findAllCategories() {
-    return this.storeService.findAllCategories();
+    return this.categoriesService.findAllCategories();
   }
 
   // ─── Admin category endpoints ────────────────────────────
@@ -49,8 +62,8 @@ export class StoreController {
   @Post('admin/categories')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  createCategory(@Body() body: { name: string; description?: string; image_url?: string; sort_order?: number }) {
-    return this.storeService.createCategory(body);
+  createCategory(@Body() dto: CreateStoreCategoryDto) {
+    return this.categoriesService.createCategory(dto);
   }
 
   @Put('admin/categories/:id')
@@ -58,9 +71,9 @@ export class StoreController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   updateCategory(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { name?: string; description?: string; image_url?: string; sort_order?: number; is_active?: boolean },
+    @Body() dto: UpdateStoreCategoryDto,
   ) {
-    return this.storeService.updateCategory(id, body);
+    return this.categoriesService.updateCategory(id, dto);
   }
 
   @Delete('admin/categories/:id')
@@ -68,7 +81,7 @@ export class StoreController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteCategory(@Param('id', ParseUUIDPipe) id: string) {
-    return this.storeService.deleteCategory(id);
+    return this.categoriesService.deleteCategory(id);
   }
 
   // ─── Public product endpoints ─────────────────────────────
@@ -76,12 +89,12 @@ export class StoreController {
 
   @Get('products')
   findAllProducts(@Query() query: ProductQueryDto) {
-    return this.storeService.findAllProducts(query, true);
+    return this.productsService.findAllProducts(query, true);
   }
 
   @Get('products/featured')
   findFeaturedProducts() {
-    return this.storeService.findFeaturedProducts();
+    return this.productsService.findFeaturedProducts();
   }
 
   // ─── Admin product endpoints ──────────────────────────────
@@ -90,21 +103,21 @@ export class StoreController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   findAllProductsAdmin(@Query() query: ProductQueryDto) {
-    return this.storeService.findAllProducts(query, false);
+    return this.productsService.findAllProducts(query, false);
   }
 
   @Get('admin/products/:slug')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   findProductBySlugAdmin(@Param('slug') slug: string) {
-    return this.storeService.findProductBySlug(slug, false);
+    return this.productsService.findProductBySlug(slug, false);
   }
 
   @Post('products')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   createProduct(@Body() dto: CreateProductDto) {
-    return this.storeService.createProduct(dto);
+    return this.productsService.createProduct(dto);
   }
 
   @Put('products/:id')
@@ -114,7 +127,7 @@ export class StoreController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductDto,
   ) {
-    return this.storeService.updateProduct(id, dto);
+    return this.productsService.updateProduct(id, dto);
   }
 
   @Delete('products/:id')
@@ -122,7 +135,7 @@ export class StoreController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteProduct(@Param('id', ParseUUIDPipe) id: string) {
-    return this.storeService.deleteProduct(id);
+    return this.productsService.deleteProduct(id);
   }
 
   // ─── Cart endpoints ───────────────────────────────────────
@@ -132,7 +145,7 @@ export class StoreController {
     @Req() req: { user?: { id: string } },
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.storeService.getCart(req.user?.id, sessionId);
+    return this.cartService.getCart(req.user?.id, sessionId);
   }
 
   @Post('cart/items')
@@ -140,7 +153,7 @@ export class StoreController {
     @Body() dto: AddToCartDto,
     @Req() req: { user?: { id: string } },
   ) {
-    return this.storeService.addToCart(dto, req.user?.id);
+    return this.cartService.addToCart(dto, req.user?.id);
   }
 
   @Put('cart/items/:id')
@@ -150,7 +163,7 @@ export class StoreController {
     @Req() req: { user?: { id: string } },
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.storeService.updateCartItem(id, dto, req.user?.id, sessionId);
+    return this.cartService.updateCartItem(id, dto, req.user?.id, sessionId);
   }
 
   @Delete('cart/items/:id')
@@ -160,7 +173,7 @@ export class StoreController {
     @Req() req: { user?: { id: string } },
     @Headers('x-session-id') sessionId?: string,
   ) {
-    return this.storeService.removeFromCart(id, req.user?.id, sessionId);
+    return this.cartService.removeFromCart(id, req.user?.id, sessionId);
   }
 
   // ─── Checkout endpoints ───────────────────────────────────
@@ -171,7 +184,7 @@ export class StoreController {
     @Body() dto: CreateCheckoutDto,
     @Req() req: { user: { id: string } },
   ) {
-    return this.storeService.createCheckout(dto, req.user.id);
+    return this.ordersService.createCheckout(dto, req.user.id);
   }
 
   // ─── Order endpoints ──────────────────────────────────────
@@ -179,7 +192,7 @@ export class StoreController {
   @Get('orders')
   @UseGuards(JwtAuthGuard)
   getOrders(@Req() req: { user: { id: string } }) {
-    return this.storeService.getOrders(req.user.id);
+    return this.ordersService.getOrders(req.user.id);
   }
 
   @Get('orders/:id')
@@ -188,7 +201,7 @@ export class StoreController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: { id: string } },
   ) {
-    return this.storeService.getOrderById(id, req.user.id);
+    return this.ordersService.getOrderById(id, req.user.id);
   }
 
   // ─── Admin order endpoints ────────────────────────────────
@@ -197,7 +210,7 @@ export class StoreController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   getAllOrders() {
-    return this.storeService.getAllOrders();
+    return this.ordersService.getAllOrders();
   }
 
   @Patch('admin/orders/:id')
@@ -205,30 +218,30 @@ export class StoreController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   updateOrderStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { status: string },
+    @Body() dto: UpdateOrderStatusDto,
   ) {
-    return this.storeService.updateOrderStatus(id, body.status);
+    return this.ordersService.updateOrderStatus(id, dto.status);
   }
 
   // ─── Discount endpoints ───────────────────────────────────
 
   @Post('discounts/validate')
   validateDiscount(@Body() dto: ValidateDiscountDto) {
-    return this.storeService.validateDiscount(dto);
+    return this.discountsService.validateDiscount(dto);
   }
 
   @Post('discounts')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   createDiscount(@Body() dto: CreateDiscountDto) {
-    return this.storeService.createDiscount(dto);
+    return this.discountsService.createDiscount(dto);
   }
 
   @Get('discounts')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   findAllDiscounts() {
-    return this.storeService.findAllDiscounts();
+    return this.discountsService.findAllDiscounts();
   }
 
   @Patch('discounts/:id')
@@ -238,7 +251,7 @@ export class StoreController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: Partial<CreateDiscountDto>,
   ) {
-    return this.storeService.updateDiscount(id, dto);
+    return this.discountsService.updateDiscount(id, dto);
   }
 
   @Delete('discounts/:id')
@@ -246,13 +259,13 @@ export class StoreController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteDiscount(@Param('id', ParseUUIDPipe) id: string) {
-    return this.storeService.deleteDiscount(id);
+    return this.discountsService.deleteDiscount(id);
   }
 
   // ─── Public product by slug (MUST be LAST) ────────────────
 
   @Get('products/:slug')
   findProductBySlug(@Param('slug') slug: string) {
-    return this.storeService.findProductBySlug(slug, true);
+    return this.productsService.findProductBySlug(slug, true);
   }
 }

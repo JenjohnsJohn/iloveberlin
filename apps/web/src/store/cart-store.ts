@@ -127,42 +127,73 @@ export const useCartStore = create<CartState>()(
                 ),
               }));
             }
-          }).catch(() => {
-            // Silently fail - local state is already updated
+          }).catch((err) => {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('[cart-store] addItem backend sync failed:', err);
+            }
+            // Remove the optimistically-added item on backend failure
+            set((state) => ({
+              items: state.items.filter((item) => item.id !== localId),
+            }));
           });
         }
       },
 
       removeItem: (itemId) => {
-        // Sync to backend if authenticated
-        const token = getAuthToken();
-        if (token) {
-          apiClient.delete(`/store/cart/items/${itemId}`).catch(() => {
-            // Silently fail - local state is already updated
-          });
-        }
+        // Capture the item before removing so we can restore on failure
+        const removedItem = get().items.find((item) => item.id === itemId);
 
         set((state) => ({
           items: state.items.filter((item) => item.id !== itemId),
         }));
+
+        // Sync to backend if authenticated
+        const token = getAuthToken();
+        if (token) {
+          apiClient.delete(`/store/cart/items/${itemId}`).catch((err) => {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('[cart-store] removeItem backend sync failed:', err);
+            }
+            // Revert optimistic removal — put the item back
+            if (removedItem) {
+              set((state) => ({
+                items: [...state.items, removedItem],
+              }));
+            }
+          });
+        }
       },
 
       updateQuantity: (itemId, quantity) => {
         if (quantity < 1) return;
 
-        // Sync to backend if authenticated
-        const token = getAuthToken();
-        if (token) {
-          apiClient.put(`/store/cart/items/${itemId}`, { quantity }).catch(() => {
-            // Silently fail - local state is already updated
-          });
-        }
+        // Capture previous quantity so we can revert on failure
+        const previousItem = get().items.find((item) => item.id === itemId);
+        const previousQuantity = previousItem?.quantity;
 
         set((state) => ({
           items: state.items.map((item) =>
             item.id === itemId ? { ...item, quantity } : item,
           ),
         }));
+
+        // Sync to backend if authenticated
+        const token = getAuthToken();
+        if (token) {
+          apiClient.put(`/store/cart/items/${itemId}`, { quantity }).catch((err) => {
+            if (process.env.NODE_ENV === 'development') {
+              console.error('[cart-store] updateQuantity backend sync failed:', err);
+            }
+            // Revert to the previous quantity on failure
+            if (previousQuantity !== undefined) {
+              set((state) => ({
+                items: state.items.map((item) =>
+                  item.id === itemId ? { ...item, quantity: previousQuantity } : item,
+                ),
+              }));
+            }
+          });
+        }
       },
 
       clear: () => {
@@ -237,7 +268,10 @@ export const useCartStore = create<CartState>()(
             });
             set({ items: mapped });
           }
-        } catch {
+        } catch (err) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error('[cart-store] syncCartWithBackend failed:', err);
+          }
           // If backend fetch fails, keep local state as fallback
         }
       },

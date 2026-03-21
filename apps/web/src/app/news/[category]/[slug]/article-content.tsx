@@ -9,6 +9,7 @@ import type { ArticleCardData } from '@/components/articles/article-card';
 import { sanitizeHtml } from '@/lib/sanitize';
 import apiClient from '@/lib/api-client';
 import { buildArticleUrl, buildCategoryUrl } from '@/lib/news-seo-utils';
+import { SITE_URL } from '@/lib/constants';
 
 interface ArticleContentProps {
   article: {
@@ -39,7 +40,7 @@ export function ArticleContent({ article }: ArticleContentProps) {
   const shareUrl =
     typeof window !== 'undefined'
       ? window.location.href
-      : `https://iloveberlin.biz${buildArticleUrl(article.slug, article.categorySlug)}`;
+      : `${SITE_URL}${buildArticleUrl(article.slug, article.categorySlug)}`;
 
   // Track page view on mount
   useEffect(() => {

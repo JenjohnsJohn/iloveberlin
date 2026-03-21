@@ -15,6 +15,24 @@ from src.utils.logging import get_logger
 
 log = get_logger("pipelines.articles")
 
+# Berlin-relevance keywords for filtering broad feeds
+BERLIN_KEYWORDS = [
+    "berlin", "kreuzberg", "neukölln", "mitte", "prenzlauer berg",
+    "friedrichshain", "charlottenburg", "schöneberg", "tempelhof",
+    "spandau", "reinickendorf", "steglitz", "pankow", "lichtenberg",
+    "treptow", "köpenick", "moabit", "wedding", "bvg", "s-bahn",
+    "u-bahn", "brandenburger tor", "reichstag", "alexanderplatz",
+    "kurfürstendamm", "ku'damm", "potsdamer platz", "berghain",
+    "hertha", "union berlin", "tiergarten", "wannsee", "tegel",
+]
+
+
+def _is_berlin_related(title: str, summary: str, content: str) -> bool:
+    """Check if an article is Berlin-related by keyword matching."""
+    text = f"{title} {summary} {content}".lower()
+    return any(kw in text for kw in BERLIN_KEYWORDS)
+
+
 # Category slug -> keyword mappings for auto-assignment
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "city-politics": ["politics", "government", "mayor", "senate", "election", "policy", "law", "regulation", "council", "parliament", "protest", "demonstration"],
@@ -113,7 +131,20 @@ class ArticleRSSPipeline(_ArticleCategoryMixin, BasePipeline):
             )
         return await self.source.fetch()
 
-    async def enrich(self, raw_data: dict) -> dict:
+    async def enrich(self, raw_data: dict) -> dict | None:
+        # Skip non-Berlin articles from broad feeds
+        if not raw_data.get("berlin_only", False):
+            if not _is_berlin_related(
+                raw_data.get("title", ""),
+                raw_data.get("summary", ""),
+                raw_data.get("content", ""),
+            ):
+                log.info(
+                    "Skipping non-Berlin article",
+                    title=raw_data.get("title", "")[:80],
+                    feed=raw_data.get("feed_name", ""),
+                )
+                return None
         return await summarize_article_from_rss(raw_data)
 
     async def build_api_payload_async(self, enriched: dict, media_id: str | None = None) -> dict:

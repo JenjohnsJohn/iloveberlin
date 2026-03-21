@@ -5,9 +5,9 @@ import { buildRestaurantUrl, buildDiningCuisineUrl } from '@/lib/dining-seo-util
 import { buildGuideUrl, buildGuideTopicUrl } from '@/lib/guide-seo-utils';
 import { buildVideoUrl, buildVideoCategoryUrl } from '@/lib/videos-seo-utils';
 import { buildCompetitionUrl, buildCompetitionCategoryUrl } from '@/lib/competitions-seo-utils';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
-const BASE_URL = 'https://iloveberlin.biz';
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const BASE_URL = SITE_URL;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [

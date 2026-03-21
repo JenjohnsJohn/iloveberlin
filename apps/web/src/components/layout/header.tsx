@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { SearchBar } from '@/components/search/search-bar';
@@ -16,6 +17,9 @@ export function Header() {
   const [activeDropdownSection, setActiveDropdownSection] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const navItemsRef = useRef<(HTMLAnchorElement | null)[]>([]);
+  const mobileMenuRef = useRef<HTMLElement>(null);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const enterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, accessToken, logout } = useAuthStore();
@@ -26,6 +30,12 @@ export function Header() {
   const activeSection = activeDropdownSection
     ? NAV_SECTIONS.find((s) => s.key === activeDropdownSection)
     : null;
+
+  // Check if a nav section is the current page
+  const isSectionActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
 
   // Close dropdown on route change
   useEffect(() => {
@@ -69,6 +79,56 @@ export function Header() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Focus trap for mobile menu
+  useEffect(() => {
+    if (!mobileMenuOpen || !mobileMenuRef.current) return;
+
+    const menuElement = mobileMenuRef.current;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false);
+        mobileMenuTriggerRef.current?.focus();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = menuElement.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusableElements.length === 0) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement.focus();
+        }
+      }
+    }
+
+    menuElement.addEventListener('keydown', handleKeyDown);
+
+    // Focus the first focusable element when menu opens
+    const focusableElements = menuElement.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+
+    return () => menuElement.removeEventListener('keydown', handleKeyDown);
+  }, [mobileMenuOpen]);
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -122,6 +182,26 @@ export function Header() {
     if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
   }, []);
 
+  // Keyboard navigation for mega dropdown nav items
+  const handleNavKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextIndex = index < NAV_SECTIONS.length - 1 ? index + 1 : 0;
+      navItemsRef.current[nextIndex]?.focus();
+      setActiveDropdownSection(NAV_SECTIONS[nextIndex].key);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevIndex = index > 0 ? index - 1 : NAV_SECTIONS.length - 1;
+      navItemsRef.current[prevIndex]?.focus();
+      setActiveDropdownSection(NAV_SECTIONS[prevIndex].key);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveDropdownSection(NAV_SECTIONS[index].key);
+    } else if (e.key === 'Escape') {
+      setActiveDropdownSection(null);
+    }
+  }, []);
+
   const handleLogout = async () => {
     setUserMenuOpen(false);
     await logout();
@@ -131,13 +211,13 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-sm">
       <div className="container mx-auto px-4" ref={navRef}>
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-2xl font-heading font-bold text-primary-600">
-            I<span className="text-red-500">♥</span>Berlin
+          <Link href="/" className="text-2xl font-heading font-bold text-primary-600" aria-label="ILOVEBERLIN home">
+            I<span className="text-red-500" aria-hidden="true">&#9829;</span>Berlin
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center space-x-6" aria-label="Main navigation">
-            {NAV_SECTIONS.map((section) => (
+            {NAV_SECTIONS.map((section, index) => (
               <div
                 key={section.key}
                 className="relative"
@@ -145,12 +225,17 @@ export function Header() {
                 onMouseLeave={handleNavItemLeave}
               >
                 <Link
+                  ref={(el) => { navItemsRef.current[index] = el; }}
                   href={section.href}
                   className={`inline-flex items-center gap-1 text-sm font-medium transition-colors ${
                     activeDropdownSection === section.key
                       ? 'text-primary-600'
                       : 'text-gray-700 hover:text-primary-600'
                   }`}
+                  aria-expanded={activeDropdownSection === section.key}
+                  aria-haspopup="true"
+                  aria-current={isSectionActive(section.href) ? 'page' : undefined}
+                  onKeyDown={(e) => handleNavKeyDown(e, index)}
                 >
                   {section.label}
                   <svg
@@ -160,6 +245,7 @@ export function Header() {
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -181,30 +267,36 @@ export function Header() {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors"
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                  aria-label={`User menu for ${user.display_name}`}
                 >
                   <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-sm font-bold overflow-hidden">
                     {user.avatar_url ? (
-                      <img
+                      <Image
                         src={user.avatar_url}
                         alt={user.display_name}
-                        className="w-full h-full object-cover"
+                        width={32}
+                        height={32}
+                        className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
                       user.display_name.charAt(0).toUpperCase()
                     )}
                   </div>
                   <span>{user.display_name}</span>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-lg border border-white/30 rounded-xl shadow-xl py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-lg border border-white/30 rounded-xl shadow-xl py-1 z-50" role="menu" aria-label="User menu">
                     <Link
                       href="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setUserMenuOpen(false)}
+                      role="menuitem"
                     >
                       My Profile
                     </Link>
@@ -213,6 +305,7 @@ export function Header() {
                         href="/admin"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         onClick={() => setUserMenuOpen(false)}
+                        role="menuitem"
                       >
                         Admin Dashboard
                       </Link>
@@ -221,6 +314,7 @@ export function Header() {
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      role="menuitem"
                     >
                       Sign Out
                     </button>
@@ -247,13 +341,15 @@ export function Header() {
 
           {/* Mobile hamburger */}
           <button
+            ref={mobileMenuTriggerRef}
             type="button"
             className="lg:hidden p-2 text-gray-700"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
           >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               {mobileMenuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -277,7 +373,12 @@ export function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <nav className="lg:hidden py-4 border-t border-gray-100" aria-label="Mobile navigation">
+          <nav
+            ref={mobileMenuRef}
+            id="mobile-menu"
+            className="lg:hidden py-4 border-t border-gray-100"
+            aria-label="Mobile navigation"
+          >
             <MobileNavAccordion onNavigate={() => setMobileMenuOpen(false)} />
             <hr className="my-2 border-gray-100" />
             {accessToken && user ? (

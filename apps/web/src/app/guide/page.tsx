@@ -4,14 +4,16 @@ import type { CategoryCardData } from '@/components/ui/category-grid';
 import { toGuideTopicSeoSlug } from '@/lib/guide-seo-utils';
 import { LatestGuideList } from './latest-guide-list';
 import type { GuideCardData } from './latest-guide-list';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Berlin Guide',
   description:
     'Your comprehensive guide to living, working, and exploring Berlin. Practical tips, cultural insights, and local knowledge.',
+  alternates: {
+    canonical: `${SITE_URL}/guide`,
+  },
 };
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 async function getTopics(): Promise<CategoryCardData[]> {
   try {

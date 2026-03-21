@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
   ManyToOne,
   OneToMany,
   JoinColumn,
@@ -16,6 +17,7 @@ export class Cart {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   user_id!: string | null;
 
@@ -23,6 +25,7 @@ export class Cart {
   @JoinColumn({ name: 'user_id' })
   user!: User | null;
 
+  @Index()
   @Column({ type: 'varchar', length: 255, nullable: true })
   session_id!: string | null;
 

@@ -14,6 +14,7 @@ import { UpdateGuideDto } from './dto/update-guide.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 import { generateSlug } from '../common/utils/slug.util';
+import { getPaginationParams } from '../common/utils/pagination.util';
 
 export interface TocEntry {
   id: string;
@@ -211,11 +212,13 @@ export class GuidesService {
 
   async findAll(
     isPublicOnly = true,
-    page = 1,
-    limit = 20,
+    rawPage = 1,
+    rawLimit = 20,
     topicSlug?: string,
     status?: string,
   ): Promise<{ data: Guide[]; total: number; page: number; limit: number }> {
+    const { skip, take, page, limit } = getPaginationParams(rawPage, rawLimit);
+
     const qb = this.guideRepository
       .createQueryBuilder('guide')
       .leftJoinAndSelect('guide.topic', 'topic')
@@ -242,8 +245,8 @@ export class GuidesService {
     }
 
     qb.orderBy('guide.created_at', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit);
+      .skip(skip)
+      .take(take);
 
     const [data, total] = await qb.getManyAndCount();
 

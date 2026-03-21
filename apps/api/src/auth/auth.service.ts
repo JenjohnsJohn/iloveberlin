@@ -9,8 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
-import { createHash } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { User, UserStatus } from '../users/entities/user.entity';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { VerificationToken, TokenType } from './entities/verification-token.entity';
@@ -60,7 +59,7 @@ export class AuthService {
     });
 
     // Generate verification token
-    const rawToken = uuidv4();
+    const rawToken = randomBytes(32).toString('hex');
     const tokenHash = this.hashToken(rawToken);
 
     await this.verificationTokenRepository.save({
@@ -254,7 +253,7 @@ export class AuthService {
     }
 
     // Generate reset token
-    const rawToken = uuidv4();
+    const rawToken = randomBytes(32).toString('hex');
     const tokenHash = this.hashToken(rawToken);
 
     await this.verificationTokenRepository.save({
@@ -330,7 +329,7 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     // Generate refresh token
-    const rawRefreshToken = uuidv4();
+    const rawRefreshToken = randomBytes(32).toString('hex');
     const refreshTokenHash = this.hashToken(rawRefreshToken);
 
     await this.refreshTokenRepository.save({

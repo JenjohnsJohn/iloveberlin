@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { SeriesContent } from './series-content';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
 
 interface SeriesData {
   id: string;
@@ -77,7 +76,7 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz/videos/series/${series.slug}`,
+      canonical: `${SITE_URL}/videos/series/${series.slug}`,
     },
   };
 }

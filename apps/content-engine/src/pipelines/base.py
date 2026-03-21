@@ -13,28 +13,45 @@ from src.api_client.content import CONTENT_CREATORS, CONTENT_ENDPOINTS
 from src.api_client.media import download_image, upload_image
 from src.db.engine import async_session
 from src.db.models import DedupLog, PipelineItem, PipelineRun, PushLog
-from src.db.settings import get_bool_setting, get_int_setting
+from src.db.settings import get_bool_setting, get_int_setting, get_setting
 from src.sources.base import RawItem
 from src.pipelines.schemas import validate_enriched_data
+from src.utils.locks import get_pipeline_lock
 from src.utils.logging import get_logger
 from src.utils.notifications import notify_pipeline_failure, notify_zero_items
 
 log = get_logger("pipelines.base")
 
-# Phase 1.5: module-level concurrency locks per pipeline key
-_pipeline_locks: dict[str, asyncio.Lock] = {}
+# Phase 1.4: defaults for retry behaviour (now configurable via DB settings)
+DEFAULT_RETRY_BASE_DELAY = 300  # 5 minutes
+DEFAULT_PERMANENT_FAILURE_CODES = {400, 401, 403, 404, 405, 409, 422}
 
-# Phase 1.4: base delay for exponential backoff (seconds)
-RETRY_BASE_DELAY = 300  # 5 minutes
-
-# Phase 1.4: HTTP status codes that indicate permanent failure (don't retry)
-PERMANENT_FAILURE_CODES = {400, 401, 403, 404, 405, 409, 422}
+# Keep module-level aliases so existing imports (e.g. tests) still work.
+RETRY_BASE_DELAY = DEFAULT_RETRY_BASE_DELAY
+PERMANENT_FAILURE_CODES = DEFAULT_PERMANENT_FAILURE_CODES
 
 
+async def _get_retry_base_delay() -> int:
+    """Read retry base delay from DB setting, falling back to default."""
+    return await get_int_setting("retry.base_delay_seconds", DEFAULT_RETRY_BASE_DELAY)
+
+
+async def _get_permanent_failure_codes() -> set[int]:
+    """Read permanent failure codes from DB setting, falling back to default.
+
+    DB value format: comma-separated integers, e.g. "400,401,403,404,405,409,422".
+    """
+    default_csv = ",".join(str(c) for c in sorted(DEFAULT_PERMANENT_FAILURE_CODES))
+    raw = await get_setting("retry.permanent_failure_codes", default_csv)
+    try:
+        return {int(c.strip()) for c in raw.split(",") if c.strip()}
+    except (ValueError, TypeError):
+        return DEFAULT_PERMANENT_FAILURE_CODES
+
+
+# Kept as a thin alias for backward compatibility; delegates to shared utility.
 def _get_pipeline_lock(pipeline_key: str) -> asyncio.Lock:
-    if pipeline_key not in _pipeline_locks:
-        _pipeline_locks[pipeline_key] = asyncio.Lock()
-    return _pipeline_locks[pipeline_key]
+    return get_pipeline_lock(pipeline_key)
 
 
 def _extract_status_code(error: Exception) -> int | None:
@@ -109,8 +126,8 @@ class BasePipeline(ABC):
                 # Phase 5.7: alert on zero items
                 try:
                     await notify_zero_items(pipeline_name)
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.error("Failed to send zero-items notification", pipeline=pipeline_name, error=str(e))
                 return
 
             # Step 2: Dedup + store
@@ -156,7 +173,7 @@ class BasePipeline(ABC):
                             PipelineItem.content_type == self.content_type,
                             PipelineItem.status == "fetched",
                             PipelineItem.enriched_data.is_(None),
-                            PipelineItem.id.notin_(pending_ids) if pending_ids else True,
+                            *([PipelineItem.id.notin_(pending_ids)] if pending_ids else []),
                         )
                         .order_by(PipelineItem.created_at)
                         .limit(remaining_slots)
@@ -191,7 +208,25 @@ class BasePipeline(ABC):
                             item.updated_at = datetime.now(timezone.utc)
                             await session.commit()
 
-            log.info("Items enriched", pipeline=pipeline_name, count=enriched_count)
+            # Count AI vs fallback enrichment methods
+            ai_enriched = 0
+            fallback_enriched = 0
+            async with async_session() as session:
+                for item_id in pending_ids:
+                    item = await session.get(PipelineItem, item_id)
+                    if item and item.enriched_data:
+                        method = item.enriched_data.get("_enrichment_method", "ai")
+                        if method == "fallback":
+                            fallback_enriched += 1
+                        else:
+                            ai_enriched += 1
+            log.info(
+                "Items enriched",
+                pipeline=pipeline_name,
+                count=enriched_count,
+                ai=ai_enriched,
+                fallback=fallback_enriched,
+            )
 
             # Step 4: Push enriched items to API (if auto-push enabled and not dry run)
             pushed_count = 0
@@ -219,7 +254,7 @@ class BasePipeline(ABC):
                                 PipelineItem.content_type == self.content_type,
                                 PipelineItem.status == "enriched",
                                 PipelineItem.enriched_data.isnot(None),
-                                PipelineItem.id.notin_(push_ids) if push_ids else True,
+                                *([PipelineItem.id.notin_(push_ids)] if push_ids else []),
                             )
                             .order_by(PipelineItem.created_at)
                             .limit(enrich_batch_limit)
@@ -265,8 +300,8 @@ class BasePipeline(ABC):
             # Phase 5.7: alert on pipeline failure
             try:
                 await notify_pipeline_failure(pipeline_name, str(e))
-            except Exception:
-                pass
+            except Exception as notify_err:
+                log.error("Failed to send pipeline-failure notification", pipeline=pipeline_name, error=str(notify_err))
 
     async def _finish_run(
         self,
@@ -306,7 +341,13 @@ class BasePipeline(ABC):
         return enriched
 
     async def _dedup_and_store(self, raw_items: list[RawItem]) -> list[uuid.UUID]:
-        """Atomic dedup+store using INSERT ... ON CONFLICT. Returns new pipeline_item IDs."""
+        """Atomic dedup+store using INSERT ... ON CONFLICT. Returns new pipeline_item IDs.
+
+        Note: a related but distinct dedup implementation exists in the webhook
+        ingest endpoint (``src.api_client.ingest``). That version uses SHA-256
+        fingerprinting and a SELECT-first check (for early HTTP 200 response),
+        whereas this one relies solely on the atomic ON CONFLICT clause.
+        """
         new_ids: list[uuid.UUID] = []
 
         async with async_session() as session:
@@ -353,6 +394,13 @@ class BasePipeline(ABC):
 
             enriched = await self.enrich(item.raw_data)
 
+            # enrich() returning None means the item should be skipped (e.g. not Berlin-related)
+            if enriched is None:
+                item.status = "skipped"
+                item.updated_at = datetime.now(timezone.utc)
+                await session.commit()
+                return
+
             # Validate enriched data against schema
             validation_error = validate_enriched_data(self.content_type, enriched)
             if validation_error:
@@ -375,6 +423,8 @@ class BasePipeline(ABC):
     async def _push_item(self, item_id: uuid.UUID) -> bool:
         """Push an enriched item to the API with failure classification."""
         max_attempts = await get_int_setting("max_push_attempts", 3)
+        retry_base_delay = await _get_retry_base_delay()
+        permanent_codes = await _get_permanent_failure_codes()
         async with async_session() as session:
             item = await session.get(PipelineItem, item_id)
             if not item or item.status not in ("enriched", "failed"):
@@ -475,7 +525,7 @@ class BasePipeline(ABC):
                 item.updated_at = datetime.now(timezone.utc)
 
                 # Phase 1.4: classify failure type
-                if status_code and status_code in PERMANENT_FAILURE_CODES and status_code != 429:
+                if status_code and status_code in permanent_codes and status_code != 429:
                     item.status = "permanently_failed"
                     log.warning(
                         "Permanent push failure — will not retry",
@@ -487,7 +537,7 @@ class BasePipeline(ABC):
                 else:
                     item.status = "failed"
                     # Phase 2.3: exponential backoff for retry
-                    delay = RETRY_BASE_DELAY * (2 ** (item.push_attempts - 1))
+                    delay = retry_base_delay * (2 ** (item.push_attempts - 1))
                     item.next_retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
 
                 # Log request/response for debugging

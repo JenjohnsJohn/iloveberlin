@@ -1,8 +1,7 @@
 """Admin panel authentication — session-based with hashed password."""
 
 import hashlib
-import hmac
-import secrets
+import os
 from functools import wraps
 
 from fastapi import Request
@@ -14,17 +13,32 @@ from config.settings import settings
 SESSION_COOKIE = "ce_session"
 SESSION_MAX_AGE = 86400 * 7  # 7 days
 
-_secret_key = settings.admin_password_hash or secrets.token_hex(32)
-_serializer = URLSafeTimedSerializer(_secret_key)
+
+def _get_secret_key() -> str:
+    """Derive a stable secret key for session signing.
+
+    Priority:
+    1. ADMIN_SECRET_KEY environment variable (explicit)
+    2. HMAC-SHA256 of the admin password hash (stable, derived)
+    Falls back to nothing — if neither is available, session signing
+    will fail, which is fail-secure (no login possible).
+    """
+    env_key = os.environ.get("ADMIN_SECRET_KEY", "").strip()
+    if env_key:
+        return env_key
+    if settings.admin_password_hash:
+        return hashlib.sha256(
+            f"session-secret:{settings.admin_password_hash}".encode()
+        ).hexdigest()
+    return ""
+
+
+_secret_key = _get_secret_key()
+_serializer = URLSafeTimedSerializer(_secret_key) if _secret_key else None
 
 
 def _check_password(password: str) -> bool:
-    """Verify password against the stored hash.
-
-    Supports two formats:
-    - bcrypt: $2b$... (requires bcrypt package)
-    - sha256: sha256:<hex> (simple fallback)
-    """
+    """Verify password against the stored bcrypt hash."""
     stored = settings.admin_password_hash
     if not stored:
         return False
@@ -35,23 +49,21 @@ def _check_password(password: str) -> bool:
             return bcrypt.checkpw(password.encode(), stored.encode())
         except ImportError:
             return False
-    elif stored.startswith("sha256:"):
-        expected = stored[7:]
-        actual = hashlib.sha256(password.encode()).hexdigest()
-        return hmac.compare_digest(actual, expected)
-    else:
-        # Treat as plain sha256 hex
-        actual = hashlib.sha256(password.encode()).hexdigest()
-        return hmac.compare_digest(actual, stored)
+
+    return False
 
 
 def create_session_token() -> str:
     """Create a signed session token."""
+    if not _serializer:
+        return ""
     return _serializer.dumps({"authenticated": True})
 
 
 def verify_session_token(token: str) -> bool:
     """Verify a session token is valid and not expired."""
+    if not _serializer:
+        return False
     try:
         data = _serializer.loads(token, max_age=SESSION_MAX_AGE)
         return data.get("authenticated", False)

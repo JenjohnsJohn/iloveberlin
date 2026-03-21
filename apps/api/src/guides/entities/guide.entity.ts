@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -47,6 +48,7 @@ export class Guide {
   @Column({ type: 'text', nullable: true })
   excerpt!: string | null;
 
+  @Index()
   @Column({ type: 'uuid', nullable: true })
   featured_image_id!: string | null;
 
@@ -54,6 +56,7 @@ export class Guide {
   @JoinColumn({ name: 'featured_image_id' })
   featured_image!: Media | null;
 
+  @Index()
   @Column({ type: 'uuid' })
   author_id!: string;
 

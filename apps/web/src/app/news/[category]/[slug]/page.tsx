@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { notFound, permanentRedirect } from 'next/navigation';
 import { ArticleContent } from './article-content';
 import { buildArticleUrl, fromCategorySeoSlug, toCategorySeoSlug } from '@/lib/news-seo-utils';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { API_URL, SITE_URL } from '@/lib/constants';
+import { safeJsonLdStringify } from '@/lib/json-ld';
 
 interface Article {
   id: string;
@@ -70,7 +70,7 @@ export async function generateMetadata({
       description: metaDescription,
     },
     alternates: {
-      canonical: `https://iloveberlin.biz${buildArticleUrl(slug, categorySlug)}`,
+      canonical: `${SITE_URL}${buildArticleUrl(slug, categorySlug)}`,
     },
   };
 }
@@ -118,11 +118,11 @@ export default async function ArticleDetailPage({
     publisher: {
       '@type': 'Organization',
       name: 'ILOVEBERLIN',
-      url: 'https://iloveberlin.biz',
+      url: SITE_URL,
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://iloveberlin.biz${buildArticleUrl(slug, categorySlug)}`,
+      '@id': `${SITE_URL}${buildArticleUrl(slug, categorySlug)}`,
     },
     wordCount: article.body.trim().split(/\s+/).length,
     articleSection: article.category?.name,
@@ -133,7 +133,7 @@ export default async function ArticleDetailPage({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
       <ArticleContent
         article={{

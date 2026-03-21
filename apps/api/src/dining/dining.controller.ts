@@ -40,20 +40,23 @@ export class DiningController {
   // ─── Public cuisine endpoints ────────────────────────────
 
   @Get('cuisines/tree')
-  findCuisineTree() {
-    return this.diningService.findCuisineTree();
+  async findCuisineTree() {
+    const data = await this.diningService.findCuisineTree();
+    return { data };
   }
 
   @Get('cuisines')
-  findAllCuisines() {
-    return this.diningService.findAllCuisines();
+  async findAllCuisines() {
+    const data = await this.diningService.findAllCuisines();
+    return { data };
   }
 
   // ─── Public offer endpoints ──────────────────────────────
 
   @Get('offers')
-  findActiveOffers() {
-    return this.diningService.findAllActiveOffers();
+  async findActiveOffers() {
+    const data = await this.diningService.findAllActiveOffers();
+    return { data };
   }
 
   // ─── Admin routes (before :slug to avoid capture) ────────

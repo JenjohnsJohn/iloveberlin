@@ -27,5 +27,21 @@ export function sanitize(dirty: string): string {
     },
     allowedSchemes: ['http', 'https', 'mailto'],
     disallowedTagsMode: 'discard',
+    // Strip all inline styles - they can be used for CSS-based data exfiltration.
+    allowedStyles: {},
+    // Enforce rel="noopener noreferrer" on links that open in a new tab.
+    transformTags: {
+      a: (tagName: string, attribs: Record<string, string>) => {
+        // Strip javascript: URIs that might bypass scheme checks.
+        if (attribs.href && /^\s*javascript\s*:/i.test(attribs.href)) {
+          delete attribs.href;
+        }
+        // Force safe rel on target="_blank" links.
+        if (attribs.target === '_blank') {
+          attribs.rel = 'noopener noreferrer';
+        }
+        return { tagName, attribs };
+      },
+    },
   });
 }

@@ -1,5 +1,7 @@
 """Content Engine Admin Panel — FastAPI app with authentication."""
 
+from __future__ import annotations
+
 import asyncio
 import json
 import secrets
@@ -8,6 +10,11 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.api_client.client import APIClient
+    from src.pipelines.base import BasePipeline
 
 from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -30,11 +37,15 @@ from src.db.settings import (
     get_settings_by_prefix,
     set_setting,
 )
+from src.utils.locks import get_pipeline_lock
 from src.utils.logging import get_logger
 
 log = get_logger("admin")
 
 # --- Rate limiting for login ---
+# TODO: _login_attempts is in-memory and will be lost on restart. In a
+# distributed deployment, move to Redis (e.g. SETEX with IP-based keys)
+# or a shared DB table so rate limits apply across all worker processes.
 _login_attempts: dict[str, list[float]] = defaultdict(list)
 LOGIN_MAX_ATTEMPTS = 5
 LOGIN_WINDOW_SECONDS = 900  # 15 minutes
@@ -62,14 +73,10 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Pragma"] = "no-cache"
     return response
 
-# --- Pipeline concurrency locks (Phase 1.5) ---
-_pipeline_locks: dict[str, asyncio.Lock] = {}
 
-
+# Kept as a thin alias for backward compatibility; delegates to shared utility.
 def _get_pipeline_lock(pipeline_name: str) -> asyncio.Lock:
-    if pipeline_name not in _pipeline_locks:
-        _pipeline_locks[pipeline_name] = asyncio.Lock()
-    return _pipeline_locks[pipeline_name]
+    return get_pipeline_lock(pipeline_name)
 
 
 # --- CSRF helpers (Phase 2.7) ---
@@ -93,37 +100,44 @@ def _generate_csrf_token(request: Request) -> str:
 
 
 # --- CSRF session store (session_token -> (csrf_token, created_at)) ---
+# TODO: _csrf_store is in-memory and will be lost on restart. In a
+# distributed deployment, move to Redis or a DB-backed session store so
+# CSRF tokens are shared across worker processes. The _csrf_lock is also
+# process-local (handled separately — see concurrency improvements).
 _csrf_store: dict[str, tuple[str, float]] = {}
+_csrf_lock = asyncio.Lock()
 _CSRF_MAX_AGE = 86400  # 24 hours
 _CSRF_MAX_ENTRIES = 500
 
 
-def _get_or_create_csrf(request: Request) -> str:
+async def _get_or_create_csrf(request: Request) -> str:
     """Get or create a CSRF token tied to the session cookie."""
-    # Prune expired entries periodically
-    if len(_csrf_store) > _CSRF_MAX_ENTRIES:
-        now = time.time()
-        expired = [k for k, (_, ts) in _csrf_store.items() if now - ts > _CSRF_MAX_AGE]
-        for k in expired:
-            del _csrf_store[k]
+    async with _csrf_lock:
+        # Prune expired entries periodically
+        if len(_csrf_store) > _CSRF_MAX_ENTRIES:
+            now = time.time()
+            expired = [k for k, (_, ts) in _csrf_store.items() if now - ts > _CSRF_MAX_AGE]
+            for k in expired:
+                del _csrf_store[k]
 
-    session_token = request.cookies.get(SESSION_COOKIE, "")
-    entry = _csrf_store.get(session_token)
-    if not entry or time.time() - entry[1] > _CSRF_MAX_AGE:
-        _csrf_store[session_token] = (secrets.token_hex(32), time.time())
-    return _csrf_store[session_token][0]
+        session_token = request.cookies.get(SESSION_COOKIE, "")
+        entry = _csrf_store.get(session_token)
+        if not entry or time.time() - entry[1] > _CSRF_MAX_AGE:
+            _csrf_store[session_token] = (secrets.token_hex(32), time.time())
+        return _csrf_store[session_token][0]
 
 
-def _validate_csrf(request: Request, form_token: str) -> bool:
+async def _validate_csrf(request: Request, form_token: str) -> bool:
     """Validate CSRF token from form against session."""
-    session_token = request.cookies.get(SESSION_COOKIE, "")
-    entry = _csrf_store.get(session_token)
-    if not entry or not form_token:
-        return False
-    expected, created_at = entry
-    if time.time() - created_at > _CSRF_MAX_AGE:
-        return False
-    return secrets.compare_digest(expected, form_token)
+    async with _csrf_lock:
+        session_token = request.cookies.get(SESSION_COOKIE, "")
+        entry = _csrf_store.get(session_token)
+        if not entry or not form_token:
+            return False
+        expected, created_at = entry
+        if time.time() - created_at > _CSRF_MAX_AGE:
+            return False
+        return secrets.compare_digest(expected, form_token)
 
 
 def _parse_uuid(value: str) -> uuid.UUID | None:
@@ -135,11 +149,20 @@ def _parse_uuid(value: str) -> uuid.UUID | None:
 
 
 def _get_client_ip(request: Request) -> str:
-    """Extract client IP from request."""
+    """Extract client IP from request.
+
+    Uses the actual socket peer address as the primary identifier,
+    with X-Forwarded-For as supplementary info. This prevents
+    rate-limit bypass via header spoofing.
+    """
+    peer_ip = request.client.host if request.client else "unknown"
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+        forwarded_ip = forwarded.split(",")[0].strip()
+        # Combine both to prevent spoofing: rate-limit applies to the
+        # real peer address, not just the (spoofable) forwarded header.
+        return f"{peer_ip}:{forwarded_ip}"
+    return peer_ip
 
 
 def _is_rate_limited(ip: str) -> bool:
@@ -318,7 +341,7 @@ async def dashboard(request: Request):
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "csrf_token": _get_or_create_csrf(request),
+        "csrf_token": await _get_or_create_csrf(request),
         "status_counts": status_counts,
         "type_counts": type_counts,
         "total_pushed": total_pushed,
@@ -343,7 +366,7 @@ async def dashboard(request: Request):
 @require_auth
 async def toggle_auto_push(request: Request):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/", status_code=303)
     enabled = form.get("enabled", "false")
     await set_setting(
@@ -382,7 +405,7 @@ async def settings_page(request: Request):
     all_settings = await get_all_settings()
     return templates.TemplateResponse("settings.html", {
         "request": request,
-        "csrf_token": _get_or_create_csrf(request),
+        "csrf_token": await _get_or_create_csrf(request),
         "settings": all_settings,
         "pipeline_labels": PIPELINE_LABELS,
         "target_keys": TARGET_KEYS,
@@ -394,18 +417,22 @@ async def settings_page(request: Request):
 @require_auth
 async def update_settings(request: Request):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/settings", status_code=303)
-    # Only allow updating known setting key prefixes to prevent injection
-    ALLOWED_SETTING_PREFIXES = (
+    # Only allow updating known setting keys to prevent injection.
+    # Exact keys must match exactly; dot-suffixed prefixes allow sub-keys.
+    ALLOWED_EXACT_KEYS = {
         "auto_push_enabled", "max_push_attempts", "retry_interval_minutes",
+    }
+    ALLOWED_PREFIXES = (
         "pipeline.", "publish.", "schedule.", "target.", "ai.",
         "housekeeping.", "notifications.", "ingest.",
     )
     for key, value in form.items():
         if key.startswith("_"):
             continue
-        if not any(key == prefix or key.startswith(prefix) for prefix in ALLOWED_SETTING_PREFIXES):
+        is_allowed = key in ALLOWED_EXACT_KEYS or any(key.startswith(p) for p in ALLOWED_PREFIXES)
+        if not is_allowed:
             log.warning("Rejected setting update for disallowed key", key=key)
             continue
         await set_setting(key, value)
@@ -416,7 +443,7 @@ async def update_settings(request: Request):
 @require_auth
 async def update_json_setting(request: Request):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/settings", status_code=303)
     key = form.get("key", "")
     value = form.get("value", "[]")
@@ -441,7 +468,7 @@ async def update_json_setting(request: Request):
 @require_auth
 async def run_pipeline_now(request: Request):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/", status_code=303)
     pipeline_name = form.get("pipeline", "")
     dry_run = form.get("dry_run", "false") == "true"
@@ -471,13 +498,16 @@ async def run_pipeline_now(request: Request):
         try:
             pipeline = cls(client)
             asyncio.create_task(_run_pipeline_task(pipeline, client, pipeline_name, dry_run))
-        except Exception:
+        except BaseException:
             await client.close()
+            raise
 
     return RedirectResponse(url="/admin/", status_code=303)
 
 
-async def _run_pipeline_task(pipeline, client, pipeline_name: str, dry_run: bool = False):
+async def _run_pipeline_task(
+    pipeline: "BasePipeline", client: "APIClient", pipeline_name: str, dry_run: bool = False
+) -> None:
     """Run pipeline with concurrency guard."""
     lock = _get_pipeline_lock(pipeline_name)
     if lock.locked():
@@ -566,7 +596,7 @@ async def content_list(
 
     return templates.TemplateResponse("content_list.html", {
         "request": request,
-        "csrf_token": _get_or_create_csrf(request),
+        "csrf_token": await _get_or_create_csrf(request),
         "items": items,
         "content_type": content_type,
         "status": status,
@@ -603,7 +633,7 @@ async def content_detail(request: Request, item_id: str):
 
     return templates.TemplateResponse("content_detail.html", {
         "request": request,
-        "csrf_token": _get_or_create_csrf(request),
+        "csrf_token": await _get_or_create_csrf(request),
         "item": item,
         "push_logs": push_logs,
     })
@@ -624,7 +654,7 @@ async def content_edit_page(request: Request, item_id: str):
 
     return templates.TemplateResponse("content_edit.html", {
         "request": request,
-        "csrf_token": _get_or_create_csrf(request),
+        "csrf_token": await _get_or_create_csrf(request),
         "item": item,
     })
 
@@ -633,7 +663,7 @@ async def content_edit_page(request: Request, item_id: str):
 @require_auth
 async def content_edit_submit(request: Request, item_id: str):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url=f"/admin/content/{item_id}", status_code=303)
     uid = _parse_uuid(item_id)
     if not uid:
@@ -675,7 +705,7 @@ async def content_edit_submit(request: Request, item_id: str):
 @require_auth
 async def manual_push(request: Request, item_id: str):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url=f"/admin/content/{item_id}", status_code=303)
     from src.api_client.client import APIClient
     from src.pipelines import get_pipeline
@@ -705,7 +735,7 @@ async def manual_push(request: Request, item_id: str):
 @require_auth
 async def push_all_enriched(request: Request):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/content", status_code=303)
     content_type = form.get("content_type", "")
 
@@ -740,7 +770,7 @@ async def push_all_enriched(request: Request):
 @require_auth
 async def bulk_action(request: Request):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/content", status_code=303)
     action = form.get("action", "")
     item_ids = form.getlist("item_ids")
@@ -789,7 +819,7 @@ async def bulk_action(request: Request):
 @require_auth
 async def delete_item(request: Request, item_id: str):
     form = await request.form()
-    if not _validate_csrf(request, form.get("_csrf", "")):
+    if not await _validate_csrf(request, form.get("_csrf", "")):
         return RedirectResponse(url="/admin/content", status_code=303)
     uid = _parse_uuid(item_id)
     if not uid:

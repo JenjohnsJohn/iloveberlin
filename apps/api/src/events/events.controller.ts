@@ -52,8 +52,9 @@ export class EventsController {
 
   // Venue routes (before :slug to avoid capture)
   @Get('venues/list')
-  findAllVenues() {
-    return this.eventsService.findAllVenues();
+  async findAllVenues() {
+    const data = await this.eventsService.findAllVenues();
+    return { data };
   }
 
   // Admin routes (before :slug to avoid capture)
@@ -73,8 +74,9 @@ export class EventsController {
 
   // Related events (before :slug to avoid capture - uses UUID)
   @Get(':id/related')
-  findRelated(@Param('id', ParseUUIDPipe) id: string) {
-    return this.eventsService.findRelatedEvents(id);
+  async findRelated(@Param('id', ParseUUIDPipe) id: string) {
+    const data = await this.eventsService.findRelatedEvents(id);
+    return { data };
   }
 
   // ─── Public param routes ───────────────────────────────────
