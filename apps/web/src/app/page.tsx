@@ -413,56 +413,56 @@ const STATS = [
 
 const HERO_SLIDE_CONFIG = {
   news: {
-    gradient: 'from-primary-500 to-primary-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Featured Story',
     linkText: 'Read More',
     secondaryText: 'Browse News',
     secondaryHref: '/news',
   },
   events: {
-    gradient: 'from-rose-500 to-rose-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Featured Event',
     linkText: 'View Event',
     secondaryText: 'Browse Events',
     secondaryHref: '/events',
   },
   dining: {
-    gradient: 'from-emerald-500 to-emerald-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Dining Highlight',
     linkText: 'View Restaurant',
     secondaryText: 'Browse Dining',
     secondaryHref: '/dining',
   },
   guide: {
-    gradient: 'from-sky-500 to-sky-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Berlin Guide',
     linkText: 'Read Guide',
     secondaryText: 'Browse Guides',
     secondaryHref: '/guide',
   },
   videos: {
-    gradient: 'from-violet-500 to-violet-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Latest Video',
     linkText: 'Watch Now',
     secondaryText: 'Browse Videos',
     secondaryHref: '/videos',
   },
   competitions: {
-    gradient: 'from-amber-500 to-amber-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Win Prizes',
     linkText: 'Enter Now',
     secondaryText: 'Browse Competitions',
     secondaryHref: '/competitions',
   },
   classifieds: {
-    gradient: 'from-slate-500 to-slate-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'Featured Classified',
     linkText: 'View Listing',
     secondaryText: 'Browse Classifieds',
     secondaryHref: '/classifieds',
   },
   store: {
-    gradient: 'from-fuchsia-500 to-fuchsia-700',
+    gradient: 'from-gray-900 to-gray-950',
     label: 'From the Store',
     linkText: 'Shop Now',
     secondaryText: 'Browse Store',
@@ -471,14 +471,7 @@ const HERO_SLIDE_CONFIG = {
 } as const;
 
 const HERO_GRADIENTS = [
-  'from-primary-500 to-primary-700',
-  'from-rose-500 to-rose-700',
-  'from-emerald-500 to-emerald-700',
-  'from-sky-500 to-sky-700',
-  'from-violet-500 to-violet-700',
-  'from-amber-500 to-amber-700',
-  'from-slate-500 to-slate-700',
-  'from-fuchsia-500 to-fuchsia-700',
+  'from-gray-900 to-gray-950',
 ];
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
@@ -928,8 +921,8 @@ export default function HomePage() {
       );
     }
 
-    // Chunk into groups of 5 → one slide per chunk
-    const chunks = chunkArray(pooledItems, 5);
+    // Chunk into groups of 3 → one slide per chunk (1 large + 2 stacked)
+    const chunks = chunkArray(pooledItems, 3);
     return chunks
       .filter(chunk => chunk.length >= 2) // need at least large + 1 tile
       .map((chunk, i) => {
@@ -1038,15 +1031,13 @@ export default function HomePage() {
         }}
       >
         {isLoading ? (
-          <div className="bg-gradient-to-br from-primary-500 to-primary-700 py-6 md:py-8">
+          <div className="bg-gray-950 py-8 md:py-12">
             <div className="container mx-auto px-4">
-              <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-2">
-                <div className="aspect-[16/9] lg:aspect-auto lg:h-[400px] bg-white/10 rounded-xl" />
-                <div className="grid grid-cols-2 grid-rows-2 gap-2">
-                  <div className="aspect-square bg-white/10 rounded-xl" />
-                  <div className="aspect-square bg-white/10 rounded-xl" />
-                  <div className="aspect-square bg-white/10 rounded-xl" />
-                  <div className="aspect-square bg-white/10 rounded-xl" />
+              <div className="animate-pulse grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 lg:gap-4">
+                <div className="aspect-[16/9] lg:aspect-auto lg:h-[460px] bg-white/10 rounded-xl" />
+                <div className="flex flex-col gap-3 lg:h-[460px]">
+                  <div className="flex-1 bg-white/10 rounded-xl" />
+                  <div className="flex-1 bg-white/10 rounded-xl" />
                 </div>
               </div>
             </div>
@@ -1066,14 +1057,14 @@ export default function HomePage() {
                   }`}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient}`} />
-                  <div className="relative py-6 md:py-8">
+                  <div className="relative py-8 md:py-12">
                     <div className="container mx-auto px-4">
                       {/* Browse link */}
-                      <div className="flex justify-end mb-2">
+                      <div className="flex justify-end mb-3">
                         <Link
                           href={slide.secondaryHref}
                           tabIndex={index === activeSlide ? 0 : -1}
-                          className="text-xs font-medium text-white/70 hover:text-white transition-colors flex items-center gap-1"
+                          className="text-xs font-medium text-white/60 hover:text-white transition-colors flex items-center gap-1"
                         >
                           {slide.secondaryText}
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1081,14 +1072,14 @@ export default function HomePage() {
                           </svg>
                         </Link>
                       </div>
-                      {/* 1 Large + up to 4 Tiles */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                      {/* 1 Large + 2 stacked tiles */}
+                      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3 lg:gap-4">
                         {/* Large featured item (left) */}
                         {slide.items[0] && (
                           <Link
                             href={slide.items[0].linkHref}
                             tabIndex={index === activeSlide ? 0 : -1}
-                            className="relative block rounded-xl overflow-hidden group aspect-[16/9] lg:aspect-auto lg:h-[400px] bg-white/10"
+                            className="relative block rounded-xl overflow-hidden group aspect-[16/9] lg:aspect-auto lg:h-[460px] bg-white/10"
                           >
                             {slide.items[0].imageUrl ? (
                               <img
@@ -1104,7 +1095,7 @@ export default function HomePage() {
                               </div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-5">
+                            <div className="absolute bottom-0 left-0 right-0 p-6">
                               <span className="inline-block px-2.5 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-xs font-semibold mb-2">
                                 {slide.items[0].categoryTag}
                               </span>
@@ -1112,22 +1103,22 @@ export default function HomePage() {
                                 {slide.items[0].title}
                               </h2>
                               {slide.items[0].excerpt && (
-                                <p className="text-sm text-white/80 line-clamp-2 hidden md:block">
+                                <p className="text-sm text-white/75 line-clamp-2 hidden md:block">
                                   {slide.items[0].excerpt}
                                 </p>
                               )}
                             </div>
                           </Link>
                         )}
-                        {/* 4 Tile items (right, 2x2 grid) */}
+                        {/* 2 stacked tile items (right column) */}
                         {slide.items.length > 1 && (
-                          <div className="grid grid-cols-2 grid-rows-2 gap-2">
-                            {slide.items.slice(1, 5).map((item, i) => (
+                          <div className="flex flex-col gap-3 lg:h-[460px]">
+                            {slide.items.slice(1, 3).map((item, i) => (
                               <Link
                                 key={i}
                                 href={item.linkHref}
                                 tabIndex={index === activeSlide ? 0 : -1}
-                                className="relative block rounded-xl overflow-hidden group aspect-square bg-white/10"
+                                className="relative flex-1 block rounded-xl overflow-hidden group aspect-[16/9] lg:aspect-auto bg-white/10"
                               >
                                 {item.imageUrl ? (
                                   <img
@@ -1142,14 +1133,19 @@ export default function HomePage() {
                                     </svg>
                                   </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-3">
-                                  <span className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-semibold mb-1">
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 p-4">
+                                  <span className="inline-block px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-semibold mb-1.5">
                                     {item.categoryTag}
                                   </span>
                                   <h3 className="text-sm font-bold line-clamp-2">
                                     {item.title}
                                   </h3>
+                                  {item.excerpt && (
+                                    <p className="text-xs text-white/70 line-clamp-1 mt-0.5 hidden lg:block">
+                                      {item.excerpt}
+                                    </p>
+                                  )}
                                 </div>
                               </Link>
                             ))}
@@ -1213,7 +1209,7 @@ export default function HomePage() {
             )}
           </>
         ) : (
-          <div className="bg-gradient-to-br from-primary-500 to-primary-700 py-10 md:py-14">
+          <div className="bg-gray-950 py-10 md:py-14">
             <div className="container mx-auto px-4 text-center py-6">
               <h1 className="text-3xl md:text-4xl font-bold mb-3">Welcome to ILOVEBERLIN</h1>
               <p className="text-base text-white/80 mb-4 max-w-xl mx-auto">
